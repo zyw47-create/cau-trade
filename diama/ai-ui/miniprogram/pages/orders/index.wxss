@@ -1,0 +1,64 @@
+.list {
+  padding: 24rpx 32rpx 32rpx;
+}
+
+.item {
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: 28rpx;
+}
+
+.top,
+.goods-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sn {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.time {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.status {
+  align-self: flex-start;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: #E91E63;
+  background: #FFF1F6;
+}
+
+.goods-row {
+  margin-top: 20rpx;
+}
+
+.thumb {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #FFD6E5, #FFFFFF, #DDFCF7);
+}
+
+.meta {
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.title {
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.empty {
+  padding: 40rpx 32rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+}

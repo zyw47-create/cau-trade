@@ -1,0 +1,249 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #faf7f2;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #d16ba5;
+  --primary-foreground: #ffffff;
+  --secondary: #c777b9;
+  --secondary-foreground: #ffffff;
+  --muted: #e8e0d8;
+  --muted-foreground: #666666;
+  --accent: #5ffbf1;
+  --accent-foreground: #1a1a1a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e8e0d8;
+  --input: #f5f1ec;
+  --ring: #5ffbf1;
+  --chart-1: #d16ba5;
+  --chart-2: #9a9ae1;
+  --chart-3: #69bff8;
+  --chart-4: #41dfff;
+  --chart-5: #5ffbf1;
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #faf7f2;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #d16ba5;
+  --primary-foreground: #ffffff;
+  --secondary: #c777b9;
+  --secondary-foreground: #ffffff;
+  --muted: #e8e0d8;
+  --muted-foreground: #666666;
+  --accent: #5ffbf1;
+  --accent-foreground: #1a1a1a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e8e0d8;
+  --input: #f5f1ec;
+  --ring: #5ffbf1;
+  --chart-1: #d16ba5;
+  --chart-2: #9a9ae1;
+  --chart-3: #69bff8;
+  --chart-4: #41dfff;
+  --chart-5: #5ffbf1;
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-serif-sc: var(--font-serif-sc, 'Noto Serif SC', serif);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-serif-sc;
+  }
+}
+
+/* AI Startup Premium Animation Styles */
+@keyframes ribbon-wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.2) rotateZ(2deg); }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(102, 51, 153, 0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(102, 51, 153, 0.8)); }
+}
+
+@keyframes particles-float {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.1); opacity: 0; }
+}
+
+@keyframes liquid-morph {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 40% 60% 30% 70%; }
+}
+
+@keyframes clip-reveal {
+  0% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+  100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
+@keyframes magnetic-hover {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes scanning-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-ribbon-wave {
+  animation: ribbon-wave 2s ease-in-out infinite;
+}
+
+.animate-float-up {
+  animation: float-up 0.8s ease-out;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-liquid-morph {
+  animation: liquid-morph 4s ease-in-out infinite;
+}
+
+.animate-clip-reveal {
+  animation: clip-reveal 0.8s ease-out;
+}
+
+.animate-magnetic-hover {
+  animation: magnetic-hover 0.4s ease-out;
+}
+
+.animate-scanning-line {
+  animation: scanning-line 2s ease-in-out infinite;
+}
+
+/* Glassmorphism Effect - Light Theme */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(209, 107, 165, 0.15);
+}
+
+.glass-effect-hover:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(95, 251, 241, 0.3);
+  box-shadow: 0 8px 32px rgba(209, 107, 165, 0.08);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Holographic Glow Border */
+.glow-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(135deg, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+  background-size: 300% 300%;
+  border-radius: 12px;
+  animation: gradient-shift 3s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Neon Text Effect */
+.neon-text {
+  color: #00d9ff;
+  text-shadow: 
+    0 0 10px rgba(0, 217, 255, 0.5),
+    0 0 20px rgba(0, 217, 255, 0.3),
+    0 0 30px rgba(102, 51, 153, 0.2);
+}
+
+.neon-text-pink {
+  color: #ff006e;
+  text-shadow: 
+    0 0 10px rgba(255, 0, 110, 0.5),
+    0 0 20px rgba(255, 0, 110, 0.3);
+}
+
+/* Smooth 3D Tilt Effect */
+.group:hover .perspective-card {
+  transform: perspective(1200px) rotateX(5deg) rotateY(-5deg) scale(1.02);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Scroll Animation */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+

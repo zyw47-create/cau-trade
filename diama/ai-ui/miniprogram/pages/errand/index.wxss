@@ -1,0 +1,266 @@
+.hero {
+  position: relative;
+  margin: 24rpx 32rpx 0;
+  padding: 34rpx 32rpx 30rpx;
+  overflow: hidden;
+}
+
+.hero-flare {
+  position: absolute;
+  right: -20rpx;
+  top: -40rpx;
+  width: 260rpx;
+  height: 260rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 183, 77, 0.28), rgba(255, 183, 77, 0) 72%);
+  animation: floatFlare 4.8s ease-in-out infinite;
+}
+
+.hero-flare.second {
+  right: 140rpx;
+  top: 120rpx;
+  width: 150rpx;
+  height: 150rpx;
+  background: radial-gradient(circle, rgba(233, 30, 99, 0.18), rgba(233, 30, 99, 0) 72%);
+  animation-duration: 5.8s;
+}
+
+.hero-tag {
+  position: relative;
+  z-index: 1;
+  font-size: 24rpx;
+  letter-spacing: 8rpx;
+  color: #E91E63;
+}
+
+.hero-title {
+  position: relative;
+  z-index: 1;
+  margin-top: 18rpx;
+  font-size: 54rpx;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #333333;
+}
+
+.hero-desc {
+  position: relative;
+  z-index: 1;
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: #666666;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.search-wrap {
+  margin-top: 22rpx;
+  padding: 0 32rpx;
+}
+
+.stat-block {
+  padding: 24rpx 20rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.strong {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B);
+}
+
+.stat-label {
+  font-size: 22rpx;
+}
+
+.stat-value {
+  margin-top: 12rpx;
+  font-size: 42rpx;
+  font-weight: 800;
+}
+
+.chip-scroll {
+  margin-top: 22rpx;
+  white-space: nowrap;
+}
+
+.chip-row {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 32rpx;
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #E91E63;
+  background: rgba(255, 241, 246, 0.92);
+  box-shadow: 0 10rpx 22rpx rgba(233, 30, 99, 0.06);
+}
+
+.chip-active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B);
+}
+
+.auth-panel {
+  margin: 22rpx 32rpx 0;
+  padding: 26rpx 28rpx;
+  border-radius: 30rpx;
+}
+
+.auth-badge {
+  display: inline-flex;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #FB8C00;
+  background: #FFF5DD;
+}
+
+.auth-title {
+  margin-top: 14rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #2F2F35;
+}
+
+.auth-item {
+  margin-top: 12rpx;
+  font-size: 23rpx;
+  line-height: 1.7;
+  color: #6E6E73;
+}
+
+.auth-action-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.auth-action {
+  flex: 1;
+  height: 78rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  line-height: 78rpx;
+  font-size: 24rpx;
+}
+
+.list {
+  padding: 24rpx 32rpx 32rpx;
+}
+
+.empty {
+  padding: 40rpx 32rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.item {
+  padding: 26rpx;
+  margin-bottom: 22rpx;
+}
+
+.top,
+.bottom-row,
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.type,
+.reward,
+.deadline {
+  display: inline-flex;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+}
+
+.type {
+  color: #E91E63;
+  background: #FFF1F6;
+}
+
+.reward {
+  color: #FB8C00;
+  background: #FFF5DD;
+}
+
+.title {
+  margin: 18rpx 0 14rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+}
+
+.dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  margin-right: 14rpx;
+}
+
+.start {
+  background: #29B6F6;
+}
+
+.end {
+  background: #E91E63;
+}
+
+.route-text {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.meta-row {
+  margin-top: 18rpx;
+}
+
+.deadline {
+  color: #999999;
+  background: #FFFFFF;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.bottom-row {
+  gap: 16rpx;
+  margin-top: 22rpx;
+}
+
+.action {
+  flex: 1;
+  height: 82rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  line-height: 82rpx;
+  font-size: 26rpx;
+}
+
+@keyframes floatFlare {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, 16rpx, 0) scale(1.06);
+  }
+}

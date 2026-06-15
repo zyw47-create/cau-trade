@@ -1,0 +1,28 @@
+<view class="page-shell">
+  <nav-bar title="商品详情" subtitle="AI 审核、信用信息与校内交易" showBack="{{true}}"></nav-bar>
+  <view wx:if="{{goods}}" class="detail card">
+    <image wx:if="{{goods.images.length}}" class="poster-image" src="{{goods.images[0]}}" mode="aspectFill"></image>
+    <view wx:else class="poster"></view>
+    <view class="tags">
+      <view class="tag">{{goods.categoryName}}</view>
+      <view class="tag">{{goods.conditionLabel}}</view>
+      <view wx:if="{{goods.isAiAudit}}" class="tag green">AI 审核通过</view>
+    </view>
+    <view class="title">{{goods.title}}</view>
+    <view class="summary">{{goods.summary}}</view>
+    <view class="price-text">¥{{goods.price}}</view>
+    <view class="origin">原价 ¥{{goods.originalPrice}}</view>
+    <view class="info-grid">
+      <view class="info-item"><view class="info-label">卖家信息</view><view>{{goods.sellerName}}</view><view class="muted-text">{{goods.sellerCollege}}</view></view>
+      <view class="info-item"><view class="info-label">信用分</view><view>{{goods.creditScore}} 分</view></view>
+      <view class="info-item"><view class="info-label">交易地点</view><view>{{goods.location}}</view></view>
+      <view class="info-item"><view class="info-label">浏览 / 点赞 / 评论</view><view>{{goods.views}} / {{goods.likes}} / {{goods.comments}}</view></view>
+    </view>
+    <view class="buttons">
+      <view class="ghost-button btn" bindtap="toggleFavorite">{{favoriteText}}</view>
+      <view class="ghost-button btn" bindtap="contactSeller">联系卖家</view>
+      <view class="primary-button btn" bindtap="placeOrder">立即下单</view>
+    </view>
+  </view>
+  <view wx:else class="empty card glass-card">未找到该商品，可能已下架或被删除。</view>
+</view>

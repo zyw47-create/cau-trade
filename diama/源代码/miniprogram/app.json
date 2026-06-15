@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/detail/detail",
+    "pages/user/user",
+    "pages/service-detail/service-detail",
+    "pages/order-detail/order-detail",
+    "pages/publish/publish",
+    "pages/orders/orders",
+    "pages/services/services",
+    "pages/chat/chat",
+    "pages/profile/profile",
+    "pages/verify/verify",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "navigationBarTitleText": "校园二手",
+    "navigationBarBackgroundColor": "#FFF8FB",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFF8FB",
+    "backgroundColorTop": "#FFF8FB",
+    "backgroundColorBottom": "#FFFFFF"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#E91E63",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": "发布"
+      },
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/orders/orders",
+        "text": "订单"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

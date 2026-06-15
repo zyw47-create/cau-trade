@@ -1,0 +1,46 @@
+.sidebar {
+  width: 170rpx;
+  padding: 8rpx 12rpx 0 20rpx;
+}
+
+.side-item {
+  position: relative;
+  padding: 24rpx 18rpx 24rpx 22rpx;
+  margin-bottom: 12rpx;
+  border-radius: 24rpx;
+  color: #999999;
+  overflow: hidden;
+}
+
+.active-bar {
+  position: absolute;
+  left: 0;
+  top: 20rpx;
+  bottom: 20rpx;
+  width: 0;
+  border-radius: 999rpx;
+  background: #E91E63;
+  transition: width 0.2s ease;
+}
+
+.side-item.active {
+  background: rgba(255, 255, 255, 0.92);
+  color: #E91E63;
+  box-shadow: 0 14rpx 28rpx rgba(233, 30, 99, 0.08);
+}
+
+.side-item.active .active-bar {
+  width: 6rpx;
+}
+
+.side-name {
+  position: relative;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.side-count {
+  position: relative;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+}

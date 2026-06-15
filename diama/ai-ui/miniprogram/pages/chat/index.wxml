@@ -1,0 +1,14 @@
+<view class="chat-page">
+  <nav-bar title="{{title}}" subtitle="文明沟通，谨防私下转账" showBack="{{true}}"></nav-bar>
+  <scroll-view class="message-area" scroll-y scroll-into-view="message-bottom">
+    <view wx:for="{{messages}}" wx:key="id" class="message-row {{item.mine ? 'mine' : ''}}">
+      <view class="bubble">{{item.content}}</view>
+      <view class="message-time">{{item.time}}</view>
+    </view>
+    <view id="message-bottom"></view>
+  </scroll-view>
+  <view class="composer">
+    <input class="composer-input" value="{{inputValue}}" placeholder="输入消息..." bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" />
+    <view class="send-button pressable" hover-class="pressable-active" bindtap="sendMessage">发送</view>
+  </view>
+</view>

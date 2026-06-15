@@ -1,0 +1,15 @@
+<scroll-view class="upload-scroll" scroll-x>
+  <view class="upload-row">
+    <view class="add-tile" bindtap="addImage">
+      <view class="plus">+</view>
+      <view class="tip">拍照/相册</view>
+    </view>
+    <view wx:for="{{images}}" wx:key="id" class="image-tile">
+      <image wx:if="{{item.tempFilePath}}" class="real-image" src="{{item.tempFilePath}}" mode="aspectFill"></image>
+      <view wx:else class="mock-image">{{item.label}}</view>
+      <view class="remove" data-id="{{item.id}}" bindtap="remove">×</view>
+      <view wx:if="{{item.status === 'uploading'}}" class="mask">上传中</view>
+      <view wx:if="{{item.status === 'error'}}" class="mask error" data-id="{{item.id}}" bindtap="retry">重试</view>
+    </view>
+  </view>
+</scroll-view>

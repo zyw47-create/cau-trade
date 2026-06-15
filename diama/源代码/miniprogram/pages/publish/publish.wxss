@@ -1,0 +1,67 @@
+.publish-tip {
+  background: linear-gradient(135deg, #FFF5DD, #FFFFFF);
+  color: #9C6A00;
+  border: 1rpx solid rgba(245, 158, 11, 0.16);
+  border-radius: 28rpx;
+  padding: 22rpx 26rpx;
+  font-size: 24rpx;
+  line-height: 1.65;
+  box-shadow: 0 12rpx 30rpx rgba(245, 158, 11, 0.08);
+}
+
+.publish-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+  padding: 10rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1rpx solid rgba(233, 30, 99, 0.08);
+  box-shadow: 0 14rpx 34rpx rgba(233, 30, 99, 0.07);
+}
+
+.publish-tab {
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  background: transparent;
+  color: #A07586;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.publish-tab.active {
+  background: linear-gradient(135deg, #E91E63, #FF6B6B);
+  color: #ffffff;
+  box-shadow: 0 12rpx 28rpx rgba(233, 30, 99, 0.18);
+}
+
+.publish-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-top: 28rpx;
+}
+
+.publish-actions .btn.secondary {
+  background: linear-gradient(135deg, #FFF1F6, #FFFFFF);
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin: 18rpx 0;
+}
+
+.audit-note {
+  margin: 18rpx 0;
+  color: #8A7D85;
+  font-size: 24rpx;
+  line-height: 40rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: rgba(255, 248, 251, 0.96);
+  border: 1rpx solid rgba(233, 30, 99, 0.08);
+}

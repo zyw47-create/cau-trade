@@ -1,0 +1,20 @@
+<view class="page-shell">
+  <view class="hero safe-top">
+    <view class="hero-bg"></view>
+    <profile-card
+      userInfo="{{userInfo}}"
+      stats="{{stats}}"
+      roleOptions="{{roleOptions}}"
+      currentRoleIndex="{{currentRoleIndex}}"
+      bindpublish="goPublish"
+      bindrolechange="switchRole"
+    ></profile-card>
+  </view>
+
+  <view class="menu-list">
+    <view wx:for="{{menus}}" wx:key="name" class="menu-item card glass-card pressable fade-up" hover-class="pressable-active" data-url="{{item.url}}" bindtap="goPage">
+      <view>{{item.name}}</view>
+      <view class="arrow">›</view>
+    </view>
+  </view>
+</view>

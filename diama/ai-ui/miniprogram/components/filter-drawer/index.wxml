@@ -1,0 +1,33 @@
+<view wx:if="{{visible}}" class="drawer-mask" bindtap="close">
+  <view class="drawer" catchtap="noop">
+    <view class="drawer-title">筛选条件</view>
+
+    <view class="group">
+      <view class="group-label">商品成色</view>
+      <view class="chip-row">
+        <view
+          wx:for="{{conditions}}"
+          wx:key="*this"
+          class="chip {{draftCondition === item ? 'chip-active' : ''}}"
+          data-value="{{item}}"
+          bindtap="chooseCondition"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="group">
+      <view class="group-label">审核状态</view>
+      <view class="switch-row {{draftAiOnly ? 'switch-row-active' : ''}}" bindtap="toggleAiOnly">
+        <view>仅看 AI 审核商品</view>
+        <view class="switch-indicator">{{draftAiOnly ? '已开启' : '未开启'}}</view>
+      </view>
+    </view>
+
+    <view class="action-row">
+      <view class="action ghost" bindtap="reset">重置</view>
+      <view class="action primary" bindtap="apply">应用筛选</view>
+    </view>
+  </view>
+</view>

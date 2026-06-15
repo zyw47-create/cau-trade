@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "nav-bar": "../../components/nav-bar/index",
+    "profile-card": "../../components/profile-card/index"
+  }
+}

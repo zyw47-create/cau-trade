@@ -1,0 +1,12 @@
+.page { min-height: 100vh; padding: 30rpx 28rpx 80rpx; box-sizing: border-box; background: #fff8fb; }
+.intro { padding: 42rpx 34rpx; border-radius: 38rpx; background: linear-gradient(135deg, #ffe4ed, #ffffff); }
+.intro-tag { color: #e91e63; font-size: 22rpx; letter-spacing: 7rpx; }
+.intro-title { margin-top: 18rpx; font-size: 46rpx; font-weight: 800; color: #29292f; }
+.intro-desc { margin-top: 14rpx; color: #77777d; font-size: 25rpx; line-height: 1.7; }
+.form-card { margin-top: 24rpx; padding: 32rpx; border-radius: 34rpx; background: #ffffff; }
+.field-label { margin: 24rpx 0 12rpx; color: #333339; font-size: 25rpx; font-weight: 700; }
+.field-input { height: 82rpx; padding: 0 24rpx; border-radius: 20rpx; background: #faf7f8; font-size: 26rpx; }
+.agreement { display: flex; align-items: center; gap: 14rpx; margin-top: 28rpx; color: #77777d; font-size: 23rpx; }
+.check { width: 28rpx; height: 28rpx; border-radius: 8rpx; border: 2rpx solid #e91e63; }
+.checked { background: #e91e63; box-shadow: inset 0 0 0 6rpx #ffffff; }
+.submit { margin-top: 30rpx; border: 0; border-radius: 999rpx; color: #ffffff; background: #e91e63; }

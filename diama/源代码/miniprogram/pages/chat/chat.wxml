@@ -1,0 +1,53 @@
+<view class="page chat-page">
+  <view wx:if="{{mode === 'list'}}">
+    <view class="chat-header section">
+      <view>
+        <view class="title">消息</view>
+        <view class="muted">站内沟通、交易证据和售后仲裁入口</view>
+      </view>
+      <view class="header-pill">哈希留痕</view>
+    </view>
+
+    <view wx:if="{{conversations.length === 0}}" class="empty-chat">暂无会话，从商品详情点击“联系卖家”开始聊天。</view>
+
+    <view wx:for="{{conversations}}" wx:key="id" class="conversation-card" data-id="{{item.id}}" bindtap="openConversation">
+      <view class="chat-avatar">{{item.peerInitial}}</view>
+      <view class="conversation-main">
+        <view class="row between">
+          <view class="conversation-title">{{item.title}}</view>
+          <text class="count-tag">{{item.countText}}</text>
+        </view>
+        <view class="muted peer-line">{{item.peerLine}} · {{item.businessType}}</view>
+        <view class="last-message">{{item.lastMessage}}</view>
+        <view class="hash-line">{{item.evidenceText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{mode === 'room'}}">
+    <view class="room-header section">
+      <view class="row between">
+        <view>
+          <view class="title">{{conversation.title}}</view>
+          <view class="muted">{{conversation.peer}} @{{conversation.peerUsername}} · 证据链会话</view>
+        </view>
+        <button class="btn secondary back-btn" bindtap="backToList">列表</button>
+      </view>
+    </view>
+
+    <view class="message-list">
+      <view wx:for="{{messages}}" wx:key="id" class="message {{item.sideClass}}">
+        <view class="bubble">
+          <view class="sender-line">{{item.senderLine}}</view>
+          <view>{{item.content}}</view>
+          <view class="message-meta">{{item.time}} · {{item.hash}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="composer">
+      <input class="input composer-input" placeholder="输入站内消息" value="{{input}}" bindinput="onInput" />
+      <button class="btn send-btn" bindtap="send">发送</button>
+    </view>
+  </view>
+</view>

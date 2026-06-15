@@ -1,0 +1,183 @@
+<view class="page profile-page">
+  <view wx:if="{{!state.isLogin}}" class="guest-card section">
+    <view class="title">我的</view>
+    <view class="muted block">登录后可管理资料、收藏、订单、钱包和站内消息。</view>
+    <button class="btn" bindtap="login">微信授权登录</button>
+  </view>
+
+  <view wx:if="{{state.isLogin}}">
+    <view class="user-card section">
+      <view class="user-avatar">{{user.initial}}</view>
+      <view class="user-main">
+        <view class="row between">
+          <view>
+            <view class="user-name">{{user.nickname}}</view>
+            <view class="muted">@{{user.username}} · {{user.roleText}} · {{user.statusText}}</view>
+          </view>
+          <text class="tag {{user.verifyClass}}">{{user.verifyText}}</text>
+        </view>
+        <view class="metric-row">
+          <view class="metric">
+            <view class="metric-value">{{user.creditScore}}</view>
+            <view class="muted">信用分</view>
+          </view>
+          <view class="metric">
+            <view class="metric-value">¥{{user.balance}}</view>
+            <view class="muted">余额</view>
+          </view>
+          <view class="metric">
+            <view class="metric-value">{{favorites.length}}</view>
+            <view class="muted">收藏</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="quick-row section">
+      <view class="quick-item" bindtap="openChatList">消息</view>
+      <view class="quick-item" bindtap="goVerify">实名</view>
+      <view class="quick-item" bindtap="openOrders">订单</view>
+      <view wx:if="{{user.isAdmin}}" class="quick-item strong" bindtap="goAdmin">后台</view>
+    </view>
+
+    <view class="fold-card section">
+      <view class="fold-head" data-key="profile" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">账号资料</view>
+          <view class="muted">昵称、联系方式、常用交易地址</view>
+        </view>
+        <view class="fold-arrow">{{sections.profile ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.profile}}" class="fold-body">
+        <input class="input" placeholder="昵称" value="{{profileForm.nickname}}" data-key="nickname" bindinput="onProfileInput" />
+        <input class="input" placeholder="用户名，如 campus_user" value="{{profileForm.username}}" data-key="username" bindinput="onProfileInput" />
+        <input class="input" placeholder="手机号" value="{{profileForm.phone}}" data-key="phone" bindinput="onProfileInput" />
+        <input class="input" placeholder="常用交易地址" value="{{profileForm.address}}" data-key="address" bindinput="onProfileInput" />
+        <button class="btn save-btn" bindtap="saveProfile">保存资料</button>
+      </view>
+    </view>
+
+    <view class="fold-card section">
+      <view class="fold-head" data-key="wallet" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">钱包与流水</view>
+          <view class="muted">充值、支付、收入和退款记录</view>
+        </view>
+        <view class="fold-arrow">{{sections.wallet ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.wallet}}" class="fold-body">
+        <view class="row recharge-row">
+          <input class="input recharge-input" type="digit" placeholder="充值金额" value="{{rechargeAmount}}" bindinput="onRechargeInput" />
+          <button class="btn recharge-btn" bindtap="recharge">充值</button>
+        </view>
+        <view wx:if="{{walletLogs.length === 0}}" class="muted block">暂无资金流水。</view>
+        <view wx:for="{{walletLogs}}" wx:key="id" class="list-row">
+          <view>
+            <view>{{item.title}}</view>
+            <view class="muted">{{item.time}} · 余额 ¥{{item.balanceAfter}}</view>
+          </view>
+          <text class="{{item.amountClass}}">{{item.amountText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="fold-card section">
+      <view class="fold-head" data-key="favorites" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">我的收藏</view>
+          <view class="muted">{{favorites.length}} 件感兴趣的商品</view>
+        </view>
+        <view class="fold-arrow">{{sections.favorites ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.favorites}}" class="fold-body">
+        <view wx:if="{{noFavorites}}" class="muted block">暂无收藏。</view>
+        <view wx:for="{{favorites}}" wx:key="id" class="goods-row" data-id="{{item.id}}" bindtap="openFavorite">
+          <view class="goods-thumb">{{item.category}}</view>
+          <view class="goods-info">
+            <view class="goods-title">{{item.title}}</view>
+            <view class="muted">{{item.condition}} · {{item.location}} · {{item.statusLabel}}</view>
+            <view class="price small-price">¥{{item.price}}</view>
+          </view>
+          <view class="fold-arrow">详情</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="fold-card section">
+      <view class="fold-head" data-key="published" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">我的发布</view>
+          <view class="muted">{{myGoods.length}} 件商品，含审核与上架状态</view>
+        </view>
+        <view class="fold-arrow">{{sections.published ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.published}}" class="fold-body">
+        <view wx:if="{{noMyGoods}}" class="muted block">暂无发布。</view>
+        <view wx:for="{{myGoods}}" wx:key="id" class="publish-row">
+          <view class="goods-row-main" data-id="{{item.id}}" bindtap="openGoods">
+            <view class="goods-thumb">{{item.category}}</view>
+            <view class="goods-info">
+              <view class="goods-title">{{item.title}}</view>
+              <view class="muted">{{item.statusLabel}} · {{item.auditNote}}</view>
+              <view class="price small-price">¥{{item.price}}</view>
+            </view>
+          </view>
+          <view class="row goods-actions">
+            <button wx:if="{{item.canRemove}}" class="btn secondary mini-btn" data-id="{{item.id}}" bindtap="removeGoods">下架</button>
+            <button wx:if="{{item.canRelist}}" class="btn mini-btn" data-id="{{item.id}}" bindtap="relistGoods">重上架</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{canShowWithdraw}}" class="fold-card section">
+      <view class="fold-head" data-key="earnings" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">收益提现</view>
+          <view class="muted">服务者/骑手收益与提现申请</view>
+        </view>
+        <view class="fold-arrow">{{sections.earnings ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.earnings}}" class="fold-body">
+        <view class="metric-row two">
+          <view class="metric">
+            <view class="metric-value">¥{{earnings.amount}}</view>
+            <view class="muted">可提现收益</view>
+          </view>
+          <view class="metric">
+            <view class="metric-value">{{earnings.acceptedCount}}</view>
+            <view class="muted">已接任务</view>
+          </view>
+        </view>
+        <view class="row recharge-row">
+          <input class="input recharge-input" type="digit" placeholder="提现金额" value="{{withdrawAmount}}" bindinput="onWithdrawInput" />
+          <button class="btn recharge-btn" bindtap="withdraw">提现</button>
+        </view>
+        <view wx:for="{{earnings.withdraws}}" wx:key="id" class="list-row">
+          <view>
+            <view>提现 ¥{{item.amount}}</view>
+            <view class="muted">{{item.reason}}</view>
+          </view>
+          <text class="tag">{{item.statusLabel}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="fold-card section">
+      <view class="fold-head" data-key="settings" bindtap="toggleSection">
+        <view>
+          <view class="sub-title">账号设置</view>
+          <view class="muted">身份申请、后台入口和退出登录</view>
+        </view>
+        <view class="fold-arrow">{{sections.settings ? '收起' : '展开'}}</view>
+      </view>
+      <view wx:if="{{sections.settings}}" class="fold-body">
+        <view class="identity-row">
+          <button wx:for="{{roles}}" wx:key="value" class="btn secondary role-btn" data-role="{{item.value}}" bindtap="switchRole">{{item.text}}</button>
+        </view>
+        <button wx:if="{{user.isAdmin}}" class="btn admin-btn" bindtap="goAdmin">进入管理后台</button>
+        <button class="btn danger logout-btn" bindtap="logout">退出登录</button>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,32 @@
+<view class="profile card glass-card fade-up">
+  <view class="header">
+    <view class="avatar">{{viewUserInfo.avatarText}}</view>
+    <view class="info">
+      <view class="name">{{viewUserInfo.nameText}}</view>
+      <view class="desc">{{viewUserInfo.descText}}</view>
+      <view class="badges">
+        <view class="badge pink">优质卖家</view>
+        <view class="badge blue">{{viewUserInfo.verifiedText}}</view>
+        <view class="badge amber">{{viewUserInfo.creditText}}</view>
+      </view>
+    </view>
+    <view class="edit pressable" hover-class="pressable-active" bindtap="handlePublish">去发布</view>
+  </view>
+
+  <view class="role-panel">
+    <view>
+      <view class="role-label">当前角色</view>
+      <view class="role-value">{{viewUserInfo.roleText}}</view>
+    </view>
+    <picker range="{{roleOptions}}" range-key="label" value="{{currentRoleIndex}}" bindchange="handleRoleChange">
+      <view class="role-picker">切换身份</view>
+    </picker>
+  </view>
+
+  <view class="stats">
+    <view wx:for="{{stats}}" wx:key="label" class="stat">
+      <view class="value">{{item.value}}</view>
+      <view class="label">{{item.label}}</view>
+    </view>
+  </view>
+</view>

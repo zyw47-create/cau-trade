@@ -1,0 +1,118 @@
+/* 迁移 ai-ui 的柔和粉色主题，保留原生小程序组件与业务结构。 */
+page {
+  background: #FFF8FB;
+  color: #2A2528;
+  font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-size: 28rpx;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28rpx 28rpx 44rpx;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #FFF8FB 0%, #FFFFFF 38%, #FFFAFC 100%);
+}
+
+.section {
+  margin-bottom: 28rpx;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1rpx solid rgba(233, 30, 99, 0.10);
+  border-radius: 30rpx;
+  padding: 28rpx;
+  box-shadow: 0 18rpx 44rpx rgba(233, 30, 99, 0.08);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.muted {
+  color: #8A7D85;
+}
+
+.title {
+  color: #262126;
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.sub-title {
+  color: #2B252B;
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.price {
+  color: #C2185B;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 18rpx;
+  background: #FFF1F6;
+  color: #C2185B;
+  border: 1rpx solid rgba(233, 30, 99, 0.12);
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.btn {
+  height: 76rpx;
+  line-height: 76rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B);
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 14rpx 30rpx rgba(233, 30, 99, 0.20);
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.96);
+  color: #C2185B;
+  border: 1rpx solid rgba(233, 30, 99, 0.22);
+  box-shadow: 0 10rpx 24rpx rgba(233, 30, 99, 0.06);
+}
+
+.btn.danger {
+  background: linear-gradient(135deg, #EF4444, #F97373);
+  color: #ffffff;
+}
+
+.input,
+.textarea,
+.picker {
+  width: 100%;
+  min-height: 84rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(233, 30, 99, 0.14);
+  border-radius: 26rpx;
+  background: rgba(255, 247, 250, 0.94);
+  padding: 20rpx 24rpx;
+  margin-top: 16rpx;
+  color: #2A2528;
+}
+
+.textarea {
+  min-height: 190rpx;
+  line-height: 1.6;
+}

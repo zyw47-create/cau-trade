@@ -1,0 +1,12 @@
+<view class="search-shell">
+  <text class="search-icon">搜</text>
+  <input
+    class="search-input"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    confirm-type="search"
+    bindinput="onInput"
+    bindconfirm="onConfirm"
+  />
+  <text wx:if="{{showCancelText}}" class="cancel" bindtap="onCancel">清空</text>
+</view>

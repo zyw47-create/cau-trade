@@ -1,0 +1,89 @@
+<scroll-view class="page order-detail-page" wx:if="{{order}}" scroll-y scroll-into-view="{{scrollIntoView}}">
+  <view class="panel section">
+    <view class="row between">
+      <view class="order-head">
+        <view class="title">{{order.title}}</view>
+        <view class="muted">{{order.itemTypeText}} · {{order.orderSn}}</view>
+      </view>
+      <text class="tag">{{order.statusLabel}}</text>
+    </view>
+    <view class="amount-line">
+      <text class="price">¥{{order.amount}}</text>
+      <text class="muted">{{order.fundText}}</text>
+    </view>
+  </view>
+
+  <view class="panel section">
+    <view class="sub-title">交易对象</view>
+    <view class="info-row">
+      <text>{{order.counterpartyLabel}}</text>
+      <text>{{order.counterpartyName}} @{{order.counterpartyUsername}}</text>
+    </view>
+    <view class="info-row">
+      <text>当前进度</text>
+      <text>{{order.progressText}}</text>
+    </view>
+    <view class="info-row">
+      <text>备注</text>
+      <text>{{order.remark}}</text>
+    </view>
+  </view>
+
+  <view class="panel section">
+    <view class="sub-title">订单进度</view>
+    <view wx:for="{{timeline}}" wx:key="id" class="timeline-row">
+      <view class="{{item.className}}"></view>
+      <view class="timeline-main">
+        <view class="row between">
+          <view class="timeline-title">{{item.title}}</view>
+          <text class="muted timeline-time">{{item.time}}</text>
+        </view>
+        <view class="timeline-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{hasRefund}}" class="panel section refund-panel">
+    <view class="row between">
+      <view class="sub-title">售后进度</view>
+      <text class="tag">{{refund.statusText}}</text>
+    </view>
+    <view class="refund-text">{{refund.reason}}</view>
+    <view class="muted seller-reply">{{refund.sellerReply}}</view>
+
+    <view wx:for="{{refundProgress}}" wx:key="id" class="timeline-row">
+      <view class="{{item.className}}"></view>
+      <view class="timeline-main">
+        <view class="row between">
+          <view class="timeline-title">{{item.title}}</view>
+          <text class="muted timeline-time">{{item.time}}</text>
+        </view>
+        <view class="timeline-desc">{{item.desc}}</view>
+      </view>
+    </view>
+
+    <view class="evidence-list">
+      <view wx:for="{{refund.evidence}}" wx:for-item="evidence" wx:key="*this" class="evidence">{{evidence}}</view>
+    </view>
+  </view>
+
+  <view class="panel section">
+    <view class="sub-title">操作</view>
+    <view class="action-grid">
+      <button wx:if="{{order.canPay}}" class="btn" bindtap="pay">支付</button>
+      <button wx:if="{{order.canCancel}}" class="btn secondary" bindtap="cancelOrder">取消订单</button>
+      <button wx:if="{{order.canShip}}" class="btn secondary" bindtap="ship">发货/履约</button>
+      <button wx:if="{{order.canReceive}}" class="btn" bindtap="receive">确认完成</button>
+      <button wx:if="{{order.canRefund}}" class="btn secondary" bindtap="refund">申请售后</button>
+      <button wx:if="{{order.canComplain}}" class="btn secondary" bindtap="complaint">投诉举证</button>
+      <button wx:if="{{order.canChat}}" class="btn secondary" bindtap="openChatEvidence">联系对方</button>
+    </view>
+  </view>
+
+  <view wx:if="{{order.canComment}}" id="comment-section" class="panel section">
+    <view class="sub-title">交易评价</view>
+    <slider min="1" max="5" step="1" value="{{commentScore}}" show-value bindchange="onScoreInput" />
+    <textarea class="textarea" placeholder="评价交易体验、商品符合程度或服务质量" value="{{commentContent}}" bindinput="onCommentInput" />
+    <button class="btn submit-comment" bindtap="submitComment">提交评价</button>
+  </view>
+</scroll-view>

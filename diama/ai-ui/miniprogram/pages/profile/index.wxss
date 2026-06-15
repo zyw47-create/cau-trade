@@ -1,0 +1,30 @@
+.hero {
+  position: relative;
+  padding: 24rpx 32rpx 0;
+}
+
+.hero-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 260rpx;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B, #FFB74D);
+}
+
+.menu-list {
+  padding: 32rpx;
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+}
+
+.arrow {
+  color: #999999;
+}

@@ -1,0 +1,23 @@
+<view class="list">
+  <view wx:for="{{viewConversations}}" wx:key="id" class="item card glass-card pressable fade-up" hover-class="pressable-active" data-id="{{item.id}}" data-type="{{item.sessionType}}" bindtap="handleTap">
+    <view class="avatar-wrap">
+      <view class="avatar">{{item.avatar}}</view>
+      <view wx:if="{{item.online}}" class="online"></view>
+    </view>
+    <view class="content">
+      <view class="row">
+        <view class="name-row">
+          <view class="name">{{item.name}}</view>
+          <view class="type">{{item.sessionTypeText}}</view>
+        </view>
+        <view class="time">{{item.time}}</view>
+      </view>
+      <view class="message-row">
+        <view class="status-icon {{item.messageStatus}}">{{item.statusText}}</view>
+        <view class="message">{{item.lastMessage}}</view>
+      </view>
+    </view>
+    <view wx:if="{{item.unread > 0}}" class="badge">{{item.unread}}</view>
+  </view>
+  <view wx:if="{{!viewConversations.length}}" class="empty">暂无会话记录</view>
+</view>

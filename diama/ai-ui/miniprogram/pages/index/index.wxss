@@ -1,0 +1,25 @@
+.debug-page {
+  min-height: 100vh;
+  padding: 120rpx 32rpx 220rpx;
+  background: linear-gradient(180deg, #fff8fb 0%, #ffffff 100%);
+}
+
+.debug-card {
+  padding: 40rpx 32rpx;
+  border-radius: 32rpx;
+  background: #ffffff;
+  box-shadow: 0 20rpx 60rpx rgba(233, 30, 99, 0.12);
+}
+
+.debug-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #e91e63;
+}
+
+.debug-desc {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: #666666;
+}

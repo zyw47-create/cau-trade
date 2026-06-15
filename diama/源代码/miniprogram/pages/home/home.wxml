@@ -1,0 +1,90 @@
+<view class="page home-page">
+  <view class="hero section">
+    <view>
+      <view class="hero-title">校园闲置</view>
+      <view class="hero-sub">实名交易 · 资金托管 · 聊天留痕</view>
+    </view>
+    <view class="hero-badge">同校可信</view>
+  </view>
+
+  <view class="search-card section">
+    <input class="search-input" placeholder="搜教材、键盘、收纳、跑腿" value="{{keyword}}" bindinput="onKeywordInput" />
+    <view class="tab-row">
+      <view wx:for="{{tabs}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="chooseTab">{{item.text}}</view>
+    </view>
+    <scroll-view wx:if="{{showGoods}}" class="category-scroll" scroll-x>
+      <view class="category-row">
+        <view wx:for="{{categories}}" wx:key="name" class="{{item.className}}" data-name="{{item.name}}" bindtap="chooseCategory">{{item.name}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="feed-title section">
+    <view class="sub-title">{{feedTitle}}</view>
+    <view class="muted">{{feedSubtitle}}</view>
+  </view>
+
+  <view wx:if="{{showGoods}}" class="goods-section">
+    <view wx:if="{{noVisibleGoods}}" class="empty-feed">没有找到相关闲置，换个关键词试试。</view>
+
+    <view class="goods-waterfall">
+      <view wx:for="{{visibleGoods}}" wx:key="id" class="goods-card" data-id="{{item.id}}" bindtap="openDetail">
+        <view class="goods-cover">
+          <view class="cover-category">{{item.category}}</view>
+          <view class="cover-condition">{{item.condition}}</view>
+        </view>
+        <view class="goods-title">{{item.title}}</view>
+        <view class="goods-desc">{{item.desc}}</view>
+        <view class="row between card-bottom">
+          <text class="price">¥{{item.price}}</text>
+          <text class="location">{{item.location}}</text>
+        </view>
+        <view class="seller-row">
+          <view class="avatar">{{item.sellerInitial}}</view>
+          <view class="seller-name">{{item.sellerLine}}</view>
+          <view class="fav-count">{{item.favoriteCount}}收藏</view>
+        </view>
+        <view class="goods-actions">
+          <button class="mini-btn secondary" data-id="{{item.id}}" catchtap="openGoodsChat">聊聊</button>
+          <button class="mini-btn" data-id="{{item.id}}" catchtap="createGoodsOrder">下单</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showService}}" class="content-list">
+    <view wx:if="{{noVisibleServices}}" class="empty-feed">暂无可预约服务。</view>
+    <view wx:for="{{visibleServices}}" wx:key="id" class="service-item">
+      <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
+        <view class="row between">
+          <view class="sub-title item-title">{{item.title}}</view>
+          <text class="price">¥{{item.price}}</text>
+        </view>
+        <view class="item-meta">
+          <text class="tag">{{item.statusText}}</text>
+          <text class="tag">{{item.providerLine}}</text>
+        </view>
+        <view class="desc">{{item.desc}}</view>
+      </view>
+      <button class="btn item-action" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="handleService">{{item.buttonText}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{showErrand}}" class="content-list">
+    <view wx:if="{{noVisibleErrands}}" class="empty-feed">暂无可抢跑腿任务。</view>
+    <view wx:for="{{visibleErrands}}" wx:key="id" class="service-item">
+      <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
+        <view class="row between">
+          <view class="sub-title item-title">{{item.title}}</view>
+          <text class="price">¥{{item.price}}</text>
+        </view>
+        <view class="item-meta">
+          <text class="tag">{{item.statusText}}</text>
+          <text class="tag">{{item.providerLine}}</text>
+        </view>
+        <view class="desc">{{item.desc}}</view>
+      </view>
+      <button class="btn item-action" loading="{{item.actionLoading}}" disabled="{{item.actionDisabled}}" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="handleService">{{item.buttonText}}</button>
+    </view>
+  </view>
+</view>

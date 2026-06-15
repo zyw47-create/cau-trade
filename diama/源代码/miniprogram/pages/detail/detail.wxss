@@ -1,0 +1,151 @@
+.detail-cover {
+  height: 520rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  background: #ededed;
+  border-radius: 8rpx;
+  color: #222222;
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  box-sizing: border-box;
+}
+
+.cover-title {
+  font-size: 48rpx;
+  font-weight: 800;
+}
+
+.cover-tag {
+  margin-top: 12rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  background: #ffffff;
+  font-size: 24rpx;
+}
+
+.detail-main {
+  background: #ffffff;
+  border-radius: 8rpx;
+  border: 1rpx solid #ececec;
+  padding: 24rpx;
+}
+
+.big-price {
+  font-size: 48rpx;
+}
+
+.detail-title {
+  margin-top: 8rpx;
+  line-height: 46rpx;
+}
+
+.desc {
+  margin-top: 18rpx;
+  line-height: 44rpx;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.seller-card {
+  min-height: 112rpx;
+  background: #ffffff;
+  border: 1rpx solid #ececec;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.seller-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 50%;
+  background: #222222;
+  color: #ffffff;
+  text-align: center;
+  font-weight: 700;
+}
+
+.seller-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.seller-name {
+  font-weight: 700;
+  margin-bottom: 6rpx;
+}
+
+.seller-chat {
+  width: 112rpx;
+  height: 58rpx;
+  line-height: 58rpx;
+  font-size: 24rpx;
+}
+
+.safe-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+}
+
+.safe-strip view {
+  height: 68rpx;
+  line-height: 68rpx;
+  text-align: center;
+  background: #fff4e5;
+  color: #b45309;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.empty {
+  display: block;
+  padding-top: 16rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.35fr;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: #ffffff;
+  border-top: 1rpx solid #ececec;
+  box-sizing: border-box;
+}
+
+.action-btn {
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 8rpx;
+  text-align: center;
+  font-size: 24rpx;
+}
+
+.action-btn.light {
+  background: #ffffff;
+  color: #222222;
+  border: 1rpx solid #d9d9d9;
+}
+
+.action-btn.buy {
+  background: #ff7a00;
+  color: #ffffff;
+}
+
+.bottom-spacer {
+  height: 116rpx;
+}

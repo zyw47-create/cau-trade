@@ -1,0 +1,53 @@
+.hint {
+  display: block;
+  margin: 16rpx 0 24rpx;
+}
+
+.verify-state {
+  margin-bottom: 18rpx;
+}
+
+.tag.ok {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.tag.warn {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.audit-box {
+  background: #f9fafb;
+  border-radius: 8rpx;
+  margin: 24rpx 0;
+  padding: 18rpx;
+}
+
+.code-row {
+  display: grid;
+  grid-template-columns: 1fr 200rpx;
+  gap: 12rpx;
+  align-items: end;
+}
+
+.code-input {
+  margin-top: 12rpx;
+}
+
+.code-btn {
+  height: 76rpx;
+  line-height: 76rpx;
+  font-size: 24rpx;
+  padding: 0;
+}
+
+.code-tip {
+  margin-top: 12rpx;
+  color: #027a48;
+  background: #ecfdf3;
+  border-radius: 8rpx;
+  padding: 14rpx 16rpx;
+  font-size: 24rpx;
+  line-height: 38rpx;
+}

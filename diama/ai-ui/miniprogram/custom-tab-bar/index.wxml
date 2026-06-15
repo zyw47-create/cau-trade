@@ -1,0 +1,12 @@
+<view class="tab-shell">
+  <view wx:for="{{list}}" wx:key="pagePath" wx:for-item="item" wx:for-index="index" class="tab-item-wrap">
+    <view wx:if="{{index === 2}}" class="publish-wrap" bindtap="openPublish">
+      <view class="publish-button">+</view>
+      <text class="tab-label">发布</text>
+    </view>
+    <view wx:else class="tab-item {{selected === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchTab">
+      <text class="tab-icon">{{item.icon}}</text>
+      <text class="tab-label">{{item.text}}</text>
+    </view>
+  </view>
+</view>

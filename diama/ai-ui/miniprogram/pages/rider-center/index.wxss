@@ -1,0 +1,14 @@
+.page { min-height: 100vh; padding: 30rpx 28rpx 80rpx; box-sizing: border-box; background: #fff8fb; }
+.rider-card { padding: 42rpx 34rpx; border-radius: 38rpx; background: linear-gradient(135deg, #ffe8d1, #ffffff); }
+.tag { color: #e56b18; font-size: 22rpx; letter-spacing: 7rpx; }
+.title { margin-top: 18rpx; font-size: 44rpx; line-height: 1.3; font-weight: 800; color: #29292f; }
+.desc { margin-top: 16rpx; color: #77777d; font-size: 25rpx; line-height: 1.7; }
+.apply-button, .verified { display: inline-flex; margin-top: 28rpx; padding: 18rpx 30rpx; border-radius: 999rpx; font-size: 25rpx; }
+.apply-button { color: #ffffff; background: #e91e63; }
+.verified { color: #26834a; background: #e8f8ef; }
+.info-card, .task-card { margin-top: 22rpx; padding: 28rpx; border-radius: 30rpx; background: #ffffff; }
+.row { display: flex; justify-content: space-between; padding: 13rpx 0; color: #66666c; font-size: 25rpx; }
+.section-title { margin: 36rpx 4rpx 12rpx; font-size: 34rpx; font-weight: 800; }
+.task-card { display: flex; align-items: center; justify-content: space-between; }
+.task-title { margin-bottom: 12rpx; font-size: 29rpx; font-weight: 700; }
+.finish { padding: 15rpx 22rpx; border-radius: 999rpx; color: #ffffff; background: #e91e63; font-size: 23rpx; }

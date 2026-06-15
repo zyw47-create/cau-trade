@@ -1,0 +1,72 @@
+.service-hero {
+  min-height: 148rpx;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  background: #ffffff;
+  border: 1rpx solid #ececec;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.service-badge {
+  flex-shrink: 0;
+  padding: 10rpx 16rpx;
+  border-radius: 8rpx;
+  background: #fff4e5;
+  color: #b45309;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.list-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.service-card {
+  background: #ffffff;
+  border: 1rpx solid #ececec;
+  border-radius: 8rpx;
+  padding: 22rpx;
+  margin-bottom: 18rpx;
+}
+
+.publish-btn {
+  margin-top: 18rpx;
+}
+
+.desc {
+  margin: 18rpx 0;
+  line-height: 42rpx;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin: 14rpx 0;
+}
+
+button[disabled] {
+  background: #b8b8b8;
+  color: #ffffff;
+}
+
+.service-action {
+  margin-top: 8rpx;
+}
+
+.status-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.small-btn {
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
+}

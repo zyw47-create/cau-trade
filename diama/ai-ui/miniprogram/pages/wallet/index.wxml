@@ -1,0 +1,16 @@
+<view class="page-shell">
+  <nav-bar title="我的钱包" subtitle="可用余额、冻结金额和交易流水"></nav-bar>
+  <view class="hero">
+    <view class="amount-label">可用余额</view>
+    <view class="amount">¥1,285.50</view>
+    <view class="frozen">冻结金额 ¥200.00</view>
+  </view>
+  <view class="records card">
+    <view class="section-title">交易流水</view>
+    <view wx:for="{{walletRecords}}" wx:key="id" class="record">
+      <view><view class="record-title">{{item.title}}</view><view class="record-time">{{item.time}}</view></view>
+      <view class="record-right"><view class="{{item.amountClass}}">{{item.amountText}}</view><view class="record-time">{{item.status}}</view></view>
+    </view>
+    <view wx:if="{{!walletRecords.length}}" class="empty">暂无账单流水</view>
+  </view>
+</view>

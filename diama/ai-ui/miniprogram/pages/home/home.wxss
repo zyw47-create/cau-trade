@@ -1,0 +1,116 @@
+.home-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 32rpx 28rpx 180rpx;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(255, 196, 218, 0.72), transparent 28%),
+    radial-gradient(circle at 92% 20%, rgba(215, 250, 245, 0.72), transparent 24%),
+    #fff8fb;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 54rpx 40rpx 44rpx;
+  border-radius: 42rpx;
+  background: #ffffff;
+  box-shadow: 0 28rpx 70rpx rgba(233, 30, 99, 0.14);
+}
+
+.eyebrow {
+  color: #e91e63;
+  font-size: 24rpx;
+  letter-spacing: 8rpx;
+}
+
+.headline {
+  margin-top: 24rpx;
+  color: #222222;
+  font-size: 58rpx;
+  font-weight: 800;
+  line-height: 1.18;
+}
+
+.description {
+  margin-top: 24rpx;
+  color: #777777;
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+
+.publish-button {
+  display: inline-block;
+  margin-top: 34rpx;
+  padding: 20rpx 38rpx;
+  border-radius: 999rpx;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ef2f70, #ff667d);
+  box-shadow: 0 18rpx 36rpx rgba(233, 30, 99, 0.25);
+}
+
+.section-title {
+  margin: 42rpx 4rpx 20rpx;
+  color: #29292e;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.action-card {
+  width: 48%;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
+  padding: 30rpx 26rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18rpx 44rpx rgba(233, 30, 99, 0.09);
+  transition: transform 0.18s ease;
+}
+
+.action-card:first-child {
+  width: 100%;
+  background: linear-gradient(135deg, #fff0f5, #ffffff);
+}
+
+.action-card-active {
+  transform: scale(0.97);
+}
+
+.action-label {
+  color: #303037;
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.action-desc {
+  margin-top: 10rpx;
+  color: #99999f;
+  font-size: 23rpx;
+}
+
+.notice {
+  margin-top: 18rpx;
+  padding: 32rpx 28rpx;
+  border-radius: 30rpx;
+  background: linear-gradient(135deg, #fff6dc, #ffffff);
+}
+
+.notice-title {
+  color: #7a5514;
+  font-size: 29rpx;
+  font-weight: 800;
+}
+
+.notice-desc {
+  margin-top: 12rpx;
+  color: #927846;
+  font-size: 23rpx;
+  line-height: 1.65;
+}

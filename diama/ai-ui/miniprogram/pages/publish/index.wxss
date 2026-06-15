@@ -1,0 +1,168 @@
+.guide,
+.block {
+  margin: 24rpx 32rpx 0;
+  padding: 28rpx;
+}
+
+.guide {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #9C6A00;
+  background: #FFF5DD;
+}
+
+.scene-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin: 24rpx 32rpx 0;
+}
+
+.type-switch {
+  display: flex;
+  gap: 16rpx;
+  margin: 24rpx 32rpx 0;
+  padding: 16rpx;
+}
+
+.type-pill {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  line-height: 72rpx;
+  font-size: 24rpx;
+  color: #C27892;
+  background: rgba(255, 248, 251, 0.95);
+}
+
+.type-pill-active {
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B);
+  box-shadow: 0 12rpx 26rpx rgba(233, 30, 99, 0.16);
+}
+
+.scene-item {
+  padding: 24rpx;
+}
+
+.scene-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 22rpx;
+  text-align: center;
+  line-height: 72rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.purple {
+  background: linear-gradient(135deg, #AB47BC, #EC407A);
+}
+
+.orange {
+  background: linear-gradient(135deg, #FFA726, #FF7043);
+}
+
+.scene-title {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.scene-desc {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: #999999;
+}
+
+.label {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.top-gap {
+  margin-top: 28rpx;
+}
+
+.field,
+.textarea,
+.price-field {
+  margin-top: 16rpx;
+  border-radius: 26rpx;
+  background: rgba(255, 247, 250, 0.95);
+  border: 1rpx solid rgba(233, 30, 99, 0.14);
+}
+
+.field {
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0 24rpx;
+  font-size: 26rpx;
+}
+
+.textarea {
+  width: 100%;
+  height: 220rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  font-size: 26rpx;
+}
+
+.counter {
+  margin-top: 12rpx;
+  text-align: right;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.row {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 8rpx;
+}
+
+.picker-block {
+  flex: 1;
+}
+
+.price-field {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  padding: 0 24rpx;
+}
+
+.currency {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #C2185B;
+}
+
+.price-input {
+  flex: 1;
+  margin-left: 16rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.ai-button {
+  margin: 24rpx 32rpx 0;
+  height: 88rpx;
+  border-radius: 28rpx;
+  text-align: center;
+  line-height: 88rpx;
+  color: #E91E63;
+  background: linear-gradient(135deg, rgba(255, 241, 246, 0.96), rgba(255, 248, 251, 0.98));
+  border: 1rpx solid rgba(233, 30, 99, 0.16);
+  box-shadow: 0 16rpx 30rpx rgba(233, 30, 99, 0.07);
+}
+
+.notice {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #666666;
+}

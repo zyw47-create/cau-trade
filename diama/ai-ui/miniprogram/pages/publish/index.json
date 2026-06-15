@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "nav-bar": "../../components/nav-bar/index",
+    "upload-image-grid": "../../components/upload-image-grid/index"
+  }
+}

@@ -1,0 +1,12 @@
+<view class="safe-top navbar">
+  <view class="navbar-row">
+    <view class="left">
+      <view wx:if="{{showBack}}" class="back-button" bindtap="onBack">返回</view>
+      <view>
+        <view class="title">{{title}}</view>
+        <view wx:if="{{subtitle}}" class="subtitle">{{subtitle}}</view>
+      </view>
+    </view>
+    <view wx:if="{{rightText}}" class="right-button" bindtap="onRightTap">{{rightText}}</view>
+  </view>
+</view>

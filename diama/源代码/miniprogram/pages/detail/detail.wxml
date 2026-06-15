@@ -1,0 +1,40 @@
+<view class="page detail-page" wx:if="{{item}}">
+  <view class="detail-cover">
+    <view class="cover-title">{{item.category}}</view>
+    <view class="cover-tag">{{item.condition}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="price big-price">¥{{item.price}}</view>
+    <view class="title detail-title">{{item.title}}</view>
+    <view class="desc">{{item.desc}}</view>
+    <view class="meta-row">
+      <text class="tag">{{item.auditNote}}</text>
+      <text class="tag">{{item.favoriteCount}}人收藏</text>
+      <text class="tag">{{item.location}}</text>
+    </view>
+  </view>
+
+  <view class="seller-card section">
+    <view class="seller-avatar">{{item.sellerInitial}}</view>
+    <view class="seller-info" bindtap="openSeller">
+      <view class="seller-name">{{item.sellerLine}}</view>
+      <view class="muted">点进主页查看信用分、交易评价和在售内容</view>
+    </view>
+    <button class="btn secondary seller-chat" bindtap="openChat">聊聊</button>
+  </view>
+
+  <view class="safe-strip section">
+    <view>资金托管</view>
+    <view>聊天留痕</view>
+    <view>售后仲裁</view>
+  </view>
+
+  <view class="bottom-spacer"></view>
+
+  <view class="action-bar">
+    <button class="action-btn light" bindtap="toggleFavorite">{{item.favoriteText}}</button>
+    <button class="action-btn light" bindtap="openChat">联系卖家</button>
+    <button class="action-btn buy" bindtap="createOrder">下单付款</button>
+  </view>
+</view>

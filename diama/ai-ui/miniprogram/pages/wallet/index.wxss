@@ -1,0 +1,71 @@
+.hero {
+  margin: 24rpx 32rpx 0;
+  padding: 32rpx;
+  border-radius: 28rpx;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #E91E63, #FF6B6B, #FFB74D);
+  box-shadow: 0 24rpx 60rpx rgba(233, 30, 99, 0.22);
+}
+
+.amount-label,
+.frozen {
+  font-size: 24rpx;
+}
+
+.amount {
+  margin-top: 14rpx;
+  font-size: 64rpx;
+  font-weight: 800;
+}
+
+.frozen {
+  margin-top: 14rpx;
+}
+
+.records {
+  margin: 24rpx 32rpx 0;
+  padding: 28rpx;
+}
+
+.record {
+  display: flex;
+  justify-content: space-between;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid #F7DCE7;
+}
+
+.record:last-child {
+  border-bottom: none;
+}
+
+.record-title {
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.record-time {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.record-right {
+  text-align: right;
+}
+
+.income {
+  color: #2E7D32;
+  font-weight: 700;
+}
+
+.expense {
+  color: #333333;
+  font-weight: 700;
+}
+
+.empty {
+  padding: 30rpx 0 10rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999999;
+}
