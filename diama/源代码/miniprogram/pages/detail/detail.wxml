@@ -9,7 +9,7 @@
     <view class="title detail-title">{{item.title}}</view>
     <view class="desc">{{item.desc}}</view>
     <view class="meta-row">
-      <text class="tag">{{item.auditNote}}</text>
+      <text class="tag">{{item.auditTag}}</text>
       <text class="tag">{{item.favoriteCount}}人收藏</text>
       <text class="tag">{{item.location}}</text>
     </view>
@@ -25,9 +25,27 @@
   </view>
 
   <view class="safe-strip section">
-    <view>资金托管</view>
-    <view>聊天留痕</view>
-    <view>售后仲裁</view>
+    <view wx:for="{{item.safeTags}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="sub-title">交易说明</view>
+    <view class="info-line">交易地点：{{item.location}}</view>
+    <view class="info-line">成色说明：{{item.condition}}</view>
+    <view class="info-line">收藏人数：{{item.favoriteCount}}</view>
+    <view class="info-line">评价数量：{{item.commentCount}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="sub-title">最近评价</view>
+    <view wx:if="{{!item.commentPreview.length}}" class="empty">当前还没有公开评价，可在交易完成后补充。</view>
+    <view wx:for="{{item.commentPreview}}" wx:key="id" class="comment-row">
+      <view class="row between">
+        <view class="comment-user">{{item.user}}</view>
+        <text class="tag">{{item.score}}星</text>
+      </view>
+      <view class="comment-text">{{item.content}}</view>
+    </view>
   </view>
 
   <view class="bottom-spacer"></view>

@@ -21,6 +21,60 @@
   line-height: 44rpx;
 }
 
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.meta-card {
+  background: #f7f8fa;
+  border-radius: 12rpx;
+  padding: 18rpx;
+}
+
+.meta-label {
+  color: #7c8698;
+  font-size: 24rpx;
+}
+
+.meta-value {
+  margin-top: 8rpx;
+  color: #1f2329;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  font-weight: 600;
+}
+
+.tips-box {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  background: #fff8ef;
+  border: 1rpx solid #ffe1b8;
+  border-radius: 12rpx;
+}
+
+.tips-line {
+  color: #8a5a13;
+  line-height: 40rpx;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.trust-tag {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eef6ff;
+  color: #2563eb;
+  font-size: 24rpx;
+}
+
 .rule-list {
   margin-top: 18rpx;
 }

@@ -7,6 +7,24 @@
   margin-bottom: 18rpx;
 }
 
+.backend-tip {
+  margin-bottom: 18rpx;
+  border-radius: 16rpx;
+  padding: 18rpx 20rpx;
+  font-size: 24rpx;
+  line-height: 38rpx;
+}
+
+.backend-ok {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+.backend-warn {
+  background: #fffaeb;
+  color: #b54708;
+}
+
 .tag.ok {
   background: #ecfdf3;
   color: #027a48;

@@ -73,7 +73,7 @@ Page({
       goods,
       services,
       userTags: user.tradeTags || [],
-      loadingPublic: previewOnly,
+      loadingPublic: false,
       noReviews: !previewOnly && reviews.length === 0,
       noGoods: !previewOnly && goods.length === 0,
       noServices: !previewOnly && services.length === 0

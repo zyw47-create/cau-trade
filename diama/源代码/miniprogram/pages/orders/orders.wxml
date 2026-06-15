@@ -1,13 +1,17 @@
 <view class="page">
   <view class="section">
     <view class="title">我的订单</view>
-    <view class="muted">二手闲置、校园服务、跑腿任务统一查看进度与售后</view>
+    <view class="muted">二手闲置、校园服务、跑腿任务统一查看进度、售后和评价</view>
+  </view>
+
+  <view class="order-filters section">
+    <view wx:for="{{filters}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="changeFilter">{{item.text}}</view>
   </view>
 
   <view wx:if="{{loadingOrders}}" class="muted loading-line">订单加载中...</view>
-  <view wx:if="{{noOrders}}" class="panel empty-order">暂无订单，从首页选择商品、服务或跑腿任务。</view>
+  <view wx:if="{{noOrders}}" class="panel empty-order">当前分类下还没有订单，可以切换分类看看。</view>
 
-  <view wx:for="{{orders}}" wx:key="orderSn" class="panel order-card">
+  <view wx:for="{{visibleOrders}}" wx:key="orderSn" class="panel order-card">
     <view class="row between">
       <view class="order-title-area">
         <view class="sub-title">{{item.title}}</view>
@@ -17,13 +21,16 @@
     </view>
 
     <view class="order-meta">
-      <text>{{item.itemTypeText}}</text>
+      <text>{{item.itemTypeText}} · {{item.roleText}}</text>
       <text>{{item.counterpartyLine}}</text>
       <text>{{item.fundText}}</text>
     </view>
 
     <view class="progress-box">
-      <view class="progress-title">当前进度</view>
+      <view class="row between">
+        <view class="progress-title">当前进度</view>
+        <text class="tag subtle-tag">{{item.actionHint}}</text>
+      </view>
       <view class="progress-text">{{item.progressText}}</view>
       <view class="muted latest-time">{{item.latestTime}}</view>
     </view>
@@ -41,19 +48,18 @@
     </view>
 
     <view class="row between order-bottom">
-      <text class="price">¥{{item.amount}}</text>
+      <text class="price">￥{{item.amount}}</text>
       <view class="order-actions">
         <button class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openDetail">详情</button>
         <button wx:if="{{item.canPay}}" class="btn" data-sn="{{item.orderSn}}" catchtap="pay">支付</button>
         <button wx:if="{{item.canCancel}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="cancelOrder">取消</button>
-        <button wx:if="{{item.canShip}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="ship">发货/履约</button>
+        <button wx:if="{{item.canShip}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="ship">履约</button>
         <button wx:if="{{item.canRefund}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="refund">售后</button>
         <button wx:if="{{item.canComplain}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="complaint">投诉</button>
         <button wx:if="{{item.canChat}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openChatEvidence">联系对方</button>
-        <button wx:if="{{item.canReceive}}" class="btn" data-sn="{{item.orderSn}}" catchtap="confirmReceive">确认收货</button>
+        <button wx:if="{{item.canReceive}}" class="btn" data-sn="{{item.orderSn}}" catchtap="confirmReceive">确认完成</button>
         <button wx:if="{{item.canComment}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openComment">评价</button>
       </view>
     </view>
   </view>
-
 </view>

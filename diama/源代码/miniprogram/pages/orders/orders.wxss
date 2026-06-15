@@ -1,3 +1,24 @@
+.order-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding-top: 0;
+}
+
+.order-filter {
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  background: #f4f5f7;
+  color: #5f6b7a;
+  font-size: 24rpx;
+}
+
+.order-filter.active {
+  background: #fff1f6;
+  color: #c2416c;
+  font-weight: 700;
+}
+
 .order-card {
   margin-bottom: 20rpx;
 }
@@ -52,6 +73,11 @@
 .refund-box {
   border-color: rgba(245, 158, 11, 0.20);
   background: linear-gradient(135deg, #FFF5DD, #FFFFFF);
+}
+
+.subtle-tag {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 .empty-order {

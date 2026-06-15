@@ -38,6 +38,16 @@
       <view class="quick-item" bindtap="goVerify">实名</view>
       <view class="quick-item" bindtap="openOrders">订单</view>
       <view wx:if="{{user.isAdmin}}" class="quick-item strong" bindtap="goAdmin">后台</view>
+      <view wx:if="{{!user.isAdmin}}" class="quick-item" bindtap="goPublish">发布</view>
+    </view>
+
+    <view class="backend-strip section {{backendReady ? 'backend-ok' : 'backend-warn'}}">{{backendStatusText}}</view>
+
+    <view class="quick-row section quick-row-two">
+      <view class="quick-item" bindtap="openServices">服务大厅</view>
+      <view class="quick-item" bindtap="goPublish">去发布</view>
+      <view class="quick-item" bindtap="goVerify">认证中心</view>
+      <view class="quick-item" bindtap="openOrders">订单追踪</view>
     </view>
 
     <view class="fold-card section">

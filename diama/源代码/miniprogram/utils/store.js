@@ -114,6 +114,21 @@ function takePendingUserPreview() {
   return payload
 }
 
+function saveDraft(key, payload) {
+  if (!key) return
+  wx.setStorageSync(`draft:${key}`, payload || {})
+}
+
+function getDraft(key) {
+  if (!key) return null
+  return wx.getStorageSync(`draft:${key}`) || null
+}
+
+function clearDraft(key) {
+  if (!key) return
+  wx.removeStorageSync(`draft:${key}`)
+}
+
 module.exports = {
   bootstrap,
   getState,
@@ -125,6 +140,9 @@ module.exports = {
   reduceBalance,
   requireLogin,
   requireVerified,
+  saveDraft,
+  getDraft,
+  clearDraft,
   setPendingChat,
   takePendingChat,
   setPendingUserPreview,

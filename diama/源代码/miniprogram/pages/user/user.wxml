@@ -51,6 +51,7 @@
       <view>
         <view class="item-title">{{item.title}}</view>
         <view class="muted">{{item.condition}} · {{item.location}}</view>
+        <view class="muted">{{item.auditNote}}</view>
       </view>
       <text class="price">¥{{item.price}}</text>
     </view>
@@ -64,6 +65,7 @@
       <view>
         <view class="item-title">{{item.title}}</view>
         <view class="muted">{{item.desc}}</view>
+        <view class="muted">状态：{{item.status}}</view>
       </view>
       <text class="price">¥{{item.price}}</text>
     </view>

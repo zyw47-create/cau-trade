@@ -15,7 +15,10 @@ Page({
     conversation: null,
     conversations: [],
     messages: [],
-    input: ''
+    input: '',
+    loadingConversations: false,
+    loadingMessages: false,
+    sending: false
   },
 
   onLoad(query) {
@@ -58,6 +61,7 @@ Page({
     if (this.loadingConversations) return
     this.loadingConversations = true
     this.lastLoadAt = Date.now()
+    this.setData({ loadingConversations: true })
     api({ url: '/api/chat/list' }).then((res) => {
       const conversations = res.data.list.map((item) => {
         const last = item.messages.length ? item.messages[item.messages.length - 1].content : '暂无消息'
@@ -69,9 +73,10 @@ Page({
           evidenceText: item.messages.length ? item.messages[item.messages.length - 1].hash : 'SHA256-待生成'
         })
       })
-      this.setData({ conversations })
+      this.setData({ conversations, loadingConversations: false })
     }).finally(() => {
       this.loadingConversations = false
+      if (this.data.loadingConversations) this.setData({ loadingConversations: false })
     })
   },
 
@@ -79,6 +84,7 @@ Page({
     if (this.loadingMessages) return
     this.loadingMessages = true
     this.lastLoadAt = Date.now()
+    this.setData({ loadingMessages: true })
     api({
       url: '/api/chat/messages',
       data: {
@@ -109,6 +115,7 @@ Page({
       })
     }).finally(() => {
       this.loadingMessages = false
+      if (this.data.loadingMessages) this.setData({ loadingMessages: false })
     })
   },
 
@@ -133,6 +140,8 @@ Page({
       wx.showToast({ title: '请输入消息', icon: 'none' })
       return
     }
+    if (this.data.sending) return
+    this.setData({ sending: true })
     api({
       url: '/api/chat/send',
       method: 'POST',
@@ -154,6 +163,8 @@ Page({
       }
       this.setData({ input: '' })
       this.loadMessages()
+    }).finally(() => {
+      this.setData({ sending: false })
     })
   }
 })

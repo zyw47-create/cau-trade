@@ -49,7 +49,9 @@ Page({
     ],
     earnings: { amount: 0, acceptedCount: 0, withdraws: [] },
     withdrawAmount: '',
-    canShowWithdraw: false
+    canShowWithdraw: false,
+    backendStatusText: '认证服务检查中...',
+    backendReady: false
   },
 
   onShow() {
@@ -96,6 +98,7 @@ Page({
     }
     this.setData(nextData)
     if (!state.isLogin) {
+      this.checkBackendStatus()
       this.refreshing = false
       return
     }
@@ -131,8 +134,30 @@ Page({
         myGoods,
         noMyGoods: myGoods.length === 0
       })
+      this.checkBackendStatus()
     }).finally(() => {
       this.refreshing = false
+    })
+  },
+
+  checkBackendStatus() {
+    api({ url: '/api/status' }).then((res) => {
+      if (res.code !== 200) {
+        this.setData({
+          backendReady: false,
+          backendStatusText: '认证服务未连通'
+        })
+        return
+      }
+      this.setData({
+        backendReady: true,
+        backendStatusText: res.data.emailMode === 'mock' ? '认证服务正常：演示验证码模式' : '认证服务正常：真实邮箱模式'
+      })
+    }).catch(() => {
+      this.setData({
+        backendReady: false,
+        backendStatusText: '认证服务未连通'
+      })
     })
   },
 
@@ -152,6 +177,14 @@ Page({
 
   goVerify() {
     wx.navigateTo({ url: '/pages/verify/verify' })
+  },
+
+  goPublish() {
+    wx.switchTab({ url: '/pages/publish/publish' })
+  },
+
+  openServices() {
+    wx.navigateTo({ url: '/pages/services/services' })
   },
 
   openOrders() {

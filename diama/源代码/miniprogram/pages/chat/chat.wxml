@@ -8,7 +8,8 @@
       <view class="header-pill">哈希留痕</view>
     </view>
 
-    <view wx:if="{{conversations.length === 0}}" class="empty-chat">暂无会话，从商品详情点击“联系卖家”开始聊天。</view>
+    <view wx:if="{{loadingConversations}}" class="empty-chat">会话加载中...</view>
+    <view wx:elif="{{conversations.length === 0}}" class="empty-chat">暂无会话，从商品详情点击“联系卖家”开始聊天。</view>
 
     <view wx:for="{{conversations}}" wx:key="id" class="conversation-card" data-id="{{item.id}}" bindtap="openConversation">
       <view class="chat-avatar">{{item.peerInitial}}</view>
@@ -36,6 +37,8 @@
     </view>
 
     <view class="message-list">
+      <view wx:if="{{loadingMessages}}" class="empty-chat">消息加载中...</view>
+      <view wx:elif="{{messages.length === 0}}" class="empty-chat">当前会话还没有消息，发一条开始沟通吧。</view>
       <view wx:for="{{messages}}" wx:key="id" class="message {{item.sideClass}}">
         <view class="bubble">
           <view class="sender-line">{{item.senderLine}}</view>
@@ -47,7 +50,7 @@
 
     <view class="composer">
       <input class="input composer-input" placeholder="输入站内消息" value="{{input}}" bindinput="onInput" />
-      <button class="btn send-btn" bindtap="send">发送</button>
+      <button class="btn send-btn" loading="{{sending}}" disabled="{{sending}}" bindtap="send">发送</button>
     </view>
   </view>
 </view>

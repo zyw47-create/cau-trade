@@ -16,18 +16,28 @@ const SERVICE_STATUS_TEXT = {
   disputed: '申诉中'
 }
 
+function createPublishForm() {
+  return {
+    type: 'service',
+    title: '',
+    price: '',
+    desc: '',
+    location: '',
+    serviceTime: '',
+    pickupLocation: '',
+    deliveryLocation: ''
+  }
+}
+
 Page({
   data: {
     services: [],
-    publishForm: {
-      type: 'service',
-      title: '',
-      price: '',
-      desc: ''
-    },
+    publishForm: createPublishForm(),
     publishTypeLabel: '校园服务',
     typeOptions: ['service', 'errand'],
-    typeLabels: ['校园服务', '跑腿任务']
+    typeLabels: ['校园服务', '跑腿任务'],
+    showServiceFields: true,
+    showErrandFields: false
   },
 
   onShow() {
@@ -39,6 +49,7 @@ Page({
   handleAction(e) {
     if (!store.requireVerified()) return
     const item = this.data.services.find((svc) => svc.id === e.currentTarget.dataset.id)
+    if (!item) return
     if (item.type === 'errand') {
       this.setItemTaking(item.id, true)
       api({ url: '/api/rider/take', method: 'POST', data: { id: item.id } }).then((res) => {
@@ -100,29 +111,59 @@ Page({
   },
 
   chooseType(e) {
-    const index = e.detail.value
+    const index = Number(e.detail.value)
+    const type = this.data.typeOptions[index]
     this.setData({
-      'publishForm.type': this.data.typeOptions[index],
-      publishTypeLabel: this.data.typeLabels[index]
+      'publishForm.type': type,
+      publishTypeLabel: this.data.typeLabels[index],
+      showServiceFields: type === 'service',
+      showErrandFields: type === 'errand'
     })
+  },
+
+  validatePublishForm() {
+    const form = this.data.publishForm
+    if (!form.title || !form.price || !form.desc) {
+      wx.showToast({ title: '请补全标题、价格和描述', icon: 'none' })
+      return false
+    }
+    if (Number(form.price) <= 0) {
+      wx.showToast({ title: '价格或报酬必须大于 0', icon: 'none' })
+      return false
+    }
+    if (form.type === 'service' && !form.serviceTime) {
+      wx.showToast({ title: '请填写服务时间', icon: 'none' })
+      return false
+    }
+    if (form.type === 'service' && !form.location) {
+      wx.showToast({ title: '请填写服务地点', icon: 'none' })
+      return false
+    }
+    if (form.type === 'errand' && (!form.pickupLocation || !form.deliveryLocation)) {
+      wx.showToast({ title: '请填写取件地和送达地', icon: 'none' })
+      return false
+    }
+    return true
   },
 
   publishService() {
     if (!store.requireVerified()) return
     const form = this.data.publishForm
-    if (!form.title || !form.price || !form.desc) {
-      wx.showToast({ title: '请补全标题、价格和描述', icon: 'none' })
-      return
-    }
-    api({ url: '/api/service/save', method: 'POST', data: form }).then((res) => {
+    if (!this.validatePublishForm()) return
+    const payload = Object.assign({}, form, {
+      location: form.type === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location
+    })
+    api({ url: '/api/service/save', method: 'POST', data: payload }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
       wx.showToast({ title: form.type === 'errand' ? '跑腿待支付' : '服务已发布' })
       this.setData({
-        publishForm: { type: 'service', title: '', price: '', desc: '' },
-        publishTypeLabel: '校园服务'
+        publishForm: createPublishForm(),
+        publishTypeLabel: '校园服务',
+        showServiceFields: true,
+        showErrandFields: false
       })
       if (form.type === 'errand' && res.data && res.data.orderSn) {
         wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${res.data.orderSn}` })
@@ -135,11 +176,15 @@ Page({
   loadServices() {
     this.lastLoadAt = Date.now()
     api({ url: '/api/service/list' }).then((res) => {
-      const services = res.data.list.filter((item) => {
+      const services = (res.data.list || []).filter((item) => {
         if (item.type !== 'errand') return item.status === 'on_sale'
         return item.status === 'waiting_accept' || item.status === 'accepted' || item.status === 'processing'
       }).map((item) => {
         const isErrand = item.type === 'errand'
+        const serviceTime = item.serviceTime || (isErrand ? '发布后尽快处理' : '时间待沟通')
+        const locationText = item.location || (isErrand
+          ? [item.pickupLocation, item.deliveryLocation].filter(Boolean).join(' -> ') || '校内指定地点'
+          : '地点待沟通')
         let providerLine = `${item.provider || '同校用户'} @${item.username || 'user'}`
         if (isErrand) {
           providerLine = item.status === 'waiting_accept'
@@ -150,9 +195,11 @@ Page({
           typeText: isErrand ? '跑腿任务' : '校园服务',
           statusText: SERVICE_STATUS_TEXT[item.status] || item.status,
           providerLine,
+          serviceTime,
+          locationText,
           disabled: isErrand && item.status !== 'waiting_accept',
           taking: Boolean(item.taking),
-          actionText: item.taking ? '处理中' : (isErrand ? (item.status === 'waiting_accept' ? '抢单' : '已接单') : '预约'),
+          actionText: item.taking ? '处理中...' : (isErrand ? (item.status === 'waiting_accept' ? '抢单' : '已接单') : '预约'),
           actionDisabled: Boolean((isErrand && item.status !== 'waiting_accept') || item.taking),
           actionLoading: Boolean(item.taking),
           canProcess: isErrand && item.provider === '校园同学' && item.status === 'accepted',

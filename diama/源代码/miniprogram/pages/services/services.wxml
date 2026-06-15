@@ -8,12 +8,16 @@
   </view>
 
   <view class="panel section">
-    <view class="sub-title">发布服务/跑腿</view>
+    <view class="sub-title">发布服务 / 跑腿</view>
     <picker range="{{typeLabels}}" bindchange="chooseType">
       <view class="picker">类型：{{publishTypeLabel}}</view>
     </picker>
     <input class="input" placeholder="标题" value="{{publishForm.title}}" data-key="title" bindinput="updatePublishField" />
-    <input class="input" type="digit" placeholder="价格/报酬" value="{{publishForm.price}}" data-key="price" bindinput="updatePublishField" />
+    <input class="input" type="digit" placeholder="价格 / 报酬" value="{{publishForm.price}}" data-key="price" bindinput="updatePublishField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="服务时间，例如周末下午或工作日晚" value="{{publishForm.serviceTime}}" data-key="serviceTime" bindinput="updatePublishField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="服务地点，例如图书馆一层或线上语音" value="{{publishForm.location}}" data-key="location" bindinput="updatePublishField" />
+    <input wx:if="{{showErrandFields}}" class="input" placeholder="取件地，例如东区菜鸟驿站" value="{{publishForm.pickupLocation}}" data-key="pickupLocation" bindinput="updatePublishField" />
+    <input wx:if="{{showErrandFields}}" class="input" placeholder="送达地，例如软件学院实验楼" value="{{publishForm.deliveryLocation}}" data-key="deliveryLocation" bindinput="updatePublishField" />
     <textarea class="textarea" placeholder="服务说明、取送地点或履约要求" value="{{publishForm.desc}}" data-key="desc" bindinput="updatePublishField" />
     <button class="btn publish-btn" bindtap="publishService">提交发布</button>
   </view>
@@ -27,13 +31,14 @@
     <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
       <view class="row between">
         <view class="sub-title">{{item.title}}</view>
-        <text class="price">¥{{item.price}}</text>
+        <text class="price">￥{{item.price}}</text>
       </view>
       <view class="meta-row">
         <text class="tag">{{item.typeText}}</text>
         <text class="tag">{{item.statusText}}</text>
       </view>
       <view class="muted">{{item.providerLine}}</view>
+      <view class="muted">{{item.serviceTime}} · {{item.locationText}}</view>
       <view class="desc">{{item.desc}}</view>
     </view>
     <button class="btn service-action" loading="{{item.actionLoading}}" disabled="{{item.actionDisabled}}" data-id="{{item.id}}" bindtap="handleAction">{{item.actionText}}</button>

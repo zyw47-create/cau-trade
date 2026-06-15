@@ -8,8 +8,19 @@
       <text class="tag">{{order.statusLabel}}</text>
     </view>
     <view class="amount-line">
-      <text class="price">¥{{order.amount}}</text>
+      <text class="price">￥{{order.amount}}</text>
       <text class="muted">{{order.fundText}}</text>
+    </view>
+    <view class="action-hint">{{order.actionHint}}</view>
+  </view>
+
+  <view class="panel section">
+    <view class="sub-title">订单概览</view>
+    <view class="summary-grid">
+      <view wx:for="{{order.summaryCards}}" wx:key="label" class="summary-card">
+        <view class="summary-label">{{item.label}}</view>
+        <view class="summary-value">{{item.value}}</view>
+      </view>
     </view>
   </view>
 
@@ -24,8 +35,8 @@
       <text>{{order.progressText}}</text>
     </view>
     <view class="info-row">
-      <text>备注</text>
-      <text>{{order.remark}}</text>
+      <text>订单备注</text>
+      <text>{{order.remark || '暂无补充说明'}}</text>
     </view>
   </view>
 
@@ -50,7 +61,6 @@
     </view>
     <view class="refund-text">{{refund.reason}}</view>
     <view class="muted seller-reply">{{refund.sellerReply}}</view>
-
     <view wx:for="{{refundProgress}}" wx:key="id" class="timeline-row">
       <view class="{{item.className}}"></view>
       <view class="timeline-main">
@@ -61,7 +71,6 @@
         <view class="timeline-desc">{{item.desc}}</view>
       </view>
     </view>
-
     <view class="evidence-list">
       <view wx:for="{{refund.evidence}}" wx:for-item="evidence" wx:key="*this" class="evidence">{{evidence}}</view>
     </view>
@@ -72,7 +81,7 @@
     <view class="action-grid">
       <button wx:if="{{order.canPay}}" class="btn" bindtap="pay">支付</button>
       <button wx:if="{{order.canCancel}}" class="btn secondary" bindtap="cancelOrder">取消订单</button>
-      <button wx:if="{{order.canShip}}" class="btn secondary" bindtap="ship">发货/履约</button>
+      <button wx:if="{{order.canShip}}" class="btn secondary" bindtap="ship">发货 / 履约</button>
       <button wx:if="{{order.canReceive}}" class="btn" bindtap="receive">确认完成</button>
       <button wx:if="{{order.canRefund}}" class="btn secondary" bindtap="refund">申请售后</button>
       <button wx:if="{{order.canComplain}}" class="btn secondary" bindtap="complaint">投诉举证</button>

@@ -865,6 +865,7 @@ function api(options) {
         pickupLocation: data.pickupLocation || '',
         deliveryLocation: data.deliveryLocation || '',
         location: data.location || [data.pickupLocation, data.deliveryLocation].filter(Boolean).join(' -> '),
+        serviceTime: data.serviceTime || '',
         earnings: 0
       }
       const orderSn = `ER${Date.now()}`
@@ -904,6 +905,8 @@ function api(options) {
       username: current.username,
       status: 'on_sale',
       desc: data.desc,
+      serviceTime: data.serviceTime || '',
+      location: data.location || '',
       earnings: 0
     })
     clearTradeCache()

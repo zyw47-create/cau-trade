@@ -9,6 +9,16 @@
   box-shadow: 0 12rpx 30rpx rgba(245, 158, 11, 0.08);
 }
 
+.draft-tip {
+  background: linear-gradient(135deg, #ecfdf3, #ffffff);
+  color: #027a48;
+  border: 1rpx solid rgba(2, 122, 72, 0.14);
+  border-radius: 24rpx;
+  padding: 18rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
 .publish-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

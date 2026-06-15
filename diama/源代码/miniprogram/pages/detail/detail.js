@@ -35,7 +35,11 @@ Page({
     return Object.assign({}, item, {
       favoriteText: item.favorite ? '取消收藏' : '收藏',
       sellerInitial: (item.sellerName || '同').charAt(0),
-      sellerLine: `${item.sellerName || '同校用户'} @${item.username || 'user'}`
+      sellerLine: `${item.sellerName || '同校用户'} @${item.username || 'user'}`,
+      commentCount: (item.comments || []).length,
+      commentPreview: (item.comments || []).slice(0, 2),
+      auditTag: item.auditNote || '待审核说明',
+      safeTags: ['资金托管', '聊天留痕', '售后仲裁']
     })
   },
 

@@ -102,6 +102,10 @@
   gap: 12rpx;
 }
 
+.quick-row-two {
+  margin-top: 0;
+}
+
 .quick-item {
   height: 78rpx;
   line-height: 78rpx;
@@ -118,6 +122,26 @@
   color: #ffffff;
   background: linear-gradient(135deg, #E91E63, #FF6B6B);
   border-color: transparent;
+}
+
+.backend-strip {
+  border-radius: 24rpx;
+  padding: 18rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.backend-ok {
+  background: #ECFDF3;
+  color: #027A48;
+  border: 1rpx solid rgba(2, 122, 72, 0.12);
+}
+
+.backend-warn {
+  background: #FFF5DD;
+  color: #9C6A00;
+  border: 1rpx solid rgba(245, 158, 11, 0.16);
 }
 
 .fold-head {

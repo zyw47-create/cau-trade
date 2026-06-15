@@ -1,6 +1,37 @@
 const { api } = require('../../utils/api')
 const store = require('../../utils/store')
 
+function buildOrderView(order) {
+  const waitingErrandPeer = order.itemType === 'errand' && order.canChat === false
+  const actionHint = waitingErrandPeer
+    ? '跑腿任务正在等待骑手接单，接单后可以继续聊天、投诉和查看进度。'
+    : order.status === 'unpaid'
+      ? '当前订单待支付，支付后资金会进入平台托管。'
+      : order.status === 'paid'
+        ? '当前资金已托管，可继续履约、申请售后或联系对方。'
+        : order.status === 'shipped'
+          ? '当前订单履约中，确认完成后会进行结算。'
+          : order.status === 'completed'
+            ? '订单已完成，现在可以补充评价。'
+            : '可在此查看订单进度、售后状态和聊天证据。'
+
+  return Object.assign({}, order, {
+    canPay: order.status === 'unpaid',
+    canShip: order.status === 'paid' && !waitingErrandPeer,
+    canReceive: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped',
+    canCancel: order.status === 'unpaid' || (order.status === 'paid' && (order.itemType === 'service' || order.itemType === 'errand')),
+    canRefund: order.status === 'paid' && !waitingErrandPeer,
+    canComplain: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped' || order.status === 'refunding',
+    canComment: order.status === 'completed',
+    actionHint,
+    summaryCards: [
+      { label: '订单类型', value: order.itemTypeText || '订单' },
+      { label: '资金状态', value: order.fundText || '待确认' },
+      { label: '最新进展', value: order.progressText || '已创建' }
+    ]
+  })
+}
+
 Page({
   data: {
     order: null,
@@ -36,29 +67,17 @@ Page({
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
-      const order = res.data || {}
-      const waitingErrandPeer = order.itemType === 'errand' && order.canChat === false
-      const viewOrder = Object.assign({}, order, {
-        canPay: order.status === 'unpaid',
-        canShip: order.status === 'paid' && !waitingErrandPeer,
-        canReceive: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped',
-        canCancel: order.status === 'unpaid' || (order.status === 'paid' && (order.itemType === 'service' || order.itemType === 'errand')),
-        canRefund: order.status === 'paid' && !waitingErrandPeer,
-        canComplain: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped' || order.status === 'refunding',
-        canComment: order.status === 'completed'
-      })
+      const order = buildOrderView(res.data || {})
       const refund = order.refund || null
       this.setData({
-        order: viewOrder,
-        timeline: viewOrder.timeline || [],
+        order,
+        timeline: order.timeline || [],
         refund,
         refundProgress: refund ? refund.progress || [] : [],
         hasRefund: Boolean(refund),
-        scrollIntoView: this.focusComment && viewOrder.canComment ? 'comment-section' : ''
+        scrollIntoView: this.focusComment && order.canComment ? 'comment-section' : ''
       })
-      if (this.focusComment && viewOrder.canComment) {
-        this.focusComment = false
-      }
+      if (this.focusComment && order.canComment) this.focusComment = false
       this.loaded = true
     }).finally(() => {
       this.loadingDetail = false
@@ -67,10 +86,7 @@ Page({
 
   pay() {
     api({ url: '/api/order/pay', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
+      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '支付成功' })
       this.loadDetail()
     })
@@ -79,15 +95,12 @@ Page({
   cancelOrder() {
     wx.showModal({
       title: '取消订单',
-      content: '未付款订单会直接取消；已托管但未履约的服务或跑腿会退回余额。',
+      content: '未支付订单会直接取消；已托管但未履约的服务或跑腿订单会退回余额。',
       confirmText: '确认取消',
       success: (modal) => {
         if (!modal.confirm) return
         api({ url: '/api/order/cancel', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
-          if (res.code !== 200) {
-            wx.showToast({ title: res.msg, icon: 'none' })
-            return
-          }
+          if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
           wx.showToast({ title: '已取消' })
           this.loadDetail()
         })
@@ -97,10 +110,7 @@ Page({
 
   ship() {
     api({ url: '/api/order/ship', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
+      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '进度已更新' })
       this.loadDetail()
     })
@@ -108,10 +118,7 @@ Page({
 
   receive() {
     api({ url: '/api/order/receive', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
+      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已确认完成' })
       this.loadDetail()
     })
@@ -125,19 +132,9 @@ Page({
       success: (res) => {
         if (!res.confirm) return
         const reason = String(res.content || '').trim()
-        if (reason.length < 6) {
-          wx.showToast({ title: '请至少填写6个字说明', icon: 'none' })
-          return
-        }
-        api({
-          url: '/api/order/refund',
-          method: 'POST',
-          data: { orderSn: this.orderSn, reason }
-        }).then((apiRes) => {
-          if (apiRes.code !== 200) {
-            wx.showToast({ title: apiRes.msg, icon: 'none' })
-            return
-          }
+        if (reason.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
+        api({ url: '/api/order/refund', method: 'POST', data: { orderSn: this.orderSn, reason } }).then((apiRes) => {
+          if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '已提交售后' })
           this.loadDetail()
         })
@@ -153,19 +150,9 @@ Page({
       success: (res) => {
         if (!res.confirm) return
         const content = String(res.content || '').trim()
-        if (content.length < 6) {
-          wx.showToast({ title: '请至少填写6个字说明', icon: 'none' })
-          return
-        }
-        api({
-          url: '/api/order/complaint',
-          method: 'POST',
-          data: { orderSn: this.orderSn, content }
-        }).then((apiRes) => {
-          if (apiRes.code !== 200) {
-            wx.showToast({ title: apiRes.msg, icon: 'none' })
-            return
-          }
+        if (content.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
+        api({ url: '/api/order/complaint', method: 'POST', data: { orderSn: this.orderSn, content } }).then((apiRes) => {
+          if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '投诉已提交' })
           this.loadDetail()
         })
@@ -209,10 +196,7 @@ Page({
         content: this.data.commentContent
       }
     }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
+      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '评价成功' })
       this.setData({ commentContent: '' })
       this.loadDetail()

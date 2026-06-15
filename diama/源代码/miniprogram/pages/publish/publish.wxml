@@ -5,6 +5,7 @@
   </view>
 
   <view class="publish-tip section">{{verifyTip}}</view>
+  <view wx:if="{{draftTip}}" class="draft-tip section">{{draftTip}}</view>
 
   <view class="publish-tabs section">
     <view wx:for="{{publishTabs}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="chooseType">{{item.text}}</view>
@@ -18,16 +19,18 @@
     </picker>
     <input wx:if="{{showGoodsFields}}" class="input" placeholder="成色，例如九成新" value="{{form.condition}}" data-key="condition" bindinput="updateField" />
     <input class="input" type="digit" placeholder="{{priceLabel}}" value="{{form.price}}" data-key="price" bindinput="updateField" />
-    <input wx:if="{{showGoodsFields}}" class="input" placeholder="交易地点，例如北区宿舍" value="{{form.location}}" data-key="location" bindinput="updateField" />
+    <input wx:if="{{showGoodsFields}}" class="input" placeholder="交易地点，例如北区宿舍门口" value="{{form.location}}" data-key="location" bindinput="updateField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="{{extraPlaceholder}}" value="{{form.serviceTime}}" data-key="serviceTime" bindinput="updateField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="服务地点，例如图书馆一层或线上语音" value="{{form.location}}" data-key="location" bindinput="updateField" />
     <input wx:if="{{showErrandFields}}" class="input" placeholder="取件地点，例如北门外卖架" value="{{form.pickupLocation}}" data-key="pickupLocation" bindinput="updateField" />
     <input wx:if="{{showErrandFields}}" class="input" placeholder="送达地点，例如软件学院实验楼" value="{{form.deliveryLocation}}" data-key="deliveryLocation" bindinput="updateField" />
     <textarea class="textarea" placeholder="{{descPlaceholder}}" value="{{form.desc}}" data-key="desc" bindinput="updateField" />
     <view wx:if="{{aiTags.length}}" class="tag-row">
       <text wx:for="{{aiTags}}" wx:key="*this" class="tag">{{item}}</text>
     </view>
-    <view class="audit-note">提交后将进行内容初审；跑腿订单会先生成待支付订单，支付托管后进入任务大厅。</view>
+    <view class="audit-note">提交后会进行内容初审；跑腿订单会先生成待支付订单，支付托管后再进入任务大厅。</view>
     <view class="publish-actions">
-      <button class="btn secondary" bindtap="aiGenerate">AI辅助描述</button>
+      <button class="btn secondary" bindtap="aiGenerate">AI 辅助描述</button>
       <button class="btn" bindtap="submit">提交发布</button>
     </view>
   </view>
