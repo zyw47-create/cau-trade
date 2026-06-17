@@ -1,0 +1,14 @@
+<view class="message-list-component">
+  <view wx:for="{{conversations}}" wx:key="id" class="conversation-card" data-id="{{item.id}}" bindtap="open">
+    <view class="chat-avatar">{{item.peerInitial}}</view>
+    <view class="conversation-main">
+      <view class="row between">
+        <view class="conversation-title">{{item.title}}</view>
+        <text class="count-tag">{{item.countText}}</text>
+      </view>
+      <view class="muted peer-line">{{item.peerLine}} · {{item.businessTypeText}}</view>
+      <view class="last-message">{{item.lastMessage}}</view>
+      <view class="hash-line">{{item.evidenceText}}</view>
+    </view>
+  </view>
+</view>

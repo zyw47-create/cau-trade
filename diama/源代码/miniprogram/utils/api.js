@@ -454,6 +454,10 @@ function api(options) {
   const cached = getCache(options)
   if (cached) return Promise.resolve(cached)
 
+  if (url && url.indexOf('/api/admin/') === 0 && store.getState().role !== 'admin') {
+    return fail('无后台权限')
+  }
+
   if (url === '/api/auth/login') {
     clearApiCache()
     return ok(store.login())
@@ -482,7 +486,20 @@ function api(options) {
     return ok(user)
   }
   if (url === '/api/user/role') {
-    const user = store.setRole(data.role || 'user')
+    const role = data.role || 'user'
+    if (role === 'admin') {
+      if (store.getState().role !== 'admin') return fail('后台权限由系统分配，不能申请')
+      return ok({ role: 'admin' })
+    }
+    const user = store.setRoleCertification(role, {
+      status: 'approved',
+      campusArea: data.campusArea || '',
+      availableTime: data.availableTime || '',
+      emergencyContact: data.emergencyContact || '',
+      serviceCategory: data.serviceCategory || '',
+      experience: data.experience || '',
+      agreement: Boolean(data.agreement)
+    })
     clearApiCache(['/api/user/public', '/api/rider/earnings'])
     return ok({ role: user.role })
   }
@@ -538,6 +555,14 @@ function api(options) {
     })
   }
 
+  if (url === '/api/oss/sts') {
+    return ok({
+      host: 'mock://campus-upload',
+      scene: data.scene || 'publish',
+      expiresIn: 900
+    })
+  }
+
   if (url === '/api/account/recharge') {
     const amount = Number(data.amount || 0)
     if (!amount || amount <= 0) return fail('请输入有效充值金额')
@@ -547,7 +572,9 @@ function api(options) {
   }
   if (url === '/api/account/logs') return setCache(options, ok({ list: mock.walletLogs }))
   if (url === '/api/rider/earnings') {
-    const accepted = mock.services.filter((item) => item.type === 'errand' && item.provider === '校园同学')
+    const current = getCurrentUser()
+    const accepted = mock.services.filter((item) => item.type === 'errand'
+      && (item.riderUsername === current.username || item.provider === current.nickname))
     const amount = accepted.reduce((sum, item) => sum + Number(item.price || 0), 0)
     return ok({
       amount,
@@ -590,7 +617,9 @@ function api(options) {
       sellerId: 1,
       sellerName: '校园同学',
       username: 'campus_user',
-      image: '',
+      image: (data.images && data.images[0]) || '',
+      images: data.images || [],
+      imageObjects: data.imageObjects || [],
       desc: data.desc,
       location: data.location || '校内自提',
       favorite: false,
@@ -851,6 +880,9 @@ function api(options) {
     if (blockedKeywords.length) return fail(`内容包含违禁词：${blockedKeywords.join('、')}`)
     const id = Date.now()
     const current = getCurrentUser()
+    if (data.type !== 'errand' && store.getState().role !== 'provider') {
+      return fail('请先完成服务者认证后再发布校园服务')
+    }
     if (data.type === 'errand') {
       const task = {
         id,
@@ -866,6 +898,8 @@ function api(options) {
         deliveryLocation: data.deliveryLocation || '',
         location: data.location || [data.pickupLocation, data.deliveryLocation].filter(Boolean).join(' -> '),
         serviceTime: data.serviceTime || '',
+        images: data.images || [],
+        imageObjects: data.imageObjects || [],
         earnings: 0
       }
       const orderSn = `ER${Date.now()}`
@@ -907,6 +941,8 @@ function api(options) {
       desc: data.desc,
       serviceTime: data.serviceTime || '',
       location: data.location || '',
+      images: data.images || [],
+      imageObjects: data.imageObjects || [],
       earnings: 0
     })
     clearTradeCache()
@@ -952,6 +988,7 @@ function api(options) {
     if (item.status !== 'waiting_accept') return fail('任务已被接单')
     const publisher = findUserByUsername(item.username) || mock.users[0]
     const rider = getCurrentUser()
+    if (store.getState().role !== 'rider') return fail('请先完成骑手认证后再抢单')
     if (publisher.username === rider.username) return fail('不能抢自己发布的跑腿任务')
     item.status = 'accepted'
     item.provider = rider.nickname
@@ -988,6 +1025,9 @@ function api(options) {
   }
   if (url === '/api/rider/status') {
     const item = mock.services.find((svc) => svc.id === Number(data.id))
+    const current = getCurrentUser()
+    if (store.getState().role !== 'rider') return fail('请先切换到骑手身份')
+    if (item && item.riderUsername && item.riderUsername !== current.username) return fail('只能更新自己接单的任务')
     if (item) {
       item.status = data.status || 'processing'
       const order = mock.orders.find((orderItem) => orderItem.itemType === 'errand' && Number(orderItem.itemId) === Number(item.id))

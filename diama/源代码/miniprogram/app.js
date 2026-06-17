@@ -5,7 +5,8 @@ App({
     apiMode: 'mock',
     baseUrl: 'http://127.0.0.1:3001',
     verifyBaseUrl: 'http://127.0.0.1:3001',
-    useMock: true
+    useMock: true,
+    unreadCount: 0
   },
 
   onLaunch() {

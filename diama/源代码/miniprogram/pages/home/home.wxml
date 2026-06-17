@@ -17,6 +17,7 @@
         <view wx:for="{{categories}}" wx:key="name" class="{{item.className}}" data-name="{{item.name}}" bindtap="chooseCategory">{{item.name}}</view>
       </view>
     </scroll-view>
+    <view wx:if="{{showGoods}}" class="more-filter" bindtap="openCategory">进入分类检索 · 支持排序与可信筛选</view>
   </view>
 
   <view class="feed-title section">
@@ -30,6 +31,7 @@
     <view class="goods-waterfall">
       <view wx:for="{{visibleGoods}}" wx:key="id" class="goods-card" data-id="{{item.id}}" bindtap="openDetail">
         <view class="goods-cover">
+          <image wx:if="{{item.image}}" class="cover-image" src="{{item.image}}" mode="aspectFill"></image>
           <view class="cover-category">{{item.category}}</view>
           <view class="cover-condition">{{item.condition}}</view>
         </view>

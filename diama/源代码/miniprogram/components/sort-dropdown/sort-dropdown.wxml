@@ -1,0 +1,15 @@
+<view class="sort-dropdown">
+  <view class="sort-current" bindtap="toggle">
+    <text wx:for="{{options}}" wx:key="key" wx:if="{{item.key === active}}">{{item.text}}</text>
+    <text class="arrow">{{opened ? '收起' : '排序'}}</text>
+  </view>
+  <view wx:if="{{opened}}" class="sort-menu">
+    <view
+      wx:for="{{options}}"
+      wx:key="key"
+      class="sort-option {{item.key === active ? 'active' : ''}}"
+      data-item="{{item}}"
+      bindtap="choose"
+    >{{item.text}}</view>
+  </view>
+</view>

@@ -159,6 +159,17 @@ Page({
 
   takeErrand() {
     if (!store.requireVerified() || this.data.taking) return
+    if (store.getState().role !== 'rider') {
+      wx.showModal({
+        title: '需要骑手认证',
+        content: '抢跑腿单需要先完成实名认证，并提交骑手接单资料。',
+        confirmText: '去认证',
+        success: (modal) => {
+          if (modal.confirm) wx.navigateTo({ url: '/pages/role-apply/role-apply?role=rider' })
+        }
+      })
+      return
+    }
     this.setData({ taking: true })
     this.syncActionState()
     api({ url: '/api/rider/take', method: 'POST', data: { id: this.data.item.id } }).then((res) => {
@@ -172,7 +183,7 @@ Page({
       if (res.data && res.data.orderSn) {
         wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${res.data.orderSn}` })
       } else {
-        wx.switchTab({ url: '/pages/orders/orders' })
+        wx.navigateTo({ url: '/pages/orders/orders' })
       }
     }).finally(() => {
       this.setData({ taking: false })

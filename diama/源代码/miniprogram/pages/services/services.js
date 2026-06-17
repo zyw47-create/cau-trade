@@ -16,28 +16,11 @@ const SERVICE_STATUS_TEXT = {
   disputed: '申诉中'
 }
 
-function createPublishForm() {
-  return {
-    type: 'service',
-    title: '',
-    price: '',
-    desc: '',
-    location: '',
-    serviceTime: '',
-    pickupLocation: '',
-    deliveryLocation: ''
-  }
-}
-
 Page({
   data: {
     services: [],
-    publishForm: createPublishForm(),
-    publishTypeLabel: '校园服务',
-    typeOptions: ['service', 'errand'],
-    typeLabels: ['校园服务', '跑腿任务'],
-    showServiceFields: true,
-    showErrandFields: false
+    loading: true,
+    errorText: ''
   },
 
   onShow() {
@@ -46,11 +29,26 @@ Page({
     this.loadServices()
   },
 
+  goPublish() {
+    wx.navigateTo({ url: '/pages/publish/publish' })
+  },
+
   handleAction(e) {
     if (!store.requireVerified()) return
     const item = this.data.services.find((svc) => svc.id === e.currentTarget.dataset.id)
     if (!item) return
     if (item.type === 'errand') {
+      if (store.getState().role !== 'rider') {
+        wx.showModal({
+          title: '需要骑手认证',
+          content: '抢跑腿单需要先完成实名认证，并提交骑手接单资料。',
+          confirmText: '去认证',
+          success: (modal) => {
+            if (modal.confirm) wx.navigateTo({ url: '/pages/role-apply/role-apply?role=rider' })
+          }
+        })
+        return
+      }
       this.setItemTaking(item.id, true)
       api({ url: '/api/rider/take', method: 'POST', data: { id: item.id } }).then((res) => {
         if (res.code !== 200) {
@@ -63,7 +61,7 @@ Page({
         if (res.data && res.data.orderSn) {
           wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${res.data.orderSn}` })
         } else {
-          wx.switchTab({ url: '/pages/orders/orders' })
+          wx.navigateTo({ url: '/pages/orders/orders' })
         }
       }).finally(() => {
         this.setItemTaking(item.id, false)
@@ -93,6 +91,10 @@ Page({
   },
 
   updateRiderStatus(e) {
+    if (store.getState().role !== 'rider') {
+      wx.showToast({ title: '请先切换到骑手身份', icon: 'none' })
+      return
+    }
     const id = e.currentTarget.dataset.id
     const status = e.currentTarget.dataset.status
     api({ url: '/api/rider/status', method: 'POST', data: { id, status } }).then((res) => {
@@ -105,77 +107,15 @@ Page({
     })
   },
 
-  updatePublishField(e) {
-    const key = e.currentTarget.dataset.key
-    this.setData({ [`publishForm.${key}`]: e.detail.value })
-  },
-
-  chooseType(e) {
-    const index = Number(e.detail.value)
-    const type = this.data.typeOptions[index]
-    this.setData({
-      'publishForm.type': type,
-      publishTypeLabel: this.data.typeLabels[index],
-      showServiceFields: type === 'service',
-      showErrandFields: type === 'errand'
-    })
-  },
-
-  validatePublishForm() {
-    const form = this.data.publishForm
-    if (!form.title || !form.price || !form.desc) {
-      wx.showToast({ title: '请补全标题、价格和描述', icon: 'none' })
-      return false
-    }
-    if (Number(form.price) <= 0) {
-      wx.showToast({ title: '价格或报酬必须大于 0', icon: 'none' })
-      return false
-    }
-    if (form.type === 'service' && !form.serviceTime) {
-      wx.showToast({ title: '请填写服务时间', icon: 'none' })
-      return false
-    }
-    if (form.type === 'service' && !form.location) {
-      wx.showToast({ title: '请填写服务地点', icon: 'none' })
-      return false
-    }
-    if (form.type === 'errand' && (!form.pickupLocation || !form.deliveryLocation)) {
-      wx.showToast({ title: '请填写取件地和送达地', icon: 'none' })
-      return false
-    }
-    return true
-  },
-
-  publishService() {
-    if (!store.requireVerified()) return
-    const form = this.data.publishForm
-    if (!this.validatePublishForm()) return
-    const payload = Object.assign({}, form, {
-      location: form.type === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location
-    })
-    api({ url: '/api/service/save', method: 'POST', data: payload }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
-      wx.showToast({ title: form.type === 'errand' ? '跑腿待支付' : '服务已发布' })
-      this.setData({
-        publishForm: createPublishForm(),
-        publishTypeLabel: '校园服务',
-        showServiceFields: true,
-        showErrandFields: false
-      })
-      if (form.type === 'errand' && res.data && res.data.orderSn) {
-        wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${res.data.orderSn}` })
-        return
-      }
-      this.loadServices()
-    })
-  },
-
   loadServices() {
     this.lastLoadAt = Date.now()
+    const current = store.getState().user || {}
+    this.setData({ loading: true, errorText: '' })
     api({ url: '/api/service/list' }).then((res) => {
+      if (res.code !== 200) {
+        this.setData({ errorText: res.msg || '服务加载失败' })
+        return
+      }
       const services = (res.data.list || []).filter((item) => {
         if (item.type !== 'errand') return item.status === 'on_sale'
         return item.status === 'waiting_accept' || item.status === 'accepted' || item.status === 'processing'
@@ -202,11 +142,15 @@ Page({
           actionText: item.taking ? '处理中...' : (isErrand ? (item.status === 'waiting_accept' ? '抢单' : '已接单') : '预约'),
           actionDisabled: Boolean((isErrand && item.status !== 'waiting_accept') || item.taking),
           actionLoading: Boolean(item.taking),
-          canProcess: isErrand && item.provider === '校园同学' && item.status === 'accepted',
-          canComplete: isErrand && item.provider === '校园同学' && item.status === 'processing'
+          canProcess: isErrand && (item.riderUsername === current.username || item.provider === current.nickname) && item.status === 'accepted',
+          canComplete: isErrand && (item.riderUsername === current.username || item.provider === current.nickname) && item.status === 'processing'
         })
       })
       this.setData({ services })
+    }).catch(() => {
+      this.setData({ errorText: '网络异常，服务加载失败' })
+    }).finally(() => {
+      this.setData({ loading: false })
     })
   }
 })

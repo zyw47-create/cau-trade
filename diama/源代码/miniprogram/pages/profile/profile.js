@@ -22,12 +22,9 @@ Page({
     state: {},
     user: null,
     credit: null,
-    walletLogs: [],
     favorites: [],
     myGoods: [],
-    noFavorites: true,
     noMyGoods: true,
-    rechargeAmount: '',
     profileForm: {
       nickname: '',
       username: '',
@@ -36,17 +33,9 @@ Page({
     },
     sections: {
       profile: false,
-      wallet: false,
-      favorites: false,
       published: false,
-      earnings: false,
-      settings: false
+      earnings: false
     },
-    roles: [
-      { value: 'provider', text: '申请服务者认证' },
-      { value: 'rider', text: '申请骑手认证' },
-      { value: 'admin', text: '后台权限验证' }
-    ],
     earnings: { amount: 0, acceptedCount: 0, withdraws: [] },
     withdrawAmount: '',
     canShowWithdraw: false,
@@ -104,15 +93,10 @@ Page({
     }
     Promise.all([
       api({ url: '/api/user/credit' }),
-      api({ url: '/api/account/logs' }),
       api({ url: '/api/goods/favorites' }),
       api({ url: '/api/rider/earnings' }),
       api({ url: '/api/goods/mine' })
-    ]).then(([creditRes, logsRes, favoritesRes, earningsRes, mineRes]) => {
-      const walletLogs = (logsRes.data.list || []).slice(0, 8).map((item) => Object.assign({}, item, {
-        amountText: `${item.amount >= 0 ? '+' : ''}${item.amount}`,
-        amountClass: item.amount >= 0 ? 'income' : 'expense'
-      }))
+    ]).then(([creditRes, favoritesRes, earningsRes, mineRes]) => {
       const favorites = (favoritesRes.data.list || []).map((item) => Object.assign({}, item, {
         statusLabel: GOODS_STATUS_TEXT[item.status] || item.status
       }))
@@ -127,9 +111,7 @@ Page({
       }))
       this.setData({
         credit: creditRes.data,
-        walletLogs,
         favorites,
-        noFavorites: favorites.length === 0,
         earnings: Object.assign({}, earningsData, { withdraws }),
         myGoods,
         noMyGoods: myGoods.length === 0
@@ -180,7 +162,7 @@ Page({
   },
 
   goPublish() {
-    wx.switchTab({ url: '/pages/publish/publish' })
+    wx.navigateTo({ url: '/pages/publish/publish' })
   },
 
   openServices() {
@@ -188,16 +170,24 @@ Page({
   },
 
   openOrders() {
-    wx.switchTab({ url: '/pages/orders/orders' })
+    wx.navigateTo({ url: '/pages/orders/orders' })
+  },
+
+  openWallet() {
+    wx.navigateTo({ url: '/pages/wallet/wallet' })
+  },
+
+  openFavoritePage() {
+    wx.navigateTo({ url: '/pages/favorite/favorite' })
+  },
+
+  openSettingsPage() {
+    wx.navigateTo({ url: '/pages/settings/settings' })
   },
 
   toggleSection(e) {
     const key = e.currentTarget.dataset.key
     this.setData({ [`sections.${key}`]: !this.data.sections[key] })
-  },
-
-  onRechargeInput(e) {
-    this.setData({ rechargeAmount: e.detail.value })
   },
 
   onProfileInput(e) {
@@ -208,23 +198,6 @@ Page({
   saveProfile() {
     api({ url: '/api/user/profile/update', method: 'POST', data: this.data.profileForm }).then(() => {
       wx.showToast({ title: '资料已保存' })
-      this.refresh()
-    })
-  },
-
-  recharge() {
-    if (!store.requireLogin()) return
-    api({
-      url: '/api/account/recharge',
-      method: 'POST',
-      data: { amount: this.data.rechargeAmount }
-    }).then((res) => {
-      if (res.code !== 200) {
-        wx.showToast({ title: res.msg, icon: 'none' })
-        return
-      }
-      wx.showToast({ title: '充值成功' })
-      this.setData({ rechargeAmount: '' })
       this.refresh()
     })
   },
@@ -253,19 +226,6 @@ Page({
 
   openChatList() {
     wx.switchTab({ url: '/pages/chat/chat' })
-  },
-
-  switchRole(e) {
-    const role = e.currentTarget.dataset.role
-    if (role !== 'admin' && !store.getState().isVerified) {
-      wx.showToast({ title: '请先完成实名认证', icon: 'none' })
-      wx.navigateTo({ url: '/pages/verify/verify' })
-      return
-    }
-    api({ url: '/api/user/role', method: 'POST', data: { role } }).then(() => {
-      wx.showToast({ title: role === 'admin' ? '后台权限已验证' : '申请已提交' })
-      this.refresh()
-    })
   },
 
   goAdmin() {

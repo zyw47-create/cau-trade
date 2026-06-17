@@ -11,18 +11,7 @@
     <view wx:if="{{loadingConversations}}" class="empty-chat">会话加载中...</view>
     <view wx:elif="{{conversations.length === 0}}" class="empty-chat">暂无会话，从商品详情点击“联系卖家”开始聊天。</view>
 
-    <view wx:for="{{conversations}}" wx:key="id" class="conversation-card" data-id="{{item.id}}" bindtap="openConversation">
-      <view class="chat-avatar">{{item.peerInitial}}</view>
-      <view class="conversation-main">
-        <view class="row between">
-          <view class="conversation-title">{{item.title}}</view>
-          <text class="count-tag">{{item.countText}}</text>
-        </view>
-        <view class="muted peer-line">{{item.peerLine}} · {{item.businessType}}</view>
-        <view class="last-message">{{item.lastMessage}}</view>
-        <view class="hash-line">{{item.evidenceText}}</view>
-      </view>
-    </view>
+    <message-list conversations="{{conversations}}" bindopen="openConversation"></message-list>
   </view>
 
   <view wx:if="{{mode === 'room'}}">

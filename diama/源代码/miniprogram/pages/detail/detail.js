@@ -24,7 +24,9 @@ Page({
     this.loadingDetail = true
     this.lastLoadAt = Date.now()
     api({ url: '/api/goods/detail', data: { id: this.goodsId } }).then((res) => {
-      this.setData({ item: this.decorateItem(res.data) })
+      const item = this.decorateItem(res.data)
+      store.addBrowseHistory(item)
+      this.setData({ item })
       this.loaded = true
     }).finally(() => {
       this.loadingDetail = false
@@ -86,7 +88,7 @@ Page({
         return
       }
       wx.showToast({ title: '支付成功' })
-      wx.switchTab({ url: '/pages/orders/orders' })
+      wx.navigateTo({ url: '/pages/orders/orders' })
     })
   },
 

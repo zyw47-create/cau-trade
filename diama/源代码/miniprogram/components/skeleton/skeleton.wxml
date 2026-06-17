@@ -1,0 +1,10 @@
+<view class="skeleton {{type}}">
+  <view wx:for="{{items}}" wx:key="id" class="skeleton-item">
+    <view class="skeleton-cover"></view>
+    <view class="skeleton-main">
+      <view class="skeleton-line strong"></view>
+      <view class="skeleton-line"></view>
+      <view class="skeleton-line short"></view>
+    </view>
+  </view>
+</view>

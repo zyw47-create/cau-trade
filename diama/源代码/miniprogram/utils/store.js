@@ -19,12 +19,31 @@ const state = {
   user: null
 }
 
+const STORAGE_KEYS = {
+  token: 'campus_token',
+  user: 'campus_userinfo',
+  searchHistory: 'campus_search_history',
+  browseHistory: 'campus_browse_history',
+  draft: 'campus_draft',
+  version: 'campus_storage_version'
+}
+
+const LEGACY_KEYS = {
+  token: 'token',
+  user: 'user'
+}
+
+const HISTORY_LIMIT = 20
+
 function bootstrap() {
-  state.token = wx.getStorageSync('token') || ''
-  state.user = wx.getStorageSync('user') || null
+  state.token = wx.getStorageSync(STORAGE_KEYS.token) || wx.getStorageSync(LEGACY_KEYS.token) || ''
+  state.user = wx.getStorageSync(STORAGE_KEYS.user) || wx.getStorageSync(LEGACY_KEYS.user) || null
+  if (state.token) wx.setStorageSync(STORAGE_KEYS.token, state.token)
+  if (state.user) wx.setStorageSync(STORAGE_KEYS.user, state.user)
+  wx.setStorageSync(STORAGE_KEYS.version, '1')
   if (state.user && !state.user.username) {
     state.user.username = 'campus_user'
-    wx.setStorageSync('user', state.user)
+    wx.setStorageSync(STORAGE_KEYS.user, state.user)
   }
 }
 
@@ -41,26 +60,40 @@ function getState() {
 function login() {
   state.token = 'mock-jwt-token'
   state.user = Object.assign({}, defaultUser)
-  wx.setStorageSync('token', state.token)
-  wx.setStorageSync('user', state.user)
+  wx.setStorageSync(STORAGE_KEYS.token, state.token)
+  wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return getState()
 }
 
 function logout() {
   state.token = ''
   state.user = null
-  wx.removeStorageSync('token')
-  wx.removeStorageSync('user')
+  wx.removeStorageSync(STORAGE_KEYS.token)
+  wx.removeStorageSync(STORAGE_KEYS.user)
+  wx.removeStorageSync(LEGACY_KEYS.token)
+  wx.removeStorageSync(LEGACY_KEYS.user)
 }
 
 function updateUser(patch) {
   state.user = Object.assign({}, state.user || defaultUser, patch)
-  wx.setStorageSync('user', state.user)
+  wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return state.user
 }
 
 function setRole(role) {
   return updateUser({ role })
+}
+
+function setRoleCertification(role, payload) {
+  const current = (state.user && state.user.roleCertifications) || {}
+  const next = Object.assign({}, current, {
+    [role]: Object.assign({
+      role,
+      status: 'approved',
+      appliedAt: Date.now()
+    }, payload || {})
+  })
+  return updateUser({ role, roleCertifications: next })
 }
 
 function addBalance(amount) {
@@ -104,6 +137,16 @@ function takePendingChat() {
   return payload
 }
 
+function setPendingCategory(payload) {
+  wx.setStorageSync('pendingCategory', payload || {})
+}
+
+function takePendingCategory() {
+  const payload = wx.getStorageSync('pendingCategory') || null
+  wx.removeStorageSync('pendingCategory')
+  return payload
+}
+
 function setPendingUserPreview(payload) {
   wx.setStorageSync('pendingUserPreview', payload || {})
 }
@@ -116,17 +159,75 @@ function takePendingUserPreview() {
 
 function saveDraft(key, payload) {
   if (!key) return
+  const drafts = wx.getStorageSync(STORAGE_KEYS.draft) || {}
+  drafts[key] = payload || {}
+  wx.setStorageSync(STORAGE_KEYS.draft, drafts)
   wx.setStorageSync(`draft:${key}`, payload || {})
 }
 
 function getDraft(key) {
   if (!key) return null
-  return wx.getStorageSync(`draft:${key}`) || null
+  const drafts = wx.getStorageSync(STORAGE_KEYS.draft) || {}
+  return drafts[key] || wx.getStorageSync(`draft:${key}`) || null
 }
 
 function clearDraft(key) {
   if (!key) return
+  const drafts = wx.getStorageSync(STORAGE_KEYS.draft) || {}
+  delete drafts[key]
+  wx.setStorageSync(STORAGE_KEYS.draft, drafts)
   wx.removeStorageSync(`draft:${key}`)
+}
+
+function normalizeHistoryItem(item) {
+  if (!item) return null
+  if (typeof item === 'string') return { keyword: item, time: Date.now() }
+  return Object.assign({ time: Date.now() }, item)
+}
+
+function addUniqueHistory(storageKey, item, identity) {
+  const normalized = normalizeHistoryItem(item)
+  if (!normalized) return []
+  const getId = identity || ((value) => value.keyword || value.id || value.title)
+  const id = getId(normalized)
+  const current = wx.getStorageSync(storageKey) || []
+  const next = [normalized].concat(current.filter((value) => getId(value) !== id)).slice(0, HISTORY_LIMIT)
+  wx.setStorageSync(storageKey, next)
+  return next
+}
+
+function getSearchHistory() {
+  return wx.getStorageSync(STORAGE_KEYS.searchHistory) || []
+}
+
+function addSearchHistory(keyword) {
+  const text = String(keyword || '').trim()
+  if (!text) return getSearchHistory()
+  return addUniqueHistory(STORAGE_KEYS.searchHistory, { keyword: text, time: Date.now() }, (item) => item.keyword)
+}
+
+function clearSearchHistory() {
+  wx.removeStorageSync(STORAGE_KEYS.searchHistory)
+}
+
+function getBrowseHistory() {
+  return wx.getStorageSync(STORAGE_KEYS.browseHistory) || []
+}
+
+function addBrowseHistory(goods) {
+  if (!goods || !goods.id) return getBrowseHistory()
+  return addUniqueHistory(STORAGE_KEYS.browseHistory, {
+    id: goods.id,
+    title: goods.title,
+    price: goods.price,
+    category: goods.category,
+    location: goods.location,
+    time: Date.now()
+  }, (item) => item.id)
+}
+
+function clearBrowseHistory() {
+  wx.removeStorageSync(STORAGE_KEYS.browseHistory)
 }
 
 module.exports = {
@@ -136,6 +237,7 @@ module.exports = {
   logout,
   updateUser,
   setRole,
+  setRoleCertification,
   addBalance,
   reduceBalance,
   requireLogin,
@@ -143,6 +245,14 @@ module.exports = {
   saveDraft,
   getDraft,
   clearDraft,
+  getSearchHistory,
+  addSearchHistory,
+  clearSearchHistory,
+  getBrowseHistory,
+  addBrowseHistory,
+  clearBrowseHistory,
+  setPendingCategory,
+  takePendingCategory,
   setPendingChat,
   takePendingChat,
   setPendingUserPreview,

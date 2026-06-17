@@ -10,6 +10,9 @@
   <view class="section panel">
     <view class="sub-title">服务说明</view>
     <view class="desc">{{item.desc}}</view>
+    <view wx:if="{{item.images.length}}" class="service-images">
+      <image wx:for="{{item.images}}" wx:key="*this" wx:for-item="imageUrl" class="service-image" src="{{imageUrl}}" mode="aspectFill"></image>
+    </view>
     <view class="meta-grid">
       <view class="meta-card">
         <view class="meta-label">服务时段</view>

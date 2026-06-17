@@ -33,8 +33,28 @@
   margin-bottom: 18rpx;
 }
 
-.publish-btn {
-  margin-top: 18rpx;
+.publish-guide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.small-publish-btn {
+  width: 150rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 999rpx;
+  background: #FFF1F6;
+  color: #C2185B;
+  font-size: 24rpx;
+  font-weight: 800;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.small-publish-btn::after {
+  border: none;
 }
 
 .desc {

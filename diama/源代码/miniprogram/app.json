@@ -6,6 +6,11 @@
     "pages/service-detail/service-detail",
     "pages/order-detail/order-detail",
     "pages/publish/publish",
+    "pages/category/category",
+    "pages/favorite/favorite",
+    "pages/wallet/wallet",
+    "pages/settings/settings",
+    "pages/role-apply/role-apply",
     "pages/orders/orders",
     "pages/services/services",
     "pages/chat/chat",
@@ -22,6 +27,7 @@
     "backgroundColorBottom": "#FFFFFF"
   },
   "tabBar": {
+    "custom": true,
     "color": "#999999",
     "selectedColor": "#E91E63",
     "backgroundColor": "#ffffff",
@@ -32,22 +38,30 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/publish/publish",
-        "text": "发布"
+        "pagePath": "pages/category/category",
+        "text": "分类"
       },
       {
         "pagePath": "pages/chat/chat",
         "text": "消息"
       },
       {
-        "pagePath": "pages/orders/orders",
-        "text": "订单"
-      },
-      {
         "pagePath": "pages/profile/profile",
         "text": "我的"
       }
     ]
+  },
+  "usingComponents": {
+    "status-tag": "/components/status-tag/status-tag",
+    "skeleton": "/components/skeleton/skeleton",
+    "search-bar": "/components/search-bar/search-bar",
+    "category-sidebar": "/components/category-sidebar/category-sidebar",
+    "sort-dropdown": "/components/sort-dropdown/sort-dropdown",
+    "message-list": "/components/message-list/message-list",
+    "goods-card": "/components/goods-card/goods-card",
+    "filter-drawer": "/components/filter-drawer/filter-drawer",
+    "app-modal": "/components/app-modal/app-modal",
+    "profile-card": "/components/profile-card/profile-card"
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

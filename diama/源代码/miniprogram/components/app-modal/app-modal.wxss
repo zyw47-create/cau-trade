@@ -1,0 +1,64 @@
+.modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.modal-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 25, 31, 0.42);
+}
+
+.modal-panel {
+  position: absolute;
+  left: 46rpx;
+  right: 46rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 34rpx;
+  border-radius: 34rpx;
+  background: #ffffff;
+  box-shadow: 0 28rpx 80rpx rgba(36, 25, 31, 0.22);
+}
+
+.modal-title {
+  color: #262126;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.modal-content {
+  margin-top: 16rpx;
+  color: #6f6068;
+  line-height: 42rpx;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-top: 28rpx;
+}
+
+.modal-btn {
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.modal-btn::after {
+  border: none;
+}
+
+.modal-btn.cancel {
+  color: #c2185b;
+  background: #fff1f6;
+}
+
+.modal-btn.confirm {
+  color: #ffffff;
+  background: linear-gradient(135deg, #e91e63, #ff6b6b);
+}

@@ -109,6 +109,11 @@ Page({
     this.setData(Object.assign({ activeTab }, this.buildDisplayData(nextData)))
   },
 
+  openCategory() {
+    store.setPendingCategory({ keyword: this.data.keyword || '' })
+    wx.switchTab({ url: '/pages/category/category' })
+  },
+
   applyFilter() {
     this.setData(this.buildDisplayData(this.getSourceData()))
   },
@@ -242,6 +247,17 @@ Page({
     const id = Number(e.currentTarget.dataset.id)
     const type = e.currentTarget.dataset.type
     if (type === 'errand') {
+      if (store.getState().role !== 'rider') {
+        wx.showModal({
+          title: '需要骑手认证',
+          content: '抢跑腿单需要先完成实名认证，并提交骑手接单资料。',
+          confirmText: '去认证',
+          success: (modal) => {
+            if (modal.confirm) wx.navigateTo({ url: '/pages/role-apply/role-apply?role=rider' })
+          }
+        })
+        return
+      }
       this.setTaking(id, true)
       api({ url: '/api/rider/take', method: 'POST', data: { id } }).then((res) => {
         if (res.code !== 200) {
@@ -256,7 +272,7 @@ Page({
         if (res.data && res.data.orderSn) {
           wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${res.data.orderSn}` })
         } else {
-          wx.switchTab({ url: '/pages/orders/orders' })
+          wx.navigateTo({ url: '/pages/orders/orders' })
         }
       }).finally(() => {
         this.setTaking(id, false)

@@ -1,0 +1,26 @@
+<view class="profile-card">
+  <view class="user-avatar">{{user.initial}}</view>
+  <view class="user-main">
+    <view class="row between">
+      <view>
+        <view class="user-name">{{user.nickname}}</view>
+        <view class="muted">@{{user.username}} · {{user.roleText}} · {{user.statusText}}</view>
+      </view>
+      <view class="verify-tag {{user.verifyClass}}" bindtap="verify">{{user.verifyText}}</view>
+    </view>
+    <view class="metric-row">
+      <view class="metric">
+        <view class="metric-value">{{user.creditScore}}</view>
+        <view class="muted">信用分</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">¥{{user.balance}}</view>
+        <view class="muted">余额</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">{{favoritesCount}}</view>
+        <view class="muted">收藏</view>
+      </view>
+    </view>
+  </view>
+</view>

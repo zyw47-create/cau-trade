@@ -1,5 +1,6 @@
 <view class="page detail-page" wx:if="{{item}}">
   <view class="detail-cover">
+    <image wx:if="{{item.image}}" class="detail-image" src="{{item.image}}" mode="aspectFill"></image>
     <view class="cover-title">{{item.category}}</view>
     <view class="cover-tag">{{item.condition}}</view>
   </view>

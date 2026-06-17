@@ -26,6 +26,7 @@ function createDefaultForm() {
     condition: '九成新',
     price: '',
     desc: '',
+    images: [],
     location: '',
     serviceTime: '',
     pickupLocation: '',
@@ -165,6 +166,80 @@ Page({
     this.persistDraft()
   },
 
+  chooseImages() {
+    const current = this.data.form.images || []
+    const remain = Math.max(0, 6 - current.length)
+    if (!remain) {
+      wx.showToast({ title: '最多上传6张图片', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const files = (res.tempFiles || []).map((file) => ({
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          tempFilePath: file.tempFilePath,
+          url: file.tempFilePath,
+          status: 'uploading',
+          statusText: '上传中'
+        }))
+        this.setData({
+          'form.images': current.concat(files),
+          draftTip: '图片已加入草稿，正在模拟上传。'
+        })
+        this.persistDraft()
+        this.uploadImages(files)
+      }
+    })
+  },
+
+  uploadImages(files) {
+    if (!files.length) return
+    api({ url: '/api/oss/sts', method: 'POST', data: { scene: this.data.activeType } }).then((res) => {
+      const host = (res.data && res.data.host) || 'mock://upload'
+      const images = (this.data.form.images || []).map((item) => {
+        const matched = files.find((file) => file.id === item.id)
+        if (!matched) return item
+        return Object.assign({}, item, {
+          uploadedUrl: `${host}/${item.id}.jpg`,
+          status: 'done',
+          statusText: '已上传'
+        })
+      })
+      this.setData({
+        'form.images': images,
+        draftTip: '图片上传完成，草稿已保存。'
+      })
+      this.persistDraft()
+    }).catch(() => {
+      const images = (this.data.form.images || []).map((item) => {
+        const matched = files.find((file) => file.id === item.id)
+        return matched ? Object.assign({}, item, { status: 'failed', statusText: '上传失败' }) : item
+      })
+      this.setData({ 'form.images': images })
+      this.persistDraft()
+    })
+  },
+
+  previewImage(e) {
+    const current = e.currentTarget.dataset.url
+    const urls = (this.data.form.images || []).map((item) => item.tempFilePath || item.url).filter(Boolean)
+    wx.previewImage({ current, urls })
+  },
+
+  removeImage(e) {
+    const id = e.currentTarget.dataset.id
+    const images = (this.data.form.images || []).filter((item) => item.id !== id)
+    this.setData({
+      'form.images': images,
+      draftTip: '图片已移除，草稿已保存。'
+    })
+    this.persistDraft()
+  },
+
   aiGenerate() {
     const { title, category, condition, pickupLocation, deliveryLocation, serviceTime, location } = this.data.form
     let generatedTitle = title || `${condition}${category}闲置`
@@ -228,13 +303,29 @@ Page({
 
   submit() {
     if (!store.requireVerified()) return
+    if (this.data.activeType === 'service' && store.getState().role !== 'provider') {
+      wx.showModal({
+        title: '需要服务者认证',
+        content: '发布可预约校园服务需要先提交服务者资料；普通实名认证只用于确认校园身份。',
+        confirmText: '去认证',
+        success: (modal) => {
+          if (modal.confirm) wx.navigateTo({ url: '/pages/role-apply/role-apply?role=provider' })
+        }
+      })
+      return
+    }
     const form = this.data.form
     if (!this.validateForm()) return
 
     const url = this.data.activeType === 'goods' ? '/api/goods/save' : '/api/service/save'
     const payload = Object.assign({}, form, {
       type: this.data.activeType === 'goods' ? 'goods' : this.data.activeType === 'errand' ? 'errand' : 'service',
-      location: this.data.activeType === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location
+      location: this.data.activeType === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location,
+      images: (form.images || []).filter((item) => item.status === 'done').map((item) => item.url || item.tempFilePath),
+      imageObjects: (form.images || []).filter((item) => item.status === 'done').map((item) => ({
+        url: item.url || item.tempFilePath,
+        uploadedUrl: item.uploadedUrl || ''
+      }))
     })
 
     api({ url, method: 'POST', data: payload }).then((res) => {

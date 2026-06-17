@@ -1,6 +1,16 @@
 const { api } = require('../../utils/api')
 const store = require('../../utils/store')
 
+const BUSINESS_TYPE_TEXT = {
+  goods: '商品交易',
+  service: '服务咨询',
+  errand: '跑腿沟通',
+  goods_chat: '商品交易',
+  service_chat: '服务咨询',
+  task_chat: '跑腿沟通',
+  system_notice: '系统通知'
+}
+
 Page({
   data: {
     mode: 'list',
@@ -70,6 +80,7 @@ Page({
           countText: `${item.messages.length}条`,
           peerInitial: (item.peer || '同').charAt(0),
           peerLine: `${item.peer || '交易对象'} @${item.peerUsername || 'user'}`,
+          businessTypeText: BUSINESS_TYPE_TEXT[item.businessType] || item.businessType || '站内会话',
           evidenceText: item.messages.length ? item.messages[item.messages.length - 1].hash : 'SHA256-待生成'
         })
       })
@@ -120,7 +131,7 @@ Page({
   },
 
   openConversation(e) {
-    const conversationId = e.currentTarget.dataset.id
+    const conversationId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
     this.setData({ mode: 'room', conversationId, businessType: '', businessId: '', goodsId: '' })
     this.loadMessages()
   },

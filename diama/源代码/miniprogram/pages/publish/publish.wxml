@@ -24,6 +24,22 @@
     <input wx:if="{{showServiceFields}}" class="input" placeholder="服务地点，例如图书馆一层或线上语音" value="{{form.location}}" data-key="location" bindinput="updateField" />
     <input wx:if="{{showErrandFields}}" class="input" placeholder="取件地点，例如北门外卖架" value="{{form.pickupLocation}}" data-key="pickupLocation" bindinput="updateField" />
     <input wx:if="{{showErrandFields}}" class="input" placeholder="送达地点，例如软件学院实验楼" value="{{form.deliveryLocation}}" data-key="deliveryLocation" bindinput="updateField" />
+    <view class="image-section">
+      <view class="row between">
+        <view>
+          <view class="sub-title image-title">图片材料</view>
+          <view class="muted image-tip">商品图、服务样例或跑腿凭证，最多6张</view>
+        </view>
+        <button class="upload-btn" bindtap="chooseImages">添加图片</button>
+      </view>
+      <view wx:if="{{form.images.length}}" class="image-grid">
+        <view wx:for="{{form.images}}" wx:key="id" class="image-card">
+          <image class="preview-image" src="{{item.tempFilePath || item.url}}" mode="aspectFill" data-url="{{item.tempFilePath || item.url}}" bindtap="previewImage"></image>
+          <view class="image-status {{item.status}}">{{item.statusText}}</view>
+          <view class="remove-image" data-id="{{item.id}}" catchtap="removeImage">×</view>
+        </view>
+      </view>
+    </view>
     <textarea class="textarea" placeholder="{{descPlaceholder}}" value="{{form.desc}}" data-key="desc" bindinput="updateField" />
     <view wx:if="{{aiTags.length}}" class="tag-row">
       <text wx:for="{{aiTags}}" wx:key="*this" class="tag">{{item}}</text>

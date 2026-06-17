@@ -1,0 +1,43 @@
+.category-sidebar {
+  width: 160rpx;
+  max-height: 960rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 28rpx rgba(233, 30, 99, 0.06);
+}
+
+.side-item {
+  position: relative;
+  min-height: 88rpx;
+  padding: 18rpx 14rpx 18rpx 22rpx;
+  box-sizing: border-box;
+  color: #7f6f78;
+  font-size: 24rpx;
+}
+
+.side-item.active {
+  color: #c2185b;
+  font-weight: 900;
+  background: #fff1f6;
+}
+
+.side-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22rpx;
+  width: 6rpx;
+  height: 44rpx;
+  border-radius: 999rpx;
+  background: #e91e63;
+}
+
+.side-name {
+  line-height: 32rpx;
+}
+
+.side-count {
+  margin-top: 4rpx;
+  color: #b59aa8;
+  font-size: 20rpx;
+}

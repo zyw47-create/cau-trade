@@ -1,0 +1,77 @@
+<view class="page category-page">
+  <view class="section page-head">
+    <view>
+      <view class="title">分类检索</view>
+      <view class="muted">按分类、关键词、价格和信用条件查找闲置商品</view>
+    </view>
+    <view class="head-badge">{{visibleGoods.length}} 件</view>
+  </view>
+
+  <view class="panel section filter-panel">
+    <search-bar
+      value="{{keyword}}"
+      placeholder="搜索教材、数码、生活用品"
+      search-type="goods"
+      bindinput="onKeywordInput"
+      bindsearch="onSearchConfirm"
+    ></search-bar>
+    <view wx:if="{{hasSearchHistory}}" class="history-block">
+      <view class="row between history-head">
+        <view class="muted">搜索历史</view>
+        <view class="clear-text" bindtap="clearHistory">清空</view>
+      </view>
+      <view class="history-row">
+        <view wx:for="{{searchHistory}}" wx:key="keyword" class="history-chip" data-keyword="{{item.keyword}}" bindtap="chooseHistory">{{item.keyword}}</view>
+      </view>
+    </view>
+  </view>
+
+  <skeleton wx:if="{{loading}}" rows="{{4}}" type="cards"></skeleton>
+  <view wx:elif="{{errorText}}" class="empty-feed">{{errorText}}</view>
+  <view wx:elif="{{noVisibleGoods}}" class="empty-feed">没有找到符合条件的商品，换个关键词或分类试试。</view>
+
+  <view wx:if="{{!loading && !errorText}}" class="category-layout">
+    <category-sidebar categories="{{categories}}" active="{{activeCategory}}" bindselect="chooseCategory"></category-sidebar>
+    <view class="list-main">
+      <view class="list-tools">
+        <sort-dropdown options="{{sortOptions}}" active="{{activeSort}}" bindchange="chooseSort"></sort-dropdown>
+        <view class="filter-line" bindtap="openFilterDrawer">
+          <view>
+            <view class="filter-title">筛选条件</view>
+            <view class="muted">{{filterSummary}}</view>
+          </view>
+          <view class="filter-entry">筛选</view>
+        </view>
+      </view>
+      <view class="goods-list">
+        <goods-card wx:for="{{visibleGoods}}" wx:key="id" goods="{{item}}" bindopen="openDetail" bindfavorite="toggleFavorite" bindorder="createOrder"></goods-card>
+      </view>
+    </view>
+  </view>
+
+  <filter-drawer
+    visible="{{filterDrawerVisible}}"
+    filters="{{filters}}"
+    conditions="{{filterConditions}}"
+    locations="{{filterLocations}}"
+    bindclose="closeFilterDrawer"
+    bindconfirm="confirmFilters"
+  ></filter-drawer>
+
+  <app-modal
+    visible="{{orderModalVisible}}"
+    title="确认下单"
+    confirm-text="创建订单"
+    cancel-text="再看看"
+    bindconfirm="confirmCreateOrder"
+    bindcancel="cancelOrderModal"
+  >
+    <view class="confirm-card">
+      <view class="confirm-title">{{pendingOrderGoods.title}}</view>
+      <view class="muted">卖家：{{pendingOrderGoods.sellerName || '同校用户'}} @{{pendingOrderGoods.username || 'user'}}</view>
+      <view class="muted">交易地点：{{pendingOrderGoods.location}}</view>
+      <view class="price confirm-price">¥{{pendingOrderGoods.price}}</view>
+      <view class="confirm-note">创建后可在订单详情支付，资金会先进入平台托管。</view>
+    </view>
+  </app-modal>
+</view>
