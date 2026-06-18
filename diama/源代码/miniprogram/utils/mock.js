@@ -1,4 +1,4 @@
-const categories = ['教材资料', '数码产品', '生活用品', '运动用品', '校园服务']
+const categories = ['教材资料', '数码产品', '生活用品', '运动用品', '校园服务', '其他']
 
 const users = [
   { id: 1, nickname: '校园同学', username: 'campus_user', role: 'user', status: 'active', verified: true, creditScore: 100, college: '软件学院', campus: '北区宿舍', major: '软件工程', grade: '2023级', responseTime: '10分钟内', lastActive: '刚刚活跃', bio: '偏好当面验货和资金托管，常在北区、图书馆交易。', tradeTags: ['已实名', '回复快', '支持当面验货'] },

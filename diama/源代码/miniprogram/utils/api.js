@@ -87,6 +87,106 @@ function nowText() {
   return `${mm}-${dd} ${hh}:${mi}`
 }
 
+const AUTO_CONFIRM_MS = 7 * 24 * 60 * 60 * 1000
+
+function ensureOrderClock(order) {
+  if (!order) return
+  const now = Date.now()
+  if (!order.createdTs) order.createdTs = now
+  if ((order.status === 'paid' || order.status === 'shipped' || order.status === 'completed' || order.status === 'refunding' || order.status === 'refunded') && !order.paidTs) {
+    order.paidTs = order.createdTs
+  }
+  if ((order.status === 'shipped' || order.status === 'completed' || order.status === 'refunding' || order.status === 'refunded') && !order.shippedTs) {
+    order.shippedTs = order.paidTs || order.createdTs
+  }
+  if ((order.status === 'completed' || order.status === 'refunded') && !order.completedTs) {
+    order.completedTs = order.shippedTs || order.paidTs || order.createdTs
+  }
+}
+
+function formatRemaining(ms) {
+  const totalMinutes = Math.max(0, Math.ceil(ms / 60000))
+  const days = Math.floor(totalMinutes / (24 * 60))
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60)
+  if (days > 0) return `${days}天${hours}小时`
+  if (hours > 0) return `${hours}小时`
+  return `${Math.max(1, totalMinutes)}分钟`
+}
+
+function finalizeOrder(order, mode) {
+  if (!order || order.status !== 'shipped') return false
+  ensureOrderClock(order)
+  const isAuto = mode === 'auto'
+  order.status = 'completed'
+  order.fundStatus = 'settled'
+  order.completedTs = Date.now()
+  order.completedAt = nowText()
+  order.progressText = isAuto
+    ? '买家逾期未确认，系统已自动确认收货并结算给卖家'
+    : order.itemType === 'errand'
+      ? '发布者已确认完成，收益已结算'
+      : '订单已完成，资金已结算'
+  updatePendingTimeline(
+    order,
+    isAuto ? '系统自动确认收货' : '确认完成',
+    isAuto
+      ? '发货满 7 天仍未确认且未发起投诉/售后，系统已自动完成订单并结算托管资金。'
+      : order.itemType === 'errand'
+        ? '发布者确认任务完成，跑腿收益已完成结算。'
+        : '买家确认收货/服务完成，平台已将托管资金结算给卖家。'
+  )
+  pushOrderTimeline(
+    order,
+    '可评价',
+    '现在可以对交易对象进行评价，评价会展示在个人主页。',
+    '待完成',
+    true
+  )
+  return true
+}
+
+function applyAutoConfirmOrders() {
+  let changed = false
+  const now = Date.now()
+  mock.orders.forEach((order) => {
+    ensureOrderClock(order)
+    if (order.status !== 'shipped') return
+    if (order.refund || order.status === 'refunding') return
+    if (now - Number(order.shippedTs || 0) >= AUTO_CONFIRM_MS) {
+      changed = finalizeOrder(order, 'auto') || changed
+    }
+  })
+  if (changed) clearTradeCache()
+}
+
+function getAutoConfirmInfo(order) {
+  ensureOrderClock(order)
+  if (!order || order.status !== 'shipped') {
+    return {
+      enabled: false,
+      deadlineText: '',
+      remainingText: '',
+      tip: ''
+    }
+  }
+  const shippedTs = Number(order.shippedTs || Date.now())
+  const remaining = AUTO_CONFIRM_MS - (Date.now() - shippedTs)
+  if (remaining <= 0) {
+    return {
+      enabled: true,
+      deadlineText: '系统处理中',
+      remainingText: '即将自动确认',
+      tip: '若买家逾期未确认且未发起投诉/售后，系统会自动完成订单并释放托管资金。'
+    }
+  }
+  return {
+    enabled: true,
+    deadlineText: `${new Date(shippedTs + AUTO_CONFIRM_MS).toLocaleDateString('zh-CN')} ${new Date(shippedTs + AUTO_CONFIRM_MS).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}`,
+    remainingText: formatRemaining(remaining),
+    tip: '若买家逾期未确认且未发起投诉/售后，系统会自动完成订单并释放托管资金。'
+  }
+}
+
 const ORDER_STATUS_TEXT = {
   unpaid: '待支付',
   paid: '已托管',
@@ -171,8 +271,10 @@ function decorateRefund(order) {
 }
 
 function decorateOrder(order) {
+  ensureOrderClock(order)
   const timeline = decorateTimeline(order)
   const refund = decorateRefund(order)
+  const autoConfirm = getAutoConfirmInfo(order)
   const rawCounterpartyName = order.counterpartyName || order.sellerName || ''
   const rawCounterpartyUsername = order.counterpartyUsername || order.sellerUsername || ''
   const isWaitingErrandPeer = order.itemType === 'errand' && (!rawCounterpartyUsername || rawCounterpartyName === '待接单')
@@ -195,7 +297,8 @@ function decorateOrder(order) {
     refund,
     refundStatusText: refund ? refund.statusText : '',
     summaryEvents: timeline.slice(0, 3).map((item) => item.title),
-    latestTime: order.completedAt || order.paidAt || order.createdAt || ''
+    latestTime: order.completedAt || order.paidAt || order.createdAt || '',
+    autoConfirm
   })
 }
 
@@ -267,7 +370,10 @@ function buildErrandOrder(item, publisher, rider) {
     riderUsername: rider.username,
     fundStatus: 'frozen',
     createdAt: nowText(),
+    createdTs: Date.now(),
     paidAt: nowText(),
+    paidTs: Date.now(),
+    shippedTs: Date.now(),
     remark: item.desc || '',
     progressText: '已接单，等待开始配送',
     events: ['骑手接单'],
@@ -294,7 +400,14 @@ function request(options) {
         'content-type': 'application/json'
       },
       success(res) {
-        resolve(res.data)
+        const payload = res.data || {}
+        // Real backend uses code: 0 for success, while the mini program mock layer uses 200.
+        // Normalize here so page logic can treat both the same.
+        if (payload && typeof payload === 'object' && payload.code === 0) {
+          resolve(Object.assign({}, payload, { code: 200 }))
+          return
+        }
+        resolve(payload)
       },
       fail(err) {
         resolve({
@@ -444,13 +557,14 @@ function decorateServiceDetail(id) {
 function api(options) {
   options = options || {}
   const app = getApp()
-  if (options && (options.url === '/api/user/email-code' || options.url === '/api/user/verify')) {
+  if (options && (options.url === '/api/status' || options.url === '/api/user/email-code' || options.url === '/api/user/verify')) {
     return verifyRequest(options)
   }
   if (app && app.globalData && app.globalData.useMock === false) return request(options)
 
   const url = options.url
   const data = options.data || {}
+  applyAutoConfirmOrders()
   const cached = getCache(options)
   if (cached) return Promise.resolve(cached)
 
@@ -475,12 +589,14 @@ function api(options) {
       nickname: data.nickname || '校园同学',
       username: data.username || (store.getState().user && store.getState().user.username) || 'campus_user',
       phone: data.phone || '',
-      address: data.address || ''
+      address: data.address || '',
+      avatar: data.avatar || (store.getState().user && store.getState().user.avatar) || ''
     })
     const mockUser = mock.users.find((item) => item.id === user.id)
     if (mockUser) {
       mockUser.nickname = user.nickname
       mockUser.username = user.username
+      mockUser.avatar = user.avatar
     }
     clearApiCache(['/api/user/public', '/api/chat/list'])
     return ok(user)
@@ -686,6 +802,7 @@ function api(options) {
       counterpartyLabel: '卖家',
       fundStatus: 'none',
       createdAt: nowText(),
+      createdTs: Date.now(),
       remark: data.remark || '',
       progressText: '订单已创建，等待支付',
       events: ['创建订单'],
@@ -706,6 +823,7 @@ function api(options) {
     order.status = 'paid'
     order.fundStatus = 'frozen'
     order.paidAt = nowText()
+    order.paidTs = Date.now()
     if (order.itemType === 'errand') {
       const task = findServiceById(order.itemId)
       if (task && task.status !== 'cancelled') {
@@ -759,6 +877,11 @@ function api(options) {
   }
   if (url === '/api/order/receive') {
     const order = findOrder(data.orderSn)
+    if (!order) return fail('订单不存在')
+    const canReceive = order.itemType === 'errand'
+      ? order.role === 'publisher'
+      : order.role === 'buyer'
+    if (!canReceive) return fail('当前角色不能确认完成')
     if (order) {
       order.status = 'completed'
       order.fundStatus = 'settled'
@@ -767,13 +890,20 @@ function api(options) {
       updatePendingTimeline(order, '确认完成', order.itemType === 'errand' ? '发布者确认任务完成，跑腿收益结算。' : '买家确认收货/服务完成，资金结算。')
       pushOrderTimeline(order, '可评价', '可以对交易对象发表评价，评价会展示在个人主页。', '待完成', true)
     }
+    if (order) finalizeOrder(order, 'manual')
     clearTradeCache()
     return ok({ status: 'completed' })
   }
   if (url === '/api/order/ship') {
     const order = findOrder(data.orderSn)
+    if (!order) return fail('订单不存在')
+    const canShip = order.itemType === 'errand'
+      ? order.role === 'rider'
+      : order.role === 'seller'
+    if (!canShip) return fail('当前角色不能发货或履约')
     if (order) {
       order.status = 'shipped'
+      order.shippedTs = Date.now()
       order.progressText = order.itemType === 'errand' ? '配送中，等待发布者确认完成' : '履约中，等待买家确认'
       updatePendingTimeline(order, order.itemType === 'errand' ? '开始配送' : '开始履约', order.itemType === 'errand' ? '骑手已开始配送，可在聊天中同步进度。' : '对方已确认开始交付。')
       pushOrderTimeline(order, '等待确认', order.itemType === 'errand' ? '发布者确认送达后结算收益。' : '买家验收后确认完成。', '待完成', true)
@@ -919,6 +1049,7 @@ function api(options) {
         counterpartyLabel: '骑手',
         fundStatus: 'none',
         createdAt: nowText(),
+        createdTs: Date.now(),
         remark: data.desc || '',
         progressText: '跑腿订单已创建，支付后进入任务大厅',
         events: ['发起跑腿订单'],
@@ -970,6 +1101,7 @@ function api(options) {
       counterpartyLabel: '服务者',
       fundStatus: 'none',
       createdAt: nowText(),
+      createdTs: Date.now(),
       remark: item.desc || '',
       progressText: '预约已创建，等待支付服务费',
       events: ['预约服务'],
@@ -997,6 +1129,7 @@ function api(options) {
     let order = mock.orders.find((orderItem) => orderItem.itemType === 'errand' && Number(orderItem.itemId) === Number(item.id))
     if (order) {
       order.status = 'shipped'
+      order.shippedTs = Date.now()
       order.role = 'publisher'
       order.sellerName = rider.nickname
       order.sellerUsername = rider.username
@@ -1034,11 +1167,13 @@ function api(options) {
       if (order) {
         if (item.status === 'processing') {
           order.status = 'shipped'
+          order.shippedTs = Date.now()
           order.progressText = '配送中，等待发布者确认完成'
           updatePendingTimeline(order, '开始配送', '骑手已开始配送，过程可通过聊天同步。')
           pushOrderTimeline(order, '等待发布者确认', '送达后由发布者确认完成，收益结算给骑手。', '待完成', true)
         } else if (item.status === 'completed') {
           order.status = 'shipped'
+          order.shippedTs = Date.now()
           order.progressText = '骑手已送达，等待发布者确认'
           updatePendingTimeline(order, '骑手送达', '骑手已标记送达，等待发布者确认。')
           pushOrderTimeline(order, '等待结算', '发布者确认后平台结算跑腿收益。', '待完成', true)

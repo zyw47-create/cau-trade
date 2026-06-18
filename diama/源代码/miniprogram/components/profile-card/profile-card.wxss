@@ -3,9 +3,9 @@
   gap: 24rpx;
   padding: 30rpx;
   border-radius: 34rpx;
-  background: linear-gradient(135deg, #ffffff, #fff1f6);
-  box-shadow: 0 20rpx 46rpx rgba(233, 30, 99, 0.10);
-  border: 1rpx solid rgba(233, 30, 99, 0.09);
+  background: #ffffff;
+  box-shadow: 0 20rpx 46rpx rgba(31, 78, 121, 0.10);
+  border: 1rpx solid rgba(31, 78, 121, 0.09);
 }
 
 .row {
@@ -24,6 +24,8 @@
 }
 
 .user-avatar {
+  position: relative;
+  overflow: hidden;
   width: 108rpx;
   height: 108rpx;
   line-height: 108rpx;
@@ -32,8 +34,27 @@
   color: #ffffff;
   font-size: 42rpx;
   font-weight: 900;
-  background: linear-gradient(135deg, #e91e63, #ff7a59);
-  box-shadow: 0 14rpx 32rpx rgba(233, 30, 99, 0.22);
+  background: #1F4E79;
+  box-shadow: 0 14rpx 32rpx rgba(31, 78, 121, 0.22);
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.avatar-edit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28rpx;
+  line-height: 28rpx;
+  background: rgba(31, 78, 121, 0.78);
+  color: #ffffff;
+  font-size: 18rpx;
+  font-weight: 700;
 }
 
 .user-main {
@@ -61,12 +82,12 @@
 
 .verify-tag.ok {
   color: #0b8f72;
-  background: #ddfcf7;
+  background: #F7F0DC;
 }
 
 .verify-tag.warn {
-  color: #c2185b;
-  background: #fff1f6;
+  color: #1F4E79;
+  background: #EEF3F7;
 }
 
 .metric-row {
@@ -83,7 +104,7 @@
 }
 
 .metric-value {
-  color: #c2185b;
+  color: #1F4E79;
   font-size: 30rpx;
   font-weight: 900;
 }

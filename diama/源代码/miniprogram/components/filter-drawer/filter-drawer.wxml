@@ -8,41 +8,42 @@
       </view>
       <view class="close" bindtap="close">×</view>
     </view>
-
-    <view class="filter-group">
-      <view class="group-title">价格区间</view>
-      <view class="price-row">
-        <input class="filter-input" type="digit" placeholder="最低价" value="{{draft.minPrice}}" data-key="minPrice" bindinput="onInput" />
-        <text class="dash">-</text>
-        <input class="filter-input" type="digit" placeholder="最高价" value="{{draft.maxPrice}}" data-key="maxPrice" bindinput="onInput" />
+    <scroll-view class="drawer-body" scroll-y="true">
+      <view class="filter-group">
+        <view class="group-title">价格区间</view>
+        <view class="price-row">
+          <input class="filter-input" type="digit" placeholder="最低价" value="{{draft.minPrice}}" data-key="minPrice" bindinput="onInput" />
+          <text class="dash">-</text>
+          <input class="filter-input" type="digit" placeholder="最高价" value="{{draft.maxPrice}}" data-key="maxPrice" bindinput="onInput" />
+        </view>
       </view>
-    </view>
 
-    <view class="filter-group">
-      <view class="group-title">商品成色</view>
-      <view class="chip-row">
-        <view wx:for="{{conditions}}" wx:key="*this" class="chip {{draft.condition === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseCondition">{{item}}</view>
+      <view class="filter-group">
+        <view class="group-title">商品成色</view>
+        <view class="chip-row">
+          <view wx:for="{{conditions}}" wx:key="*this" class="chip {{draft.condition === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseCondition">{{item}}</view>
+        </view>
       </view>
-    </view>
 
-    <view class="filter-group">
-      <view class="group-title">交易地点</view>
-      <view class="chip-row">
-        <view wx:for="{{locations}}" wx:key="*this" class="chip {{draft.location === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseLocation">{{item}}</view>
+      <view class="filter-group">
+        <view class="group-title">交易地点</view>
+        <view class="chip-row">
+          <view wx:for="{{locations}}" wx:key="*this" class="chip {{draft.location === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseLocation">{{item}}</view>
+        </view>
       </view>
-    </view>
 
-    <view class="verified-line" bindtap="toggleVerified">
-      <view>
-        <view class="group-title">只看可信卖家</view>
-        <view class="drawer-sub">实名和信用分更稳定的同校用户</view>
+      <view class="verified-line" bindtap="toggleVerified">
+        <view>
+          <view class="group-title">只看可信卖家</view>
+          <view class="drawer-sub">实名和信用分更稳定的同校用户</view>
+        </view>
+        <view class="switch {{draft.onlyVerified ? 'on' : ''}}"><view class="switch-dot"></view></view>
       </view>
-      <view class="switch {{draft.onlyVerified ? 'on' : ''}}"><view class="switch-dot"></view></view>
-    </view>
 
-    <view class="drawer-actions">
-      <button class="drawer-btn reset" bindtap="reset">重置</button>
-      <button class="drawer-btn confirm" bindtap="confirm">确认筛选</button>
-    </view>
+      <view class="drawer-actions">
+        <button class="drawer-btn reset" bindtap="reset">重置</button>
+        <button class="drawer-btn confirm" bindtap="confirm">确认筛选</button>
+      </view>
+    </scroll-view>
   </view>
 </view>

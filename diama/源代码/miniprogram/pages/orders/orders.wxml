@@ -32,6 +32,7 @@
         <text class="tag subtle-tag">{{item.actionHint}}</text>
       </view>
       <view class="progress-text">{{item.progressText}}</view>
+      <view wx:if="{{item.autoConfirm.enabled}}" class="muted latest-time">若买家未确认且未发起售后/投诉，{{item.autoConfirm.remainingText}}后将自动确认收货并结算。</view>
       <view class="muted latest-time">{{item.latestTime}}</view>
     </view>
 

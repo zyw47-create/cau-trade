@@ -27,7 +27,8 @@ Component({
   methods: {
     syncSelected() {
       const pages = getCurrentPages()
-      const current = pages.length ? `/${pages[pages.length - 1].route}` : ''
+      const route = pages.length ? pages[pages.length - 1].route : ''
+      const current = route.charAt(0) === '/' ? route : `/${route}`
       const selected = this.data.list.findIndex((item) => item.pagePath === current)
       const app = getApp()
       this.setData({
@@ -40,6 +41,7 @@ Component({
       const index = Number(e.currentTarget.dataset.index)
       const item = this.data.list[index]
       if (!item) return
+      this.setData({ selected: index })
       wx.switchTab({ url: item.pagePath })
     },
 

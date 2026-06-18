@@ -1,5 +1,9 @@
 <view class="profile-card">
-  <view class="user-avatar">{{user.initial}}</view>
+  <view class="user-avatar" bindtap="chooseavatar">
+    <image wx:if="{{user.avatar}}" class="avatar-image" src="{{user.avatar}}" mode="aspectFill"></image>
+    <text wx:else>{{user.initial}}</text>
+    <view class="avatar-edit">换头像</view>
+  </view>
   <view class="user-main">
     <view class="row between">
       <view>

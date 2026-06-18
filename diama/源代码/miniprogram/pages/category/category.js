@@ -52,6 +52,8 @@ Page({
   },
 
   onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
     const pending = store.takePendingCategory()
     if (pending && (pending.keyword || pending.category)) {
       this.queryKeyword = pending.keyword || ''

@@ -1,7 +1,0 @@
-{
-  "navigationStyle": "default",
-  "navigationBarTitleText": "实名认证",
-  "usingComponents": {
-    "app-modal": "../../components/app-modal/index"
-  }
-}

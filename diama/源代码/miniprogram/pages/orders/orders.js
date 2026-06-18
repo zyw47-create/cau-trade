@@ -17,6 +17,21 @@ function buildFilters(activeKey) {
 
 function decorateOrder(item) {
   const waitingErrandPeer = item.itemType === 'errand' && item.canChat === false
+  const isBuyer = item.role === 'buyer'
+  const isSeller = item.role === 'seller'
+  const isPublisher = item.role === 'publisher'
+  const isRider = item.role === 'rider'
+  const canFulfill = item.itemType === 'errand'
+    ? (isRider && item.status === 'paid' && !waitingErrandPeer)
+    : (isSeller && item.status === 'paid' && !waitingErrandPeer)
+  const canComplete = item.itemType === 'errand'
+    ? ((isPublisher && item.status === 'shipped') || (isPublisher && item.status === 'paid' && !waitingErrandPeer))
+    : ((isBuyer && item.status === 'shipped') || (isBuyer && item.status === 'paid' && !waitingErrandPeer))
+  const canCancel = isBuyer && (item.status === 'unpaid' || (item.status === 'paid' && (item.itemType === 'service' || item.itemType === 'errand')))
+  const canRefund = isBuyer && item.status === 'paid' && !waitingErrandPeer
+  const canComplain = (isBuyer || isPublisher) && ((item.status === 'paid' && !waitingErrandPeer) || item.status === 'shipped')
+  const canPay = isBuyer && item.status === 'unpaid'
+  const autoConfirm = item.autoConfirm || {}
   return {
     orderSn: item.orderSn,
     itemId: item.itemId,
@@ -44,13 +59,14 @@ function decorateOrder(item) {
     refundStatusText: item.refundStatusText,
     refundReason: item.refund ? item.refund.reason : '',
     summaryEvents: item.summaryEvents || [],
+    autoConfirm,
     canChat: item.canChat,
-    canPay: item.status === 'unpaid',
-    canShip: item.status === 'paid' && !waitingErrandPeer,
-    canReceive: (item.status === 'paid' && !waitingErrandPeer) || item.status === 'shipped',
-    canCancel: item.status === 'unpaid' || (item.status === 'paid' && (item.itemType === 'service' || item.itemType === 'errand')),
-    canRefund: item.status === 'paid' && !waitingErrandPeer,
-    canComplain: (item.status === 'paid' && !waitingErrandPeer) || item.status === 'shipped',
+    canPay,
+    canShip: canFulfill,
+    canReceive: canComplete,
+    canCancel,
+    canRefund,
+    canComplain,
     canComment: item.status === 'completed',
     actionHint: waitingErrandPeer
       ? '等待骑手接单中'

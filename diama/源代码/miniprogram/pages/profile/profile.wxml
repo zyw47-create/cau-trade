@@ -7,7 +7,7 @@
 
   <view wx:if="{{state.isLogin}}">
     <view class="section">
-      <profile-card user="{{user}}" favorites-count="{{favorites.length}}" bindverify="goVerify"></profile-card>
+      <profile-card user="{{user}}" favorites-count="{{favorites.length}}" bindverify="goVerify" bindchooseavatar="chooseAvatar"></profile-card>
     </view>
 
     <view class="backend-strip section {{backendReady ? 'backend-ok' : 'backend-warn'}}">{{backendStatusText}}</view>

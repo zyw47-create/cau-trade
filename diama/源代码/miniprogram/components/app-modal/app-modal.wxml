@@ -4,7 +4,7 @@
     <view class="modal-title">{{title}}</view>
     <view wx:if="{{content}}" class="modal-content">{{content}}</view>
     <slot></slot>
-    <view class="modal-actions">
+    <view class="modal-actions {{showCancel ? 'two-actions' : 'single-action'}}">
       <button wx:if="{{showCancel}}" class="modal-btn cancel" bindtap="cancel">{{cancelText}}</button>
       <button class="modal-btn confirm" bindtap="confirm">{{confirmText}}</button>
     </view>

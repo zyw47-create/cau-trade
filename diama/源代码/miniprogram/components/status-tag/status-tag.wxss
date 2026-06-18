@@ -9,9 +9,9 @@
 }
 
 .status-tag.default {
-  background: #FFF1F6;
-  color: #C2185B;
-  border-color: rgba(233, 30, 99, 0.12);
+  background: #EEF3F7;
+  color: #1F4E79;
+  border-color: rgba(31, 78, 121, 0.12);
 }
 
 .status-tag.success {

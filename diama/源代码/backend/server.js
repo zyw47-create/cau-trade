@@ -378,7 +378,7 @@ async function handleVerify(data) {
   const code = String(data.emailCode || "").trim()
   if (!/^\d{6}$/.test(code)) throw new Error("请输入 6 位邮箱验证码")
   if (!data.studentId || !data.realName || !data.college) throw new Error("请补全学号、姓名和学院")
-  if (!/^\d{8,12}$/.test(String(data.studentId).trim())) throw new Error("学号应为 8-12 位数字")
+  if (!/^\d{13}$/.test(String(data.studentId).trim())) throw new Error("学号应为 13 位数字")
   if (!/^[\u4e00-\u9fa5A-Za-z·]{2,20}$/.test(String(data.realName).trim())) throw new Error("姓名格式不正确")
 
   if (config.mockVerify) {

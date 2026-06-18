@@ -3,6 +3,20 @@ const store = require('../../utils/store')
 
 function buildOrderView(order) {
   const waitingErrandPeer = order.itemType === 'errand' && order.canChat === false
+  const isBuyer = order.role === 'buyer'
+  const isSeller = order.role === 'seller'
+  const isPublisher = order.role === 'publisher'
+  const isRider = order.role === 'rider'
+  const canFulfill = order.itemType === 'errand'
+    ? (isRider && order.status === 'paid' && !waitingErrandPeer)
+    : (isSeller && order.status === 'paid' && !waitingErrandPeer)
+  const canComplete = order.itemType === 'errand'
+    ? ((isPublisher && order.status === 'shipped') || (isPublisher && order.status === 'paid' && !waitingErrandPeer))
+    : ((isBuyer && order.status === 'shipped') || (isBuyer && order.status === 'paid' && !waitingErrandPeer))
+  const canCancel = isBuyer && (order.status === 'unpaid' || (order.status === 'paid' && (order.itemType === 'service' || order.itemType === 'errand')))
+  const canRefund = isBuyer && order.status === 'paid' && !waitingErrandPeer
+  const canComplain = (isBuyer || isPublisher) && ((order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped' || order.status === 'refunding')
+  const autoConfirm = order.autoConfirm || {}
   const actionHint = waitingErrandPeer
     ? '跑腿任务正在等待骑手接单，接单后可以继续聊天、投诉和查看进度。'
     : order.status === 'unpaid'
@@ -16,13 +30,14 @@ function buildOrderView(order) {
             : '可在此查看订单进度、售后状态和聊天证据。'
 
   return Object.assign({}, order, {
-    canPay: order.status === 'unpaid',
-    canShip: order.status === 'paid' && !waitingErrandPeer,
-    canReceive: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped',
-    canCancel: order.status === 'unpaid' || (order.status === 'paid' && (order.itemType === 'service' || order.itemType === 'errand')),
-    canRefund: order.status === 'paid' && !waitingErrandPeer,
-    canComplain: (order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped' || order.status === 'refunding',
+    canPay: isBuyer && order.status === 'unpaid',
+    canShip: canFulfill,
+    canReceive: canComplete,
+    canCancel,
+    canRefund,
+    canComplain,
     canComment: order.status === 'completed',
+    autoConfirm,
     actionHint,
     summaryCards: [
       { label: '订单类型', value: order.itemTypeText || '订单' },

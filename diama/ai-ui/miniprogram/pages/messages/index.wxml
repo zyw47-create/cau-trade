@@ -1,7 +1,0 @@
-<view class="page-shell">
-  <nav-bar title="消息中心" subtitle="商品、服务、跑腿和系统通知"></nav-bar>
-  <view class="search-wrap">
-    <search-bar value="{{keyword}}" placeholder="搜索聊天记录..." bindinput="onSearchInput" bindsearch="onSearch" bindcancel="onSearchCancel" />
-  </view>
-  <message-list conversations="{{conversations}}" binditemtap="onItemTap"></message-list>
-</view>

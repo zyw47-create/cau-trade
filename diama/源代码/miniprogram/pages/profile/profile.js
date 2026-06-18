@@ -44,6 +44,8 @@ Page({
   },
 
   onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
     const now = Date.now()
     if (this.lastRefreshAt && now - this.lastRefreshAt < 1200) return
     this.refresh()
@@ -195,7 +197,33 @@ Page({
     this.setData({ [`profileForm.${key}`]: e.detail.value })
   },
 
+  chooseAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        if (!file || !file.tempFilePath) return
+        api({
+          url: '/api/user/profile/update',
+          method: 'POST',
+          data: Object.assign({}, this.data.profileForm, { avatar: file.tempFilePath })
+        }).then(() => {
+          wx.showToast({ title: '头像已更新' })
+          this.refresh()
+        })
+      }
+    })
+  },
+
   saveProfile() {
+    const phone = String(this.data.profileForm.phone || '').trim()
+    if (phone && !/^1\d{10}$/.test(phone)) {
+      wx.showToast({ title: '手机号应为11位数字', icon: 'none' })
+      return
+    }
     api({ url: '/api/user/profile/update', method: 'POST', data: this.data.profileForm }).then(() => {
       wx.showToast({ title: '资料已保存' })
       this.refresh()

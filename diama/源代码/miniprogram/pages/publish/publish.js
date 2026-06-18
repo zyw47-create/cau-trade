@@ -321,9 +321,9 @@ Page({
     const payload = Object.assign({}, form, {
       type: this.data.activeType === 'goods' ? 'goods' : this.data.activeType === 'errand' ? 'errand' : 'service',
       location: this.data.activeType === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location,
-      images: (form.images || []).filter((item) => item.status === 'done').map((item) => item.url || item.tempFilePath),
+      images: (form.images || []).filter((item) => item.status === 'done').map((item) => item.uploadedUrl || item.url || item.tempFilePath),
       imageObjects: (form.images || []).filter((item) => item.status === 'done').map((item) => ({
-        url: item.url || item.tempFilePath,
+        url: item.uploadedUrl || item.url || item.tempFilePath,
         uploadedUrl: item.uploadedUrl || ''
       }))
     })

@@ -3,21 +3,26 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}校园交易管理后台{% endblock %}</title>
+    <title>{% block title %}校园二手交易管理后台{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
   </head>
   <body>
     <header class="topbar">
       <div>
         <div class="brand">校园二手交易平台</div>
-        <div class="subtitle">管理后台</div>
+        <div class="subtitle">Web 管理后台 · 审核、仲裁、对账、审计</div>
       </div>
       {% if session.get("admin_logged_in") %}
       <nav class="nav">
         <a href="{{ url_for('dashboard') }}#goods">内容审核</a>
+        <a href="{{ url_for('dashboard') }}#services">服务治理</a>
+        <a href="{{ url_for('dashboard') }}#errands">跑腿治理</a>
+        <a href="{{ url_for('dashboard') }}#orders">订单资金</a>
         <a href="{{ url_for('dashboard') }}#refunds">售后仲裁</a>
+        <a href="{{ url_for('dashboard') }}#withdraws">提现审核</a>
         <a href="{{ url_for('dashboard') }}#verifications">实名审核</a>
         <a href="{{ url_for('dashboard') }}#users">用户治理</a>
+        <a href="{{ url_for('dashboard') }}#evidence">证据链</a>
         <a href="{{ url_for('dashboard') }}#logs">审计日志</a>
         <a href="{{ url_for('logout') }}">退出</a>
       </nav>

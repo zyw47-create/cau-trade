@@ -1,92 +1,75 @@
-<view class="page home-page">
-  <view class="hero section">
-    <view>
-      <view class="hero-title">校园闲置</view>
-      <view class="hero-sub">实名交易 · 资金托管 · 聊天留痕</view>
-    </view>
-    <view class="hero-badge">同校可信</view>
+<view class="home-page">
+  <!-- 动态背景层：用小程序原生 WXSS 动画模拟参考网页的彩色开屏动效 -->
+  <view class="motion-bg">
+    <view class="glow glow-blue"></view>
+    <view class="glow glow-cyan"></view>
+    <view class="glow glow-yellow"></view>
+    <view class="wave wave-a"></view>
+    <view class="wave wave-b"></view>
+    <view class="wave wave-c"></view>
+    <view class="particle particle-1"></view>
+    <view class="particle particle-2"></view>
+    <view class="particle particle-3"></view>
+    <view class="particle particle-4"></view>
+    <view class="scan-light"></view>
   </view>
 
-  <view class="search-card section">
-    <input class="search-input" placeholder="搜教材、键盘、收纳、跑腿" value="{{keyword}}" bindinput="onKeywordInput" />
-    <view class="tab-row">
-      <view wx:for="{{tabs}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="chooseTab">{{item.text}}</view>
-    </view>
-    <scroll-view wx:if="{{showGoods}}" class="category-scroll" scroll-x>
-      <view class="category-row">
-        <view wx:for="{{categories}}" wx:key="name" class="{{item.className}}" data-name="{{item.name}}" bindtap="chooseCategory">{{item.name}}</view>
+  <view class="hero-stage">
+    <view class="hero-copy fade-up">
+      <view class="hero-kicker">A POWERED CAMPUS MARKETPLACE</view>
+      <view class="hero-title">
+        <text class="title-line title-campus">CAMPUS</text>
+        <text class="title-line title-market">MARKET</text>
       </view>
-    </scroll-view>
-    <view wx:if="{{showGoods}}" class="more-filter" bindtap="openCategory">进入分类检索 · 支持排序与可信筛选</view>
-  </view>
+      <view class="hero-cn">校园二手交易微信小程序平台</view>
+      <view class="hero-desc">二手商品、校园服务与跑腿任务，一站式连接校内需求。</view>
+    </view>
 
-  <view class="feed-title section">
-    <view class="sub-title">{{feedTitle}}</view>
-    <view class="muted">{{feedSubtitle}}</view>
-  </view>
+    <view class="hero-actions fade-up stagger-1">
+      <view class="hero-button primary" hover-class="button-active" bindtap="publish">发布需求</view>
+      <view class="hero-button secondary" hover-class="button-active" bindtap="browseGoods">开始逛逛</view>
+    </view>
 
-  <view wx:if="{{showGoods}}" class="goods-section">
-    <view wx:if="{{noVisibleGoods}}" class="empty-feed">没有找到相关闲置，换个关键词试试。</view>
-
-    <view class="goods-waterfall">
-      <view wx:for="{{visibleGoods}}" wx:key="id" class="goods-card" data-id="{{item.id}}" bindtap="openDetail">
-        <view class="goods-cover">
-          <image wx:if="{{item.image}}" class="cover-image" src="{{item.image}}" mode="aspectFill"></image>
-          <view class="cover-category">{{item.category}}</view>
-          <view class="cover-condition">{{item.condition}}</view>
-        </view>
-        <view class="goods-title">{{item.title}}</view>
-        <view class="goods-desc">{{item.desc}}</view>
-        <view class="row between card-bottom">
-          <text class="price">¥{{item.price}}</text>
-          <text class="location">{{item.location}}</text>
-        </view>
-        <view class="seller-row">
-          <view class="avatar">{{item.sellerInitial}}</view>
-          <view class="seller-name">{{item.sellerLine}}</view>
-          <view class="fav-count">{{item.favoriteCount}}收藏</view>
-        </view>
-        <view class="goods-actions">
-          <button class="mini-btn secondary" data-id="{{item.id}}" catchtap="openGoodsChat">聊聊</button>
-          <button class="mini-btn" data-id="{{item.id}}" catchtap="createGoodsOrder">下单</button>
-        </view>
+    <view class="hero-metrics fade-up stagger-2">
+      <view wx:for="{{metrics}}" wx:key="label" class="metric-card">
+        <view class="metric-value">{{item.value}}</view>
+        <view class="metric-label">{{item.label}}</view>
       </view>
     </view>
   </view>
 
-  <view wx:if="{{showService}}" class="content-list">
-    <view wx:if="{{noVisibleServices}}" class="empty-feed">暂无可预约服务。</view>
-    <view wx:for="{{visibleServices}}" wx:key="id" class="service-item">
-      <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
-        <view class="row between">
-          <view class="sub-title item-title">{{item.title}}</view>
-          <text class="price">¥{{item.price}}</text>
-        </view>
-        <view class="item-meta">
-          <text class="tag">{{item.statusText}}</text>
-          <text class="tag">{{item.providerLine}}</text>
-        </view>
-        <view class="desc">{{item.desc}}</view>
+  <view class="quick-section fade-up stagger-3">
+    <view class="section-head">
+      <view>
+        <view class="section-title">快捷入口</view>
+        <view class="section-desc">按校园交易、服务和跑腿场景快速进入。</view>
       </view>
-      <button class="btn item-action" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="handleService">{{item.buttonText}}</button>
+      <view class="section-badge">LIVE</view>
+    </view>
+
+    <view class="action-grid">
+      <view
+        wx:for="{{actions}}"
+        wx:key="label"
+        class="action-card {{item.theme}}"
+        data-index="{{index}}"
+        bindtap="openPage"
+        hover-class="action-card-active"
+      >
+        <view class="action-tint {{item.tint}}"></view>
+        <view class="action-icon">{{item.icon}}</view>
+        <view class="action-copy">
+          <view class="action-label">{{item.label}}</view>
+          <view class="action-desc">{{item.desc}}</view>
+        </view>
+        <view class="action-arrow">→</view>
+      </view>
     </view>
   </view>
 
-  <view wx:if="{{showErrand}}" class="content-list">
-    <view wx:if="{{noVisibleErrands}}" class="empty-feed">暂无可抢跑腿任务。</view>
-    <view wx:for="{{visibleErrands}}" wx:key="id" class="service-item">
-      <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
-        <view class="row between">
-          <view class="sub-title item-title">{{item.title}}</view>
-          <text class="price">¥{{item.price}}</text>
-        </view>
-        <view class="item-meta">
-          <text class="tag">{{item.statusText}}</text>
-          <text class="tag">{{item.providerLine}}</text>
-        </view>
-        <view class="desc">{{item.desc}}</view>
-      </view>
-      <button class="btn item-action" loading="{{item.actionLoading}}" disabled="{{item.actionDisabled}}" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="handleService">{{item.buttonText}}</button>
-    </view>
+  <view class="notice fade-up stagger-3">
+    <view class="notice-orbit"></view>
+    <view class="notice-title">校园认证保障</view>
+    <view class="notice-desc">交易、服务和跑腿功能均支持实名身份、信用信息与内容审核，降低校内交易沟通成本。</view>
   </view>
 </view>

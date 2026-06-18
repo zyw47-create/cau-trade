@@ -46,25 +46,39 @@ STATUS_LABELS = {
     "active": "正常",
     "pending_verify": "待实名",
     "banned": "封禁",
-    "removed": "已注销",
+    "removed": "已移除",
+    "disabled": "停用",
     "pending": "待处理",
     "approved": "已通过",
     "rejected": "已驳回",
     "on_sale": "在售",
+    "paused": "已暂停",
     "reserved": "交易锁定",
     "sold": "已售出",
+    "unpaid": "待支付",
     "paid": "已支付",
+    "confirmed": "已确认",
+    "shipped": "已发货",
     "completed": "已完成",
     "refunding": "售后中",
     "refunded": "已退款",
     "cancelled": "已取消",
     "disputed": "纠纷中",
+    "seller_agreed": "卖家同意",
     "seller_rejected": "卖家拒绝",
     "arbitrating": "仲裁中",
     "buyer_win": "买家胜诉",
     "seller_win": "卖家胜诉",
+    "none": "未托管",
     "frozen": "托管冻结",
     "settled": "已结算",
+    "waiting_accept": "待接单",
+    "accepted": "已接单",
+    "processing": "配送中",
+    "success": "成功",
+    "failed": "失败",
+    "partial": "部分异常",
+    "running": "运行中",
 }
 
 RISK_LABELS = {
@@ -97,13 +111,6 @@ def fetch_all(sql: str, params: tuple | list | None = None) -> list[dict]:
 def fetch_one(sql: str, params: tuple | list | None = None) -> dict | None:
     rows = fetch_all(sql, params)
     return rows[0] if rows else None
-
-
-def execute(sql: str, params: tuple | list | None = None) -> int:
-    with db_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql, params or ())
-            return cur.rowcount
 
 
 def json_default(value):
@@ -200,6 +207,7 @@ def common_context():
         "status_labels": STATUS_LABELS,
         "risk_labels": RISK_LABELS,
         "admin_username": ADMIN_WEB_USERNAME,
+        "admin_id": ADMIN_ID,
     }
 
 
@@ -228,26 +236,17 @@ def logout():
 @require_login
 def dashboard():
     try:
-        stats = fetch_one(
-            """
-            SELECT
-              (SELECT COUNT(*) FROM users WHERE status <> 'removed') AS user_count,
-              (SELECT COUNT(*) FROM goods WHERE status = 'pending') AS pending_goods,
-              (SELECT COUNT(*) FROM ai_audit_records
-                 WHERE risk_level IN ('manual','reject')) AS risky_ai_records,
-              (SELECT COUNT(*) FROM user_verifications
-                 WHERE status = 'pending') AS pending_verifications,
-              (SELECT COUNT(*) FROM refund_requests
-                 WHERE status IN ('pending','seller_rejected','arbitrating')) AS refund_queue,
-              (SELECT COUNT(*) FROM orders) AS order_count,
-              (SELECT COALESCE(SUM(amount), 0) FROM orders
-                 WHERE status IN ('paid','completed','refunding','refunded')) AS trade_amount
-            """
-        )
+        stats = fetch_dashboard_stats()
         pending_goods = fetch_pending_goods()
+        services = fetch_services()
+        errands = fetch_errands()
+        orders = fetch_orders()
         refunds = fetch_refunds()
+        withdraws = fetch_withdraws()
         verifications = fetch_verifications()
         users = fetch_users()
+        evidence_cases = fetch_evidence_cases()
+        reconcile_rows = fetch_reconciliation_rows()
         ai_rule = fetch_ai_rule()
         recent_logs = fetch_recent_logs()
     except pymysql.MySQLError as exc:
@@ -257,11 +256,40 @@ def dashboard():
         "dashboard.html",
         stats=stats or {},
         pending_goods=pending_goods,
+        services=services,
+        errands=errands,
+        orders=orders,
         refunds=refunds,
+        withdraws=withdraws,
         verifications=verifications,
         users=users,
+        evidence_cases=evidence_cases,
+        reconcile_rows=reconcile_rows,
         ai_rule=ai_rule,
         recent_logs=recent_logs,
+    )
+
+
+def fetch_dashboard_stats() -> dict | None:
+    return fetch_one(
+        """
+        SELECT
+          (SELECT COUNT(*) FROM users WHERE status <> 'removed') AS user_count,
+          (SELECT COUNT(*) FROM goods WHERE status = 'pending') AS pending_goods,
+          (SELECT COUNT(*) FROM services WHERE status = 'pending') AS pending_services,
+          (SELECT COUNT(*) FROM errand_orders WHERE status = 'disputed') AS disputed_errands,
+          (SELECT COUNT(*) FROM ai_audit_records
+             WHERE risk_level IN ('manual','reject')) AS risky_ai_records,
+          (SELECT COUNT(*) FROM user_verifications
+             WHERE status = 'pending') AS pending_verifications,
+          (SELECT COUNT(*) FROM refund_requests
+             WHERE status IN ('pending','seller_rejected','arbitrating')) AS refund_queue,
+          (SELECT COUNT(*) FROM withdraw_requests
+             WHERE status = 'pending') AS withdraw_queue,
+          (SELECT COUNT(*) FROM orders) AS order_count,
+          (SELECT COALESCE(SUM(amount), 0) FROM orders
+             WHERE status IN ('paid','completed','refunding','refunded')) AS trade_amount
+        """
     )
 
 
@@ -294,6 +322,84 @@ def fetch_pending_goods() -> list[dict]:
         ORDER BY FIELD(g.status, 'pending', 'on_sale', 'rejected', 'removed'),
                  g.created_at DESC
         LIMIT 50
+        """
+    )
+
+
+def fetch_services() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          s.id, s.title, s.price, s.description, s.status, s.avg_score,
+          s.created_at, c.name AS category_name,
+          u.id AS provider_id, u.nickname AS provider_name,
+          u.username AS provider_username, u.credit_score AS provider_credit_score,
+          ar.risk_level AS ai_risk_level, ar.reason AS ai_reason
+        FROM services s
+        JOIN users u ON u.id = s.provider_id
+        LEFT JOIN categories c ON c.id = s.category_id
+        LEFT JOIN ai_audit_records ar ON ar.id = (
+          SELECT ar2.id
+          FROM ai_audit_records ar2
+          WHERE ar2.target_type = 'service'
+            AND ar2.target_id = s.id
+          ORDER BY ar2.created_at DESC, ar2.id DESC
+          LIMIT 1
+        )
+        WHERE s.status IN ('pending','on_sale','paused')
+           OR ar.risk_level IN ('manual','reject')
+        ORDER BY FIELD(s.status, 'pending', 'on_sale', 'paused', 'removed'),
+                 s.created_at DESC
+        LIMIT 50
+        """
+    )
+
+
+def fetch_errands() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          e.id, e.title, e.description, e.pickup_location, e.delivery_location,
+          e.fee, e.status, e.created_at, e.accepted_at, e.completed_at,
+          publisher.nickname AS publisher_name,
+          publisher.username AS publisher_username,
+          publisher.credit_score AS publisher_credit_score,
+          rider.nickname AS rider_name,
+          rider.username AS rider_username,
+          rider.credit_score AS rider_credit_score,
+          (SELECT COUNT(*) FROM errand_events ee WHERE ee.errand_id = e.id) AS event_count
+        FROM errand_orders e
+        JOIN users publisher ON publisher.id = e.publisher_id
+        LEFT JOIN users rider ON rider.id = e.rider_id
+        WHERE e.status IN ('waiting_accept','accepted','processing','disputed')
+        ORDER BY FIELD(e.status, 'disputed','processing','accepted','waiting_accept'),
+                 e.created_at DESC
+        LIMIT 50
+        """
+    )
+
+
+def fetch_orders() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          o.order_sn, o.item_type, o.item_id, o.amount, o.status, o.remark,
+          o.created_at, o.paid_at, o.completed_at,
+          buyer.nickname AS buyer_name, buyer.username AS buyer_username,
+          seller.nickname AS seller_name, seller.username AS seller_username,
+          f.status AS fund_status, f.amount AS fund_amount,
+          (SELECT COUNT(*) FROM order_events oe WHERE oe.order_sn = o.order_sn) AS event_count,
+          (SELECT COUNT(*) FROM messages m
+             JOIN conversations c ON c.id = m.conversation_id
+             WHERE c.business_type = o.item_type
+               AND c.business_id = o.item_id) AS message_count
+        FROM orders o
+        JOIN users buyer ON buyer.id = o.buyer_id
+        JOIN users seller ON seller.id = o.seller_id
+        LEFT JOIN order_funds f ON f.order_sn = o.order_sn
+        ORDER BY FIELD(o.status, 'disputed','refunding','paid','unpaid','completed','cancelled'),
+                 o.created_at DESC
+        LIMIT 80
         """
     )
 
@@ -331,6 +437,22 @@ def fetch_refunds() -> list[dict]:
     )
 
 
+def fetch_withdraws() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          wr.id, wr.user_id, wr.amount, wr.reason, wr.status,
+          wr.review_note, wr.reviewed_at, wr.created_at,
+          u.nickname, u.username, u.role, u.balance, u.frozen_balance, u.credit_score
+        FROM withdraw_requests wr
+        JOIN users u ON u.id = wr.user_id
+        WHERE wr.status IN ('pending','approved','rejected')
+        ORDER BY FIELD(wr.status, 'pending','approved','rejected'), wr.created_at DESC
+        LIMIT 50
+        """
+    )
+
+
 def fetch_verifications() -> list[dict]:
     return fetch_all(
         """
@@ -363,6 +485,67 @@ def fetch_users() -> list[dict]:
         ORDER BY FIELD(u.status, 'active', 'pending_verify', 'banned', 'removed'),
                  u.id ASC
         LIMIT 80
+        """
+    )
+
+
+def fetch_evidence_cases() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          c.id AS conversation_id, c.session_type, c.business_type, c.business_id,
+          c.last_message_at, c.created_at,
+          a.nickname AS user_a_name, a.username AS user_a_username,
+          b.nickname AS user_b_name, b.username AS user_b_username,
+          COUNT(m.id) AS message_count,
+          SUM(CASE WHEN m.status = 'recalled' THEN 1 ELSE 0 END) AS recalled_count,
+          SUM(CASE WHEN m.previous_hash IS NULL THEN 1 ELSE 0 END) AS root_hash_count,
+          MIN(m.created_at) AS first_message_at,
+          MAX(m.created_at) AS last_message_created_at
+        FROM conversations c
+        JOIN users a ON a.id = c.user_a_id
+        JOIN users b ON b.id = c.user_b_id
+        LEFT JOIN messages m ON m.conversation_id = c.id
+        WHERE c.business_type IN ('goods','service','errand','order')
+        GROUP BY
+          c.id, c.session_type, c.business_type, c.business_id,
+          c.last_message_at, c.created_at,
+          a.nickname, a.username, b.nickname, b.username
+        HAVING message_count > 0
+        ORDER BY c.last_message_at DESC, c.id DESC
+        LIMIT 40
+        """
+    )
+
+
+def fetch_reconciliation_rows() -> list[dict]:
+    return fetch_all(
+        """
+        SELECT
+          o.order_sn, o.status AS order_status, o.amount AS order_amount,
+          f.status AS fund_status, f.amount AS fund_amount,
+          COALESCE(SUM(CASE WHEN wl.type = 'pay' THEN wl.amount ELSE 0 END), 0) AS paid_amount,
+          COALESCE(SUM(CASE WHEN wl.type IN ('income','refund') THEN wl.amount ELSE 0 END), 0) AS closed_amount,
+          CASE
+            WHEN f.id IS NULL THEN '缺少托管记录'
+            WHEN o.amount <> f.amount THEN '订单与托管金额不一致'
+            WHEN o.status IN ('paid','refunding','disputed') AND f.status <> 'frozen' THEN '应处于托管冻结'
+            WHEN o.status = 'completed' AND f.status <> 'settled' THEN '应处于已结算'
+            WHEN o.status IN ('refunded','cancelled') AND f.status <> 'refunded' THEN '应处于已退款'
+            WHEN COALESCE(SUM(CASE WHEN wl.type = 'pay' THEN wl.amount ELSE 0 END), 0) > 0
+                 AND COALESCE(SUM(CASE WHEN wl.type IN ('income','refund') THEN wl.amount ELSE 0 END), 0) = 0
+                 AND o.status IN ('completed','refunded') THEN '资金流水未闭环'
+            ELSE '正常'
+          END AS check_result
+        FROM orders o
+        LEFT JOIN order_funds f ON f.order_sn = o.order_sn
+        LEFT JOIN wallet_logs wl ON wl.order_sn = o.order_sn
+        GROUP BY
+          o.order_sn, o.status, o.amount, o.created_at,
+          f.id, f.status, f.amount
+        HAVING check_result <> '正常'
+        ORDER BY o.created_at DESC
+        LIMIT 50
         """
     )
 
@@ -470,6 +653,119 @@ def audit_goods(goods_id: int):
     return redirect(url_for("dashboard") + "#goods")
 
 
+@app.post("/services/<int:service_id>/audit")
+@require_login
+def audit_service(service_id: int):
+    result = request.form.get("result", "").strip()
+    note = request.form.get("note", "").strip() or "服务内容治理处理"
+    mapping = {
+        "pass": ("on_sale", "服务审核通过"),
+        "pause": ("paused", "服务暂停展示"),
+        "remove": ("removed", "违规服务下架"),
+    }
+    if result not in mapping:
+        flash("服务处理结果不合法。", "error")
+        return redirect(url_for("dashboard") + "#services")
+
+    new_status, action = mapping[result]
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, title, provider_id, status FROM services WHERE id = %s FOR UPDATE",
+                    (service_id,),
+                )
+                before = cur.fetchone()
+                if not before:
+                    flash("服务不存在。", "error")
+                    return redirect(url_for("dashboard") + "#services")
+                cur.execute(
+                    "UPDATE services SET status = %s, updated_at = NOW() WHERE id = %s",
+                    (new_status, service_id),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO notifications
+                      (user_id, business_type, business_id, title, content)
+                    VALUES (%s, 'service', %s, %s, %s)
+                    """,
+                    (before["provider_id"], str(service_id), action, note),
+                )
+                add_audit_log(
+                    conn,
+                    action,
+                    "service",
+                    service_id,
+                    note,
+                    before_data=before,
+                    after_data={"status": new_status},
+                )
+        flash(f"{action}已完成。", "ok")
+    except pymysql.MySQLError as exc:
+        flash(f"服务处理失败：{exc}", "error")
+    return redirect(url_for("dashboard") + "#services")
+
+
+@app.post("/errands/<int:errand_id>/resolve")
+@require_login
+def resolve_errand(errand_id: int):
+    result = request.form.get("result", "").strip()
+    note = request.form.get("note", "").strip() or "管理员处理跑腿任务"
+    if result not in {"complete", "cancel"}:
+        flash("跑腿处理结果不合法。", "error")
+        return redirect(url_for("dashboard") + "#errands")
+
+    new_status = "completed" if result == "complete" else "cancelled"
+    action = "跑腿任务确认完成" if result == "complete" else "跑腿任务取消"
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT id, title, publisher_id, rider_id, status
+                    FROM errand_orders
+                    WHERE id = %s
+                    FOR UPDATE
+                    """,
+                    (errand_id,),
+                )
+                before = cur.fetchone()
+                if not before:
+                    flash("跑腿任务不存在。", "error")
+                    return redirect(url_for("dashboard") + "#errands")
+                cur.execute(
+                    """
+                    UPDATE errand_orders
+                    SET status = %s,
+                        completed_at = IF(%s = 'completed', COALESCE(completed_at, NOW()), completed_at),
+                        updated_at = NOW()
+                    WHERE id = %s
+                    """,
+                    (new_status, new_status, errand_id),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO errand_events
+                      (errand_id, from_status, to_status, operator_id, note)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (errand_id, before["status"], new_status, ADMIN_ID, note),
+                )
+                add_audit_log(
+                    conn,
+                    action,
+                    "errand",
+                    errand_id,
+                    note,
+                    before_data=before,
+                    after_data={"status": new_status},
+                )
+        flash(f"{action}已完成。", "ok")
+    except pymysql.MySQLError as exc:
+        flash(f"跑腿处理失败：{exc}", "error")
+    return redirect(url_for("dashboard") + "#errands")
+
+
 @app.post("/refunds/<int:refund_id>/arbitrate")
 @require_login
 def arbitrate_refund(refund_id: int):
@@ -495,6 +791,92 @@ def arbitrate_refund(refund_id: int):
     except pymysql.MySQLError as exc:
         flash(f"售后仲裁失败：{exc}", "error")
     return redirect(url_for("dashboard") + "#refunds")
+
+
+@app.post("/withdraws/<int:withdraw_id>/review")
+@require_login
+def review_withdraw(withdraw_id: int):
+    result = request.form.get("result", "").strip()
+    note = request.form.get("note", "").strip() or "管理员审核提现申请"
+    if result not in {"approve", "reject"}:
+        flash("提现审核结果不合法。", "error")
+        return redirect(url_for("dashboard") + "#withdraws")
+
+    try:
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT wr.*, u.balance, u.username
+                    FROM withdraw_requests wr
+                    JOIN users u ON u.id = wr.user_id
+                    WHERE wr.id = %s
+                    FOR UPDATE
+                    """,
+                    (withdraw_id,),
+                )
+                before = cur.fetchone()
+                if not before:
+                    flash("提现申请不存在。", "error")
+                    return redirect(url_for("dashboard") + "#withdraws")
+                if before["status"] != "pending":
+                    flash("该提现申请已处理。", "error")
+                    return redirect(url_for("dashboard") + "#withdraws")
+
+                if result == "approve":
+                    if Decimal(before["balance"]) < Decimal(before["amount"]):
+                        flash("用户可用余额不足，无法通过提现。", "error")
+                        return redirect(url_for("dashboard") + "#withdraws")
+                    next_balance = Decimal(before["balance"]) - Decimal(before["amount"])
+                    cur.execute(
+                        """
+                        UPDATE users
+                        SET balance = %s, updated_at = NOW()
+                        WHERE id = %s
+                        """,
+                        (next_balance, before["user_id"]),
+                    )
+                    cur.execute(
+                        """
+                        INSERT INTO wallet_logs
+                          (user_id, type, direction, amount, balance_after, title, note)
+                        VALUES (%s, 'withdraw', 'out', %s, %s, '提现审核通过', %s)
+                        """,
+                        (before["user_id"], before["amount"], next_balance, note),
+                    )
+                    new_status = "approved"
+                    action = "提现审核通过"
+                    after = {"status": new_status, "balance_after": str(next_balance)}
+                else:
+                    new_status = "rejected"
+                    action = "提现审核驳回"
+                    after = {"status": new_status, "review_note": note}
+
+                cur.execute(
+                    """
+                    UPDATE withdraw_requests
+                    SET status = %s,
+                        reviewer_id = %s,
+                        review_note = %s,
+                        reviewed_at = NOW(),
+                        updated_at = NOW()
+                    WHERE id = %s
+                    """,
+                    (new_status, ADMIN_ID, note, withdraw_id),
+                )
+                add_audit_log(
+                    conn,
+                    action,
+                    "withdraw",
+                    withdraw_id,
+                    note,
+                    before_data=before,
+                    after_data=after,
+                )
+        flash(f"{action}已完成。", "ok")
+    except pymysql.MySQLError as exc:
+        flash(f"提现审核失败：{exc}", "error")
+    return redirect(url_for("dashboard") + "#withdraws")
 
 
 @app.post("/verifications/<int:verification_id>/audit")
@@ -755,6 +1137,40 @@ def change_user_status(user_id: int):
     except pymysql.MySQLError as exc:
         flash(f"用户状态更新失败：{exc}", "error")
     return redirect(url_for("dashboard") + "#users")
+
+
+@app.post("/reconcile/run")
+@require_login
+def run_reconcile():
+    note = request.form.get("note", "").strip() or "管理员手动触发资金对账"
+    try:
+        abnormal_count = len(fetch_reconciliation_rows())
+        status = "partial" if abnormal_count else "success"
+        message = f"发现 {abnormal_count} 条资金或状态异常" if abnormal_count else "本次对账未发现异常"
+        with db_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO job_logs
+                      (job_name, status, scanned_count, success_count, fail_count,
+                       message, started_at, finished_at)
+                    VALUES ('manual_wallet_reconcile', %s, 0, %s, %s, %s, NOW(), NOW())
+                    """,
+                    (status, 0 if abnormal_count else 1, abnormal_count, message),
+                )
+                job_id = cur.lastrowid
+                add_audit_log(
+                    conn,
+                    "手动资金对账",
+                    "job_logs",
+                    job_id,
+                    note,
+                    after_data={"status": status, "abnormal_count": abnormal_count},
+                )
+        flash(message, "ok" if not abnormal_count else "error")
+    except pymysql.MySQLError as exc:
+        flash(f"资金对账失败：{exc}", "error")
+    return redirect(url_for("dashboard") + "#reconcile")
 
 
 @app.route("/exports/audit-logs.csv")

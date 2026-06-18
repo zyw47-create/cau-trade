@@ -2,8 +2,8 @@
   padding: 36rpx;
   border-radius: 34rpx;
   color: #ffffff;
-  background: linear-gradient(135deg, #E91E63 0%, #FF6B6B 62%, #FFB74D 100%);
-  box-shadow: 0 26rpx 58rpx rgba(233, 30, 99, 0.22);
+  background: #1F4E79;
+  box-shadow: 0 26rpx 58rpx rgba(31, 78, 121, 0.22);
 }
 
 .balance-card .muted {
@@ -51,7 +51,7 @@
   justify-content: space-between;
   gap: 20rpx;
   padding: 22rpx 0;
-  border-top: 1rpx solid rgba(233, 30, 99, 0.08);
+  border-top: 1rpx solid rgba(31, 78, 121, 0.08);
 }
 
 .log-title {
@@ -65,7 +65,7 @@
 }
 
 .expense {
-  color: #EF4444;
+  color: #B42318;
   font-weight: 900;
 }
 

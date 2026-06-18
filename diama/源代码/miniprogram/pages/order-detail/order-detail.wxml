@@ -12,6 +12,7 @@
       <text class="muted">{{order.fundText}}</text>
     </view>
     <view class="action-hint">{{order.actionHint}}</view>
+    <view wx:if="{{order.autoConfirm.enabled}}" class="muted">自动确认剩余：{{order.autoConfirm.remainingText}}。若买家未确认且未发起售后/投诉，系统将自动结算给卖家。</view>
   </view>
 
   <view class="panel section">

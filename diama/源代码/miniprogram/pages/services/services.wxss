@@ -45,8 +45,8 @@
   height: 64rpx;
   line-height: 64rpx;
   border-radius: 999rpx;
-  background: #FFF1F6;
-  color: #C2185B;
+  background: #EEF3F7;
+  color: #1F4E79;
   font-size: 24rpx;
   font-weight: 800;
   padding: 0;
@@ -83,10 +83,18 @@ button[disabled] {
   grid-template-columns: 1fr 1fr;
   gap: 12rpx;
   margin-top: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .small-btn {
+  width: 100%;
+  min-width: 0;
   height: 60rpx;
-  line-height: 60rpx;
+  line-height: 1.12;
+  padding: 0 12rpx;
   font-size: 24rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
 }

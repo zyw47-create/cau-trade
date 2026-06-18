@@ -35,18 +35,39 @@
 }
 
 .modal-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 18rpx;
   margin-top: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-actions.single-action {
+  justify-content: flex-end;
+}
+
+.modal-actions.two-actions .modal-btn {
+  flex: 1;
+  width: 0;
 }
 
 .modal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
   height: 72rpx;
-  line-height: 72rpx;
+  margin: 0;
+  padding: 0 16rpx;
+  line-height: 1.12;
   border-radius: 999rpx;
   font-size: 26rpx;
   font-weight: 800;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modal-btn::after {
@@ -54,11 +75,15 @@
 }
 
 .modal-btn.cancel {
-  color: #c2185b;
-  background: #fff1f6;
+  color: #1F4E79;
+  background: #EEF3F7;
 }
 
 .modal-btn.confirm {
   color: #ffffff;
-  background: linear-gradient(135deg, #e91e63, #ff6b6b);
+  background: #1F4E79;
+}
+
+.modal-actions.single-action .modal-btn.confirm {
+  width: 240rpx;
 }

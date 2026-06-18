@@ -1,6 +1,0 @@
-<view class="debug-page">
-  <view class="debug-card">
-    <view class="debug-title">INDEX PAGE OK</view>
-    <view class="debug-desc">If you can see this card, the page itself is rendering.</view>
-  </view>
-</view>

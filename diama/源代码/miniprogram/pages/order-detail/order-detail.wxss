@@ -140,12 +140,19 @@
   grid-template-columns: 1fr 1fr;
   gap: 14rpx;
   margin-top: 18rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .action-grid .btn {
+  width: 100%;
+  min-width: 0;
   height: 68rpx;
-  line-height: 68rpx;
+  line-height: 1.12;
   font-size: 24rpx;
+  padding: 0 14rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .submit-comment {

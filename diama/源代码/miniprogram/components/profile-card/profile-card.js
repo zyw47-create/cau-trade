@@ -13,6 +13,10 @@ Component({
   methods: {
     verify() {
       this.triggerEvent('verify')
+    },
+
+    chooseavatar() {
+      this.triggerEvent('chooseavatar')
     }
   }
 })

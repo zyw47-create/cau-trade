@@ -11,6 +11,27 @@ const BUSINESS_TYPE_TEXT = {
   system_notice: '系统通知'
 }
 
+function getInitial(name) {
+  return String(name || '同').trim().charAt(0) || '同'
+}
+
+function buildTrade(conversation) {
+  const businessType = conversation.businessType || 'goods'
+  const businessTypeText = BUSINESS_TYPE_TEXT[businessType] || '站内会话'
+  const orderSn = conversation.orderSn || ''
+  return {
+    title: conversation.title || '交易沟通',
+    businessType,
+    businessTypeText,
+    businessId: conversation.businessId || '',
+    orderSn,
+    statusText: orderSn ? '订单已关联' : '沟通中',
+    linkText: orderSn ? '查看订单' : (businessType.indexOf('goods') >= 0 ? '查看商品' : '查看详情'),
+    evidenceText: '聊天记录已生成证据链',
+    evidenceLine: orderSn ? `聊天记录已生成证据链 · ${orderSn}` : '聊天记录已生成证据链'
+  }
+}
+
 Page({
   data: {
     mode: 'list',
@@ -23,12 +44,14 @@ Page({
     title: '',
     conversationId: '',
     conversation: null,
+    trade: null,
     conversations: [],
     messages: [],
     input: '',
     loadingConversations: false,
     loadingMessages: false,
-    sending: false
+    sending: false,
+    scrollToId: ''
   },
 
   onLoad(query) {
@@ -44,7 +67,10 @@ Page({
   },
 
   onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
     if (!store.requireLogin()) return
+
     const pending = store.takePendingChat()
     if (pending && (pending.goodsId || pending.conversationId || pending.businessId)) {
       this.setData({
@@ -61,6 +87,7 @@ Page({
       this.loadMessages()
       return
     }
+
     const now = Date.now()
     if (this.lastLoadAt && now - this.lastLoadAt < 600) return
     if (this.data.mode === 'room') this.loadMessages()
@@ -72,16 +99,19 @@ Page({
     this.loadingConversations = true
     this.lastLoadAt = Date.now()
     this.setData({ loadingConversations: true })
+
     api({ url: '/api/chat/list' }).then((res) => {
-      const conversations = res.data.list.map((item) => {
-        const last = item.messages.length ? item.messages[item.messages.length - 1].content : '暂无消息'
+      const list = (res.data && res.data.list) || []
+      const conversations = list.map((item) => {
+        const messages = item.messages || []
+        const last = messages.length ? messages[messages.length - 1] : null
         return Object.assign({}, item, {
-          lastMessage: last,
-          countText: `${item.messages.length}条`,
-          peerInitial: (item.peer || '同').charAt(0),
+          lastMessage: last ? last.content : '暂无消息',
+          countText: `${messages.length}条`,
+          peerInitial: getInitial(item.peer),
           peerLine: `${item.peer || '交易对象'} @${item.peerUsername || 'user'}`,
           businessTypeText: BUSINESS_TYPE_TEXT[item.businessType] || item.businessType || '站内会话',
-          evidenceText: item.messages.length ? item.messages[item.messages.length - 1].hash : 'SHA256-待生成'
+          evidenceText: last ? last.hash : 'SHA256-待生成'
         })
       })
       this.setData({ conversations, loadingConversations: false })
@@ -96,6 +126,7 @@ Page({
     this.loadingMessages = true
     this.lastLoadAt = Date.now()
     this.setData({ loadingMessages: true })
+
     api({
       url: '/api/chat/messages',
       data: {
@@ -109,20 +140,38 @@ Page({
         conversationId: this.data.conversationId
       }
     }).then((res) => {
+      const conversation = Object.assign({
+        title: '交易沟通',
+        peer: '交易对象',
+        peerUsername: 'user',
+        businessType: this.data.businessType || 'goods',
+        businessId: this.data.businessId || this.data.goodsId || ''
+      }, (res.data && res.data.conversation) || {})
+      conversation.peerInitial = getInitial(conversation.peer)
+
+      const list = (res.data && res.data.list) || []
+      const messages = list.map((item) => {
+        const isMine = item.from === 'me'
+        return Object.assign({}, item, {
+          sideClass: isMine ? 'mine' : 'other',
+          rowStyle: `display:flex;align-items:flex-start;gap:14rpx;margin-bottom:22rpx;justify-content:${isMine ? 'flex-end' : 'flex-start'};`,
+          bubbleStyle: `max-width:520rpx;padding:22rpx;border-radius:28rpx;line-height:42rpx;word-break:break-word;box-shadow:0 12rpx 28rpx rgba(31,78,121,0.07);background:${isMine ? '#1F4E79' : '#ffffff'};color:${isMine ? '#ffffff' : '#2A2528'};border:${isMine ? 'none' : '1rpx solid rgba(31,78,121,0.09)'};`,
+          senderInitial: getInitial(item.senderName || (isMine ? '我' : conversation.peer)),
+          senderLine: `${item.senderName || (isMine ? '我' : conversation.peer)} @${item.senderUsername || (isMine ? 'campus_user' : conversation.peerUsername || 'user')}`
+        })
+      })
+      const last = messages[messages.length - 1]
+
       this.setData({
-        conversation: Object.assign({
-          title: '会话',
-          peer: '交易对象',
-          peerUsername: 'user',
-          peerInitial: ((res.data.conversation && res.data.conversation.peer) || '同').charAt(0)
-        }, res.data.conversation),
-        conversationId: res.data.conversation.id,
-        businessType: res.data.conversation.businessType,
-        businessId: res.data.conversation.businessId,
-        messages: res.data.list.map((item) => Object.assign({}, item, {
-          sideClass: item.from === 'me' ? 'mine' : 'other',
-          senderLine: `${item.senderName || (item.from === 'me' ? '我' : (res.data.conversation && res.data.conversation.peer) || '交易对象')} @${item.senderUsername || (item.from === 'me' ? 'campus_user' : (res.data.conversation && res.data.conversation.peerUsername) || 'user')}`
-        }))
+        conversation,
+        trade: buildTrade(conversation),
+        conversationId: conversation.id || this.data.conversationId,
+        businessType: conversation.businessType || this.data.businessType,
+        businessId: conversation.businessId || this.data.businessId,
+        orderSn: conversation.orderSn || this.data.orderSn,
+        messages,
+        scrollToId: last ? `msg-${last.id}` : '',
+        loadingMessages: false
       })
     }).finally(() => {
       this.loadingMessages = false
@@ -137,8 +186,23 @@ Page({
   },
 
   backToList() {
-    this.setData({ mode: 'list', conversation: null, messages: [], input: '' })
+    this.setData({ mode: 'list', conversation: null, trade: null, messages: [], input: '', scrollToId: '' })
     this.loadConversations()
+  },
+
+  openTrade() {
+    const trade = this.data.trade || {}
+    if (trade.orderSn) {
+      wx.navigateTo({ url: `/pages/order-detail/order-detail?orderSn=${trade.orderSn}` })
+      return
+    }
+    if (trade.businessType && trade.businessType.indexOf('goods') >= 0 && trade.businessId) {
+      wx.navigateTo({ url: `/pages/detail/detail?id=${trade.businessId}` })
+      return
+    }
+    if (trade.businessId) {
+      wx.navigateTo({ url: `/pages/service-detail/service-detail?id=${trade.businessId}&type=${trade.businessType}` })
+    }
   },
 
   onInput(e) {
@@ -153,6 +217,7 @@ Page({
     }
     if (this.data.sending) return
     this.setData({ sending: true })
+
     api({
       url: '/api/chat/send',
       method: 'POST',

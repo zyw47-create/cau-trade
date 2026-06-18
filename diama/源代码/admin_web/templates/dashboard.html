@@ -1,149 +1,273 @@
 {% extends "base.html" %}
 
-{% block title %}控制台 - 校园交易管理后台{% endblock %}
+{% block title %}控制台 - 校园二手交易管理后台{% endblock %}
 
 {% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Campus Trade Admin</p>
+    <h1>管理员治理控制台</h1>
+    <p>覆盖内容审核、服务与跑腿治理、订单资金、售后仲裁、提现审核、实名认证、聊天证据链和全量审计日志。</p>
+  </div>
+  <form method="post" action="{{ url_for('run_reconcile') }}" class="hero-action">
+    <input name="note" value="管理员手动触发资金对账">
+    <button class="primary" type="submit">立即资金对账</button>
+  </form>
+</section>
+
 <section class="summary-grid">
-  <article class="metric">
-    <span>待审内容</span>
-    <strong>{{ stats.pending_goods or 0 }}</strong>
-  </article>
-  <article class="metric">
-    <span>AI 风险记录</span>
-    <strong>{{ stats.risky_ai_records or 0 }}</strong>
-  </article>
-  <article class="metric">
-    <span>售后仲裁</span>
-    <strong>{{ stats.refund_queue or 0 }}</strong>
-  </article>
-  <article class="metric">
-    <span>实名待审</span>
-    <strong>{{ stats.pending_verifications or 0 }}</strong>
-  </article>
-  <article class="metric">
-    <span>用户数</span>
-    <strong>{{ stats.user_count or 0 }}</strong>
-  </article>
-  <article class="metric">
-    <span>订单数</span>
-    <strong>{{ stats.order_count or 0 }}</strong>
-  </article>
-  <article class="metric wide">
-    <span>交易金额</span>
-    <strong>¥{{ stats.trade_amount | money }}</strong>
-  </article>
+  <article class="metric"><span>待审商品</span><strong>{{ stats.pending_goods or 0 }}</strong></article>
+  <article class="metric"><span>待审服务</span><strong>{{ stats.pending_services or 0 }}</strong></article>
+  <article class="metric"><span>AI 风险记录</span><strong>{{ stats.risky_ai_records or 0 }}</strong></article>
+  <article class="metric"><span>售后仲裁</span><strong>{{ stats.refund_queue or 0 }}</strong></article>
+  <article class="metric"><span>提现待审</span><strong>{{ stats.withdraw_queue or 0 }}</strong></article>
+  <article class="metric"><span>实名待审</span><strong>{{ stats.pending_verifications or 0 }}</strong></article>
+  <article class="metric"><span>跑腿纠纷</span><strong>{{ stats.disputed_errands or 0 }}</strong></article>
+  <article class="metric"><span>用户数</span><strong>{{ stats.user_count or 0 }}</strong></article>
+  <article class="metric"><span>订单数</span><strong>{{ stats.order_count or 0 }}</strong></article>
+  <article class="metric wide"><span>交易金额</span><strong>¥{{ stats.trade_amount | money }}</strong></article>
 </section>
 
 <section id="goods" class="section-block">
   <div class="section-head">
     <div>
       <h2>AI 违规复核与商品审核</h2>
-      <p>处理 AI 标记为人工复核或疑似违规的内容，审核结果会同步商品状态并写入管理员审计日志。</p>
+      <p>处理 AI 标记为人工复核或疑似违规的商品，审核结果会同步商品状态、通知卖家并写入管理员审计日志。</p>
     </div>
   </div>
   {% if pending_goods %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>商品</th>
-            <th>卖家</th>
-            <th>AI 结论</th>
-            <th>状态</th>
-            <th>处理</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in pending_goods %}
-          <tr>
-            <td class="main-cell">
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.category_name or "未分类" }} · ¥{{ item.price | money }} · {{ item.condition_level }}</span>
-              <small>{{ item.description | brief(92) }}</small>
-            </td>
-            <td>
-              <strong>{{ item.seller_name }}</strong>
-              <span>@{{ item.seller_username }} · 信用 {{ item.seller_credit_score }}</span>
-            </td>
-            <td>
-              <span class="badge risk-{{ item.ai_risk_level or 'none' }}">{{ item.ai_risk_level | label }}</span>
-              <small>{{ item.ai_reason or item.audit_note or "暂无 AI 原因" }}</small>
-            </td>
-            <td><span class="badge">{{ item.status | label }}</span></td>
-            <td class="actions-cell">
-              <form method="post" action="{{ url_for('audit_goods', goods_id=item.id) }}" class="inline-form">
-                <input name="note" placeholder="处理说明" value="{{ item.ai_reason or '' }}">
-                <button name="result" value="pass" class="primary">通过</button>
-                <button name="result" value="reject">驳回</button>
-                <button name="result" value="remove" class="danger">下架</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>商品</th><th>卖家</th><th>AI 结论</th><th>状态</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        {% for item in pending_goods %}
+        <tr>
+          <td class="main-cell">
+            <strong>{{ item.title }}</strong>
+            <span>{{ item.category_name or "未分类" }} · ¥{{ item.price | money }} · {{ item.condition_level }}</span>
+            <small>{{ item.description | brief(92) }}</small>
+          </td>
+          <td>
+            <strong>{{ item.seller_name }}</strong>
+            <span>@{{ item.seller_username }} · 信用 {{ item.seller_credit_score }}</span>
+          </td>
+          <td>
+            <span class="badge risk-{{ item.ai_risk_level or 'none' }}">{{ item.ai_risk_level | label }}</span>
+            <small>{{ item.ai_reason or item.audit_note or "暂无 AI 原因" }}</small>
+          </td>
+          <td><span class="badge">{{ item.status | label }}</span></td>
+          <td class="actions-cell">
+            <form method="post" action="{{ url_for('audit_goods', goods_id=item.id) }}" class="inline-form">
+              <input name="note" placeholder="处理说明" value="{{ item.ai_reason or '' }}">
+              <button name="result" value="pass" class="primary">通过</button>
+              <button name="result" value="reject">驳回</button>
+              <button name="result" value="remove" class="danger">下架</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-    <div class="empty-inline">当前没有待处理的 AI 风险内容。</div>
+  <div class="empty-inline">当前没有待处理的商品风险内容。</div>
   {% endif %}
+</section>
+
+<section id="services" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>校园服务治理</h2>
+      <p>对服务者发布的代办、技能、咨询等校园服务进行审核、暂停或下架，补齐设计文档中的服务治理入口。</p>
+    </div>
+  </div>
+  {% if services %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>服务</th><th>服务者</th><th>评分/AI</th><th>状态</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        {% for item in services %}
+        <tr>
+          <td class="main-cell">
+            <strong>{{ item.title }}</strong>
+            <span>{{ item.category_name or "未分类" }} · ¥{{ item.price | money }}</span>
+            <small>{{ item.description | brief(100) }}</small>
+          </td>
+          <td>
+            <strong>{{ item.provider_name }}</strong>
+            <span>@{{ item.provider_username }} · 信用 {{ item.provider_credit_score }}</span>
+          </td>
+          <td>
+            <span>评分 {{ item.avg_score }}</span>
+            <span class="badge risk-{{ item.ai_risk_level or 'none' }}">{{ item.ai_risk_level | label }}</span>
+            <small>{{ item.ai_reason or "暂无 AI 风险说明" }}</small>
+          </td>
+          <td><span class="badge">{{ item.status | label }}</span></td>
+          <td class="actions-cell">
+            <form method="post" action="{{ url_for('audit_service', service_id=item.id) }}" class="inline-form">
+              <input name="note" placeholder="处理说明" value="{{ item.ai_reason or '服务内容复核' }}">
+              <button name="result" value="pass" class="primary">上架</button>
+              <button name="result" value="pause">暂停</button>
+              <button name="result" value="remove" class="danger">下架</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-inline">当前没有需要治理的校园服务。</div>
+  {% endif %}
+</section>
+
+<section id="errands" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>跑腿任务治理</h2>
+      <p>展示待接单、配送中和纠纷状态的跑腿任务，管理员可在纠纷场景下做完成或取消处理并写入事件表。</p>
+    </div>
+  </div>
+  {% if errands %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>任务</th><th>发起人</th><th>骑手</th><th>路线/赏金</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        {% for item in errands %}
+        <tr>
+          <td class="main-cell">
+            <strong>{{ item.title }}</strong>
+            <span class="badge">{{ item.status | label }}</span>
+            <small>{{ item.description | brief(90) }}</small>
+          </td>
+          <td><strong>{{ item.publisher_name }}</strong><span>@{{ item.publisher_username }} · 信用 {{ item.publisher_credit_score }}</span></td>
+          <td><strong>{{ item.rider_name or "未接单" }}</strong><span>@{{ item.rider_username or "-" }} · 信用 {{ item.rider_credit_score or "-" }}</span></td>
+          <td><span>{{ item.pickup_location }} → {{ item.delivery_location }}</span><strong>¥{{ item.fee | money }}</strong><small>事件 {{ item.event_count }} 条</small></td>
+          <td class="actions-cell">
+            <form method="post" action="{{ url_for('resolve_errand', errand_id=item.id) }}" class="inline-form">
+              <input name="note" value="管理员依据跑腿履约记录处理">
+              <button name="result" value="complete" class="primary">确认完成</button>
+              <button name="result" value="cancel" class="danger">取消任务</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-inline">当前没有待治理跑腿任务。</div>
+  {% endif %}
+</section>
+
+<section id="orders" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>订单与资金托管</h2>
+      <p>按设计文档展示订单状态、托管资金、事件数量和聊天证据数量，便于仲裁前快速定位交易上下文。</p>
+    </div>
+  </div>
+  <div class="table-wrap compact">
+    <table>
+      <thead>
+        <tr><th>订单</th><th>双方</th><th>金额/托管</th><th>状态</th><th>证据</th></tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="main-cell"><strong>{{ order.order_sn }}</strong><span>{{ order.item_type }} #{{ order.item_id }}</span><small>{{ order.created_at | dt }}</small></td>
+          <td><span>买家 {{ order.buyer_name }} @{{ order.buyer_username }}</span><span>卖家 {{ order.seller_name }} @{{ order.seller_username }}</span></td>
+          <td><strong>¥{{ order.amount | money }}</strong><span>{{ order.fund_status | label }} · ¥{{ order.fund_amount | money }}</span></td>
+          <td><span class="badge">{{ order.status | label }}</span><small>{{ order.remark or "-" }}</small></td>
+          <td><span>事件 {{ order.event_count }} 条</span><span>消息 {{ order.message_count }} 条</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section id="refunds" class="section-block">
   <div class="section-head">
     <div>
       <h2>售后与纠纷仲裁</h2>
-      <p>仲裁会调用数据库存储过程同步订单、托管资金、资金流水和订单事件。</p>
+      <p>仲裁会调用数据库存储过程同步订单状态、托管资金、资金流水和订单事件，保证交易与资金一致。</p>
     </div>
   </div>
   {% if refunds %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>订单</th>
-            <th>双方</th>
-            <th>资金</th>
-            <th>售后原因</th>
-            <th>裁决</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for refund in refunds %}
-          <tr>
-            <td class="main-cell">
-              <strong>{{ refund.order_sn }}</strong>
-              <span>{{ refund.item_type }} #{{ refund.item_id }} · {{ refund.order_status | label }}</span>
-              <small>事件 {{ refund.event_count }} 条 · {{ refund.created_at | dt }}</small>
-            </td>
-            <td>
-              <strong>买家 {{ refund.applicant_name }}</strong>
-              <span>@{{ refund.applicant_username }} · 信用 {{ refund.applicant_credit_score }}</span>
-              <strong>卖家 {{ refund.seller_name }}</strong>
-              <span>@{{ refund.seller_username }} · 信用 {{ refund.seller_credit_score }}</span>
-            </td>
-            <td>
-              <strong>¥{{ refund.amount | money }}</strong>
-              <span>{{ refund.fund_status | label }} · 托管 ¥{{ refund.fund_amount | money }}</span>
-            </td>
-            <td>
-              <span class="badge">{{ refund.refund_status | label }}</span>
-              <small>{{ refund.reason | brief(110) }}</small>
-              {% if refund.seller_reply %}<small>卖家说明：{{ refund.seller_reply | brief(80) }}</small>{% endif %}
-            </td>
-            <td class="actions-cell">
-              <form method="post" action="{{ url_for('arbitrate_refund', refund_id=refund.id) }}" class="inline-form">
-                <input name="note" placeholder="仲裁说明" value="{{ refund.reason }}">
-                <button name="result" value="buyer" class="primary">买家胜诉退款</button>
-                <button name="result" value="seller">卖家胜诉结算</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>订单</th><th>双方</th><th>资金</th><th>售后原因</th><th>裁决</th></tr>
+      </thead>
+      <tbody>
+        {% for refund in refunds %}
+        <tr>
+          <td class="main-cell"><strong>{{ refund.order_sn }}</strong><span>{{ refund.item_type }} #{{ refund.item_id }} · {{ refund.order_status | label }}</span><small>事件 {{ refund.event_count }} 条 · {{ refund.created_at | dt }}</small></td>
+          <td><strong>买家 {{ refund.applicant_name }}</strong><span>@{{ refund.applicant_username }} · 信用 {{ refund.applicant_credit_score }}</span><strong>卖家 {{ refund.seller_name }}</strong><span>@{{ refund.seller_username }} · 信用 {{ refund.seller_credit_score }}</span></td>
+          <td><strong>¥{{ refund.amount | money }}</strong><span>{{ refund.fund_status | label }} · 托管 ¥{{ refund.fund_amount | money }}</span></td>
+          <td><span class="badge">{{ refund.refund_status | label }}</span><small>{{ refund.reason | brief(110) }}</small>{% if refund.seller_reply %}<small>卖家说明：{{ refund.seller_reply | brief(80) }}</small>{% endif %}</td>
+          <td class="actions-cell">
+            <form method="post" action="{{ url_for('arbitrate_refund', refund_id=refund.id) }}" class="inline-form">
+              <input name="note" placeholder="仲裁说明" value="{{ refund.reason }}">
+              <button name="result" value="buyer" class="primary">买家胜诉退款</button>
+              <button name="result" value="seller">卖家胜诉结算</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-    <div class="empty-inline">当前没有待仲裁售后。</div>
+  <div class="empty-inline">当前没有待仲裁售后。</div>
+  {% endif %}
+</section>
+
+<section id="withdraws" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>提现申请审核</h2>
+      <p>提现审核通过会扣减用户余额并追加钱包流水；驳回仅更新申请状态，所有操作写入审计日志。</p>
+    </div>
+  </div>
+  {% if withdraws %}
+  <div class="table-wrap compact">
+    <table>
+      <thead>
+        <tr><th>申请人</th><th>金额</th><th>账户</th><th>状态</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        {% for item in withdraws %}
+        <tr>
+          <td><strong>{{ item.nickname }}</strong><span>@{{ item.username }} · {{ item.role }}</span><small>{{ item.reason or "-" }}</small></td>
+          <td><strong>¥{{ item.amount | money }}</strong><span>{{ item.created_at | dt }}</span></td>
+          <td><span>余额 ¥{{ item.balance | money }}</span><span>冻结 ¥{{ item.frozen_balance | money }}</span><small>信用 {{ item.credit_score }}</small></td>
+          <td><span class="badge">{{ item.status | label }}</span><small>{{ item.review_note or "-" }}</small></td>
+          <td class="actions-cell">
+            {% if item.status == 'pending' %}
+            <form method="post" action="{{ url_for('review_withdraw', withdraw_id=item.id) }}" class="inline-form">
+              <input name="note" value="提现资料与余额校验通过">
+              <button name="result" value="approve" class="primary">通过</button>
+              <button name="result" value="reject" class="danger">驳回</button>
+            </form>
+            {% else %}
+            <span class="muted">已处理</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-inline">当前没有提现申请。</div>
   {% endif %}
 </section>
 
@@ -151,60 +275,40 @@
   <div class="section-head">
     <div>
       <h2>实名认证审核</h2>
-      <p>核验学校邮箱、学号、姓名、学院和学生证材料，审核通过后用户恢复核心交易权限。</p>
+      <p>核验学校邮箱、学号、姓名、学院和学生证材料，审核通过后用户恢复核心交易权限并增加信用分。</p>
     </div>
   </div>
   {% if verifications %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>用户</th>
-            <th>认证资料</th>
-            <th>邮箱/OCR</th>
-            <th>状态</th>
-            <th>处理</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in verifications %}
-          <tr>
-            <td>
-              <strong>{{ item.nickname }}</strong>
-              <span>@{{ item.username }} · {{ item.role }} · 信用 {{ item.credit_score }}</span>
-            </td>
-            <td class="main-cell">
-              <strong>{{ item.college }}</strong>
-              <span>学号 {{ item.student_id_enc }} · 姓名 {{ item.real_name_enc }}</span>
-              <small>{{ item.student_card_image_url or "未上传学生证图片" }}</small>
-            </td>
-            <td>
-              <strong>{{ item.school_email or "未填写邮箱" }}</strong>
-              <span>邮箱验证 {{ item.email_verified_at | dt }}</span>
-              <span>OCR 匹配 {{ item.ocr_match_score or "-" }}</span>
-            </td>
-            <td>
-              <span class="badge">{{ item.status | label }}</span>
-              {% if item.review_note %}<small>{{ item.review_note }}</small>{% endif %}
-            </td>
-            <td class="actions-cell">
-              {% if item.status == 'pending' %}
-              <form method="post" action="{{ url_for('audit_verification', verification_id=item.id) }}" class="inline-form">
-                <input name="note" placeholder="审核说明" value="邮箱与校园身份材料一致">
-                <button name="result" value="approve" class="primary">通过</button>
-                <button name="result" value="reject">驳回</button>
-              </form>
-              {% else %}
-              <span class="muted">已处理</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>用户</th><th>认证资料</th><th>邮箱/OCR</th><th>状态</th><th>处理</th></tr>
+      </thead>
+      <tbody>
+        {% for item in verifications %}
+        <tr>
+          <td><strong>{{ item.nickname }}</strong><span>@{{ item.username }} · {{ item.role }} · 信用 {{ item.credit_score }}</span></td>
+          <td class="main-cell"><strong>{{ item.college }}</strong><span>学号 {{ item.student_id_enc }} · 姓名 {{ item.real_name_enc }}</span><small>{{ item.student_card_image_url or "未上传学生证图片" }}</small></td>
+          <td><strong>{{ item.school_email or "未填写邮箱" }}</strong><span>邮箱验证 {{ item.email_verified_at | dt }}</span><span>OCR 匹配 {{ item.ocr_match_score or "-" }}</span></td>
+          <td><span class="badge">{{ item.status | label }}</span>{% if item.review_note %}<small>{{ item.review_note }}</small>{% endif %}</td>
+          <td class="actions-cell">
+            {% if item.status == 'pending' %}
+            <form method="post" action="{{ url_for('audit_verification', verification_id=item.id) }}" class="inline-form">
+              <input name="note" placeholder="审核说明" value="邮箱与校园身份材料一致">
+              <button name="result" value="approve" class="primary">通过</button>
+              <button name="result" value="reject">驳回</button>
+            </form>
+            {% else %}
+            <span class="muted">已处理</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-    <div class="empty-inline">当前没有实名认证申请。</div>
+  <div class="empty-inline">当前没有实名认证申请。</div>
   {% endif %}
 </section>
 
@@ -212,43 +316,23 @@
   <div class="section-head">
     <div>
       <h2>用户治理</h2>
-      <p>封禁、解封与信用变更会留痕；管理员账号不可在当前后台被封禁。</p>
+      <p>封禁、解封与信用变更会留痕；管理员账号不可在当前后台被封禁，符合“人走权限走，数据留痕不走”的设计原则。</p>
     </div>
   </div>
   <div class="table-wrap compact">
     <table>
       <thead>
-        <tr>
-          <th>用户</th>
-          <th>角色/状态</th>
-          <th>信用与交易</th>
-          <th>余额</th>
-          <th>处理</th>
-        </tr>
+        <tr><th>用户</th><th>角色/状态</th><th>信用与交易</th><th>余额</th><th>处理</th></tr>
       </thead>
       <tbody>
         {% for user in users %}
         <tr>
-          <td>
-            <strong>{{ user.nickname }}</strong>
-            <span>#{{ user.id }} · @{{ user.username }}</span>
-            <small>{{ user.campus_area or "-" }} · {{ user.major or "-" }}</small>
-          </td>
-          <td>
-            <span>{{ user.role }}</span>
-            <span class="badge">{{ user.status | label }}</span>
-            <small>{{ "已实名" if user.is_verified else "未实名" }}</small>
-          </td>
-          <td>
-            <strong>{{ user.credit_score }}</strong>
-            <span>完成 {{ user.completed_trade_count or 0 }} 单 · 好评 {{ user.good_rate_snapshot or 0 }}%</span>
-          </td>
-          <td>
-            <span>可用 ¥{{ user.balance | money }}</span>
-            <span>冻结 ¥{{ user.frozen_balance | money }}</span>
-          </td>
+          <td><strong>{{ user.nickname }}</strong><span>#{{ user.id }} · @{{ user.username }}</span><small>{{ user.campus_area or "-" }} · {{ user.major or "-" }}</small></td>
+          <td><span>{{ user.role }}</span><span class="badge">{{ user.status | label }}</span><small>{{ "已实名" if user.is_verified else "未实名" }}</small></td>
+          <td><strong>{{ user.credit_score }}</strong><span>完成 {{ user.completed_trade_count or 0 }} 单 · 好评 {{ user.good_rate_snapshot or 0 }}%</span></td>
+          <td><span>可用 ¥{{ user.balance | money }}</span><span>冻结 ¥{{ user.frozen_balance | money }}</span></td>
           <td class="actions-cell">
-            {% if user.id != 99 %}
+            {% if user.id != admin_id %}
             <form method="post" action="{{ url_for('change_user_status', user_id=user.id) }}" class="inline-form">
               <input name="note" placeholder="处理原因" value="平台治理处理">
               {% if user.status == 'banned' %}
@@ -268,32 +352,81 @@
   </div>
 </section>
 
+<section id="reconcile" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>资金对账异常</h2>
+      <p>基于 orders、order_funds、wallet_logs 三表交叉校验金额、托管状态和资金闭环。</p>
+    </div>
+    <form method="post" action="{{ url_for('run_reconcile') }}" class="inline-form narrow">
+      <input name="note" value="管理员从对账面板触发">
+      <button class="primary" type="submit">重新对账</button>
+    </form>
+  </div>
+  {% if reconcile_rows %}
+  <div class="table-wrap compact">
+    <table>
+      <thead>
+        <tr><th>订单</th><th>订单金额</th><th>托管</th><th>支付流水</th><th>异常</th></tr>
+      </thead>
+      <tbody>
+        {% for row in reconcile_rows %}
+        <tr>
+          <td><strong>{{ row.order_sn }}</strong><span>{{ row.order_status | label }}</span></td>
+          <td>¥{{ row.order_amount | money }}</td>
+          <td>{{ row.fund_status | label }} · ¥{{ row.fund_amount | money }}</td>
+          <td><span>支付 ¥{{ row.paid_amount | money }}</span><span>闭环 ¥{{ row.closed_amount | money }}</span></td>
+          <td><span class="badge danger-badge">{{ row.check_result }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-inline">当前三表对账未发现异常。</div>
+  {% endif %}
+</section>
+
+<section id="evidence" class="section-block">
+  <div class="section-head">
+    <div>
+      <h2>聊天证据链</h2>
+      <p>展示会话业务归属、消息数量、撤回数量和哈希链根节点数量，方便仲裁时调阅证据链完整性。</p>
+    </div>
+  </div>
+  {% if evidence_cases %}
+  <div class="table-wrap compact">
+    <table>
+      <thead>
+        <tr><th>会话</th><th>双方</th><th>消息证据</th><th>时间</th></tr>
+      </thead>
+      <tbody>
+        {% for item in evidence_cases %}
+        <tr>
+          <td><strong>#{{ item.conversation_id }}</strong><span>{{ item.session_type }} · {{ item.business_type }} #{{ item.business_id }}</span></td>
+          <td><span>{{ item.user_a_name }} @{{ item.user_a_username }}</span><span>{{ item.user_b_name }} @{{ item.user_b_username }}</span></td>
+          <td><span>消息 {{ item.message_count }} 条 · 撤回 {{ item.recalled_count or 0 }} 条</span><span>哈希根 {{ item.root_hash_count or 0 }} 个</span></td>
+          <td><span>{{ item.first_message_at | dt }}</span><span>{{ item.last_message_created_at | dt }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-inline">当前没有可展示的聊天证据链。</div>
+  {% endif %}
+</section>
+
 <section id="ai-rules" class="section-block two-col">
   <div>
     <h2>AI 审核规则</h2>
     <p>发布内容命中关键词或风险等级后进入人工复核池。外部 AI 服务不可用时，也可降级到人工复核。</p>
   </div>
   <form method="post" action="{{ url_for('save_ai_rules') }}" class="rule-form">
-    <label class="check-row">
-      <input type="checkbox" name="text_audit_enabled" {% if ai_rule.text_audit_enabled %}checked{% endif %}>
-      <span>启用文本审核</span>
-    </label>
-    <label class="check-row">
-      <input type="checkbox" name="image_audit_enabled" {% if ai_rule.image_audit_enabled %}checked{% endif %}>
-      <span>启用图片审核</span>
-    </label>
-    <label>
-      <span>人工复核等级</span>
-      <select name="manual_risk_level">
-        <option value="manual" {% if ai_rule.manual_risk_level == 'manual' %}selected{% endif %}>manual</option>
-        <option value="reject" {% if ai_rule.manual_risk_level == 'reject' %}selected{% endif %}>reject</option>
-        <option value="pass" {% if ai_rule.manual_risk_level == 'pass' %}selected{% endif %}>pass</option>
-      </select>
-    </label>
-    <label>
-      <span>关键词</span>
-      <textarea name="keywords" rows="5">{{ ai_rule.keywords or "" }}</textarea>
-    </label>
+    <label class="check-row"><input type="checkbox" name="text_audit_enabled" {% if ai_rule.text_audit_enabled %}checked{% endif %}><span>启用文本审核</span></label>
+    <label class="check-row"><input type="checkbox" name="image_audit_enabled" {% if ai_rule.image_audit_enabled %}checked{% endif %}><span>启用图片审核</span></label>
+    <label><span>人工复核等级</span><select name="manual_risk_level"><option value="manual" {% if ai_rule.manual_risk_level == 'manual' %}selected{% endif %}>manual</option><option value="reject" {% if ai_rule.manual_risk_level == 'reject' %}selected{% endif %}>reject</option><option value="pass" {% if ai_rule.manual_risk_level == 'pass' %}selected{% endif %}>pass</option></select></label>
+    <label><span>关键词</span><textarea name="keywords" rows="5">{{ ai_rule.keywords or "" }}</textarea></label>
     <button class="primary" type="submit">保存规则</button>
     <small class="muted">最后更新：{{ ai_rule.updated_at | dt }}</small>
   </form>
@@ -303,21 +436,14 @@
   <div class="section-head">
     <div>
       <h2>管理员审计日志</h2>
-      <p>记录审核、仲裁、封禁、规则变更等敏感操作。</p>
+      <p>记录审核、仲裁、封禁、规则变更、提现和对账等敏感操作。</p>
     </div>
     <a class="button-link" href="{{ url_for('export_audit_logs') }}">导出 CSV</a>
   </div>
   <div class="table-wrap compact">
     <table>
       <thead>
-        <tr>
-          <th>时间</th>
-          <th>管理员</th>
-          <th>动作</th>
-          <th>对象</th>
-          <th>原因</th>
-          <th>IP</th>
-        </tr>
+        <tr><th>时间</th><th>管理员</th><th>动作</th><th>对象</th><th>原因</th><th>IP</th></tr>
       </thead>
       <tbody>
         {% for log in recent_logs %}
