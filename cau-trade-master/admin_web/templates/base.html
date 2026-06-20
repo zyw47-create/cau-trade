@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}校园二手交易平台管理后台{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <div class="brand">校园二手交易平台</div>
+        <div class="subtitle">管理员后台 · MySQL 数据联动</div>
+      </div>
+      {% if session.get("admin_logged_in") %}
+      <nav class="nav">
+        <a href="{{ url_for('dashboard') }}#goods">内容审核</a>
+        <a href="{{ url_for('dashboard') }}#refunds">投诉仲裁</a>
+        <a href="{{ url_for('dashboard') }}#verifications">实名审核</a>
+        <a href="{{ url_for('dashboard') }}#users">用户治理</a>
+        <a href="{{ url_for('dashboard') }}#ai-rules">AI 规则</a>
+        <a href="{{ url_for('dashboard') }}#logs">审计日志</a>
+        <a href="{{ url_for('logout') }}">退出</a>
+      </nav>
+      {% endif %}
+    </header>
+
+    <main class="page">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-list">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

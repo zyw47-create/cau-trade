@@ -1,0 +1,60 @@
+<view class="page detail-page" wx:if="{{item}}">
+  <view class="detail-cover">
+    <image wx:if="{{item.image}}" class="detail-image" src="{{item.image}}" mode="aspectFill"></image>
+    <view class="cover-title">{{item.category}}</view>
+    <view class="cover-tag">{{item.condition}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="price big-price">¥{{item.price}}</view>
+    <view class="title detail-title">{{item.title}}</view>
+    <view class="desc">{{item.desc}}</view>
+    <view class="meta-row">
+      <text class="tag">{{item.auditTag}}</text>
+      <text class="tag">{{item.favoriteCount}}人收藏</text>
+      <text class="tag">{{item.location}}</text>
+    </view>
+  </view>
+
+  <view class="seller-card section">
+    <image wx:if="{{item.sellerAvatar}}" class="seller-avatar seller-avatar-image" src="{{item.sellerAvatar}}" mode="aspectFill"></image>
+    <view wx:else class="seller-avatar">{{item.sellerInitial}}</view>
+    <view class="seller-info" bindtap="openSeller">
+      <view class="seller-name">{{item.sellerLine}}</view>
+      <view class="muted">点进主页查看信用分、交易评价和在售内容</view>
+    </view>
+    <button class="btn secondary seller-chat" bindtap="openChat">聊聊</button>
+  </view>
+
+  <view class="safe-strip section">
+    <view wx:for="{{item.safeTags}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="sub-title">交易说明</view>
+    <view class="info-line">交易地点：{{item.location}}</view>
+    <view class="info-line">成色说明：{{item.condition}}</view>
+    <view class="info-line">收藏人数：{{item.favoriteCount}}</view>
+    <view class="info-line">评价数量：{{item.commentCount}}</view>
+  </view>
+
+  <view class="detail-main section">
+    <view class="sub-title">最近评价</view>
+    <view wx:if="{{!item.commentPreview.length}}" class="empty">当前还没有公开评价，可在交易完成后补充。</view>
+    <view wx:for="{{item.commentPreview}}" wx:key="id" class="comment-row">
+      <view class="row between">
+        <view class="comment-user">{{item.user}}</view>
+        <text class="tag">{{item.score}}星</text>
+      </view>
+      <view class="comment-text">{{item.content}}</view>
+    </view>
+  </view>
+
+  <view class="bottom-spacer"></view>
+
+  <view class="action-bar">
+    <button class="action-btn light" bindtap="toggleFavorite">{{item.favoriteText}}</button>
+    <button class="action-btn light" bindtap="openChat">联系卖家</button>
+    <button class="action-btn buy" bindtap="createOrder">下单付款</button>
+  </view>
+</view>

@@ -1,0 +1,248 @@
+.publish-tip {
+  background: #FFF5DD;
+  color: #9C6A00;
+  border: 1rpx solid rgba(245, 158, 11, 0.16);
+  border-radius: 28rpx;
+  padding: 22rpx 26rpx;
+  font-size: 24rpx;
+  line-height: 1.65;
+  box-shadow: 0 12rpx 30rpx rgba(245, 158, 11, 0.08);
+}
+
+.draft-tip {
+  background: #ECFDF3;
+  color: #027a48;
+  border: 1rpx solid rgba(2, 122, 72, 0.14);
+  border-radius: 24rpx;
+  padding: 18rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.publish-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+  padding: 10rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1rpx solid rgba(31, 78, 121, 0.08);
+  box-shadow: 0 14rpx 34rpx rgba(31, 78, 121, 0.07);
+}
+
+.publish-tab {
+  height: 72rpx;
+  line-height: 72rpx;
+  text-align: center;
+  border-radius: 999rpx;
+  background: transparent;
+  color: #A07586;
+  font-size: 24rpx;
+  font-weight: 800;
+}
+
+.publish-tab.active {
+  background: #1F4E79;
+  color: #ffffff;
+  box-shadow: 0 12rpx 28rpx rgba(31, 78, 121, 0.18);
+}
+
+.publish-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx;
+  margin-top: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.publish-actions .btn {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.publish-actions .btn.secondary {
+  background: #EEF3F7;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin: 18rpx 0;
+}
+
+.price-editor {
+  margin-top: 20rpx;
+  padding: 24rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(255, 122, 0, 0.20);
+  box-shadow: 0 14rpx 34rpx rgba(255, 122, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.price-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.price-editor-title {
+  color: #2B252B;
+  font-size: 28rpx;
+  font-weight: 900;
+}
+
+.price-editor-tag {
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #FFF3E5;
+  color: #FF7A00;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.price-input-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  min-height: 104rpx;
+  margin-top: 10rpx;
+  border-bottom: 1rpx solid rgba(255, 122, 0, 0.20);
+}
+
+.currency-symbol {
+  color: #FF7A00;
+  font-size: 42rpx;
+  font-weight: 900;
+}
+
+.price-input {
+  flex: 1;
+  min-width: 0;
+  height: 104rpx;
+  color: #1F1A1D;
+  font-size: 64rpx;
+  font-weight: 900;
+  line-height: 104rpx;
+}
+
+.currency-unit {
+  color: #8A7D85;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.price-hint {
+  margin-top: 14rpx;
+  color: #A07546;
+  font-size: 22rpx;
+  line-height: 34rpx;
+}
+
+.image-section {
+  margin-top: 20rpx;
+  padding: 22rpx;
+  border-radius: 26rpx;
+  background: #FBF7EF;
+  border: 1rpx solid rgba(31, 78, 121, 0.08);
+}
+
+.image-title {
+  font-size: 28rpx;
+}
+
+.image-tip {
+  margin-top: 6rpx;
+  font-size: 23rpx;
+}
+
+.upload-btn {
+  width: 150rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  border-radius: 999rpx;
+  background: #EEF3F7;
+  color: #1F4E79;
+  font-size: 24rpx;
+  font-weight: 800;
+  padding: 0;
+}
+
+.upload-btn::after {
+  border: none;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.image-card {
+  position: relative;
+  overflow: hidden;
+  height: 190rpx;
+  border-radius: 20rpx;
+  background: #ffffff;
+  border: 1rpx solid rgba(31, 78, 121, 0.10);
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.image-status {
+  position: absolute;
+  left: 8rpx;
+  bottom: 8rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.88);
+  color: #6F6068;
+  font-size: 20rpx;
+  font-weight: 800;
+}
+
+.image-status.done {
+  color: #027A48;
+}
+
+.image-status.failed {
+  color: #B42318;
+}
+
+.remove-image {
+  position: absolute;
+  right: 8rpx;
+  top: 8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  line-height: 34rpx;
+  border-radius: 50%;
+  background: rgba(38, 33, 38, 0.74);
+  color: #ffffff;
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 800;
+}
+
+.audit-note {
+  margin: 18rpx 0;
+  color: #8A7D85;
+  font-size: 24rpx;
+  line-height: 40rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: #FBF7EF;
+  border: 1rpx solid rgba(31, 78, 121, 0.08);
+}

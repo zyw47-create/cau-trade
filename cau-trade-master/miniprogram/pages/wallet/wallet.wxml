@@ -1,0 +1,61 @@
+<view class="page wallet-page">
+  <view class="balance-card section">
+    <view class="muted">账户余额</view>
+    <view class="balance">¥{{user.balance || '0.00'}}</view>
+    <view class="balance-sub">平台托管交易资金，订单完成后按流程结算</view>
+  </view>
+
+  <skeleton wx:if="{{loading}}" rows="{{3}}"></skeleton>
+
+  <view wx:elif="{{errorText}}" class="panel section empty-line">{{errorText}}</view>
+
+  <block wx:else>
+  <view class="panel section">
+    <view class="sub-title">充值</view>
+    <view class="muted">用于下单支付、服务预约和跑腿任务托管</view>
+    <view class="input-row">
+      <input class="input amount-input" type="digit" placeholder="输入充值金额" value="{{rechargeAmount}}" bindinput="onRechargeInput" />
+      <button class="btn action-btn" bindtap="recharge">充值</button>
+    </view>
+  </view>
+
+  <view wx:if="{{canWithdraw}}" class="panel section">
+    <view class="sub-title">收益提现</view>
+    <view class="muted">服务者或骑手收益可提交审核提现</view>
+    <view class="input-row">
+      <input class="input amount-input" type="digit" placeholder="输入提现金额" value="{{withdrawAmount}}" bindinput="onWithdrawInput" />
+      <button class="btn action-btn" bindtap="withdraw">提现</button>
+    </view>
+  </view>
+
+  <view class="panel section">
+    <view class="row between section-title-row">
+      <view class="sub-title">资金流水</view>
+      <view class="muted">{{logs.length}} 条</view>
+    </view>
+    <view wx:if="{{noLogs}}" class="empty-line">暂无资金流水</view>
+    <view wx:for="{{logs}}" wx:key="id" class="log-row">
+      <view>
+        <view class="log-title">{{item.title}}</view>
+        <view class="muted">{{item.time}} · 余额 ¥{{item.balanceAfter}}</view>
+      </view>
+      <text class="{{item.amountClass}}">{{item.amountText}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{canWithdraw}}" class="panel section">
+    <view class="row between section-title-row">
+      <view class="sub-title">提现记录</view>
+      <view class="muted">{{withdraws.length}} 条</view>
+    </view>
+    <view wx:if="{{noWithdraws}}" class="empty-line">暂无提现记录</view>
+    <view wx:for="{{withdraws}}" wx:key="id" class="log-row">
+      <view>
+        <view class="log-title">提现 ¥{{item.amount}}</view>
+        <view class="muted">{{item.reason || '收益提现'}}</view>
+      </view>
+      <status-tag text="{{item.statusText}}" type="{{item.status}}"></status-tag>
+    </view>
+  </view>
+  </block>
+</view>

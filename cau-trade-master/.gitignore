@@ -1,0 +1,16 @@
+.runtime/
+.idea/
+backend/.idea/
+admin_web/__pycache__/
+__pycache__/
+*.pyc
+*.log
+*.pid
+project.private.config.json
+miniprogram/project.private.config.json
+backend/.env
+backend/.env.key
+backend/.env.enc
+backend/backend.out.log
+backend/backend.err.log
+backend/backend.pid

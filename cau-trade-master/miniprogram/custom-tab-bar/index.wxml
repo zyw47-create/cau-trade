@@ -1,0 +1,25 @@
+<view class="custom-tabbar">
+  <view class="tab-item {{selected === 0 ? 'active' : ''}}" data-index="0" bindtap="switchTab">
+    <view class="tab-icon">首</view>
+    <view class="tab-text">首页</view>
+  </view>
+  <view class="tab-item {{selected === 1 ? 'active' : ''}}" data-index="1" bindtap="switchTab">
+    <view class="tab-icon">类</view>
+    <view class="tab-text">分类</view>
+  </view>
+  <view class="publish-wrap" bindtap="goPublish">
+    <view class="publish-btn">+</view>
+    <view class="publish-text">发布</view>
+  </view>
+  <view class="tab-item {{selected === 2 ? 'active' : ''}}" data-index="2" bindtap="switchTab">
+    <view class="tab-icon badge-box">
+      消
+      <text wx:if="{{unreadCount > 0}}" class="badge">{{unreadCount > 99 ? '99+' : unreadCount}}</text>
+    </view>
+    <view class="tab-text">消息</view>
+  </view>
+  <view class="tab-item {{selected === 3 ? 'active' : ''}}" data-index="3" bindtap="switchTab">
+    <view class="tab-icon">我</view>
+    <view class="tab-text">我的</view>
+  </view>
+</view>

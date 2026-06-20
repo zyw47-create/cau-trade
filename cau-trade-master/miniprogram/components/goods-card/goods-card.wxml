@@ -1,0 +1,28 @@
+<view class="goods-card">
+  <view class="goods-cover" bindtap="open">
+    <image wx:if="{{goods.image && !imageFailed}}" class="cover-image" src="{{goods.image}}" mode="aspectFill" binderror="onImageError"></image>
+    <view wx:else class="cover-placeholder">{{goods.category || '闲置'}}</view>
+    <view wx:if="{{goods.auditNote}}" class="audit-badge">AI已审</view>
+    <view class="cover-condition">{{goods.condition}}</view>
+  </view>
+  <view class="goods-body">
+    <view class="row between">
+      <view class="goods-title" bindtap="open">{{goods.title}}</view>
+      <text class="price">¥{{goods.price}}</text>
+    </view>
+    <view class="goods-desc">{{goods.desc}}</view>
+    <view class="meta-row">
+      <text>{{goods.location}}</text>
+      <text>{{goods.favoriteCount}} 收藏</text>
+    </view>
+    <view class="seller-row">
+      <image wx:if="{{goods.sellerAvatar}}" class="avatar avatar-image" src="{{goods.sellerAvatar}}" mode="aspectFill"></image>
+      <view wx:else class="avatar">{{goods.sellerInitial}}</view>
+      <view class="seller-name">{{goods.sellerName || '同校用户'}} @{{goods.username || 'user'}}</view>
+    </view>
+    <view class="action-row">
+      <button class="mini-btn secondary" catchtap="favorite">{{goods.favoriteText}}</button>
+      <button class="mini-btn" catchtap="order">下单</button>
+    </view>
+  </view>
+</view>

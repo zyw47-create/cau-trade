@@ -1,0 +1,39 @@
+.chat-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 190rpx;
+  background: #F6F1E7;
+}
+
+.room-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.chat-header,
+.room-header,
+.empty-chat {
+  background: #ffffff;
+  border: 1rpx solid rgba(31, 78, 121, 0.10);
+  border-radius: 30rpx;
+  box-shadow: 0 18rpx 44rpx rgba(31, 78, 121, 0.08);
+}
+
+.empty-chat {
+  padding: 52rpx 28rpx;
+  text-align: center;
+  color: #8A7D85;
+}
+
+.room-back::after,
+.send-btn::after {
+  border: none;
+}
+
+.composer-input {
+  flex: 1;
+}
+
+.send-btn {
+  flex-shrink: 0;
+}

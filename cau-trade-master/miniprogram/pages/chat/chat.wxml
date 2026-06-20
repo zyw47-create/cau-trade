@@ -1,0 +1,60 @@
+<view class="page chat-page" style="min-height:100vh;box-sizing:border-box;background:#F6F1E7;padding:28rpx 28rpx 336rpx;">
+  <view wx:if="{{mode === 'list'}}">
+    <view class="chat-header section" style="display:flex;align-items:center;justify-content:space-between;gap:20rpx;background:#ffffff;border:1rpx solid rgba(31,78,121,0.10);border-radius:30rpx;padding:28rpx;box-shadow:0 18rpx 44rpx rgba(31,78,121,0.08);">
+      <view style="flex:1;min-width:0;">
+        <view class="title">消息</view>
+        <view class="muted">站内沟通、交易证据和售后协商入口</view>
+      </view>
+      <view class="header-pill" style="padding:10rpx 18rpx;border-radius:999rpx;background:#EEF3F7;color:#1F4E79;font-size:22rpx;font-weight:800;">哈希留痕</view>
+    </view>
+
+    <view wx:if="{{loadingConversations}}" class="empty-chat">会话加载中...</view>
+    <view wx:elif="{{conversations.length === 0}}" class="empty-chat">暂无会话，从商品详情点击“联系卖家”开始聊天。</view>
+
+    <message-list conversations="{{conversations}}" bindopen="openConversation"></message-list>
+  </view>
+
+  <view wx:if="{{mode === 'room'}}" class="room-page" style="min-height:100vh;box-sizing:border-box;">
+    <view class="room-header section" style="background:#ffffff;border:1rpx solid rgba(31,78,121,0.10);border-radius:30rpx;padding:24rpx;box-shadow:0 18rpx 44rpx rgba(31,78,121,0.08);">
+      <button class="room-back" style="width:132rpx;height:56rpx;margin:0 0 20rpx 0;padding:0;border-radius:999rpx;background:#EEF3F7;color:#1F4E79;font-size:24rpx;font-weight:900;line-height:56rpx;box-shadow:none;" bindtap="backToList">‹ 返回</button>
+      <view class="peer-card" style="display:flex;align-items:center;gap:18rpx;">
+        <image wx:if="{{conversation.peerAvatar}}" class="peer-avatar" src="{{conversation.peerAvatar}}" mode="aspectFill" style="width:76rpx;height:76rpx;border-radius:24rpx;background:#1F4E79;flex-shrink:0;"></image>
+        <view wx:else class="peer-avatar" style="width:76rpx;height:76rpx;line-height:76rpx;border-radius:24rpx;background:#1F4E79;color:#ffffff;text-align:center;font-weight:900;flex-shrink:0;">{{conversation.peerInitial}}</view>
+        <view class="peer-main" style="flex:1;min-width:0;">
+          <view class="peer-name" style="color:#262126;font-size:34rpx;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{conversation.peer}}</view>
+          <view class="peer-meta" style="margin-top:6rpx;color:#8A7D85;font-size:23rpx;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@{{conversation.peerUsername}} · {{trade.businessTypeText}}</view>
+        </view>
+        <view class="peer-status" style="padding:10rpx 18rpx;border-radius:999rpx;background:#EEF3F7;color:#1F4E79;font-size:22rpx;font-weight:800;white-space:nowrap;">{{trade.statusText}}</view>
+      </view>
+      <view class="trade-card" style="margin-top:22rpx;padding:20rpx;border-radius:24rpx;background:#EEF3F7;border:1rpx solid rgba(31,78,121,0.10);display:flex;align-items:center;gap:16rpx;" bindtap="openTrade">
+        <view class="trade-main" style="flex:1;min-width:0;">
+          <view class="trade-label" style="color:#1F4E79;font-size:22rpx;font-weight:900;">正在沟通</view>
+          <view class="trade-title" style="margin-top:6rpx;color:#262126;font-size:28rpx;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{trade.title}}</view>
+          <view class="trade-meta" style="margin-top:6rpx;color:#8A7D85;font-size:21rpx;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{trade.evidenceLine}}</view>
+        </view>
+        <view class="trade-link" style="padding:10rpx 18rpx;border-radius:999rpx;background:#ffffff;color:#1F4E79;font-size:22rpx;font-weight:800;white-space:nowrap;">{{trade.linkText}}</view>
+      </view>
+    </view>
+
+    <scroll-view class="message-scroll" style="height:520rpx;box-sizing:border-box;padding:8rpx 0 28rpx;" scroll-y="true" scroll-into-view="{{scrollToId}}">
+      <view wx:if="{{loadingMessages}}" class="empty-chat">消息加载中...</view>
+      <view wx:elif="{{messages.length === 0}}" class="empty-chat">当前会话还没有消息，发一条开始沟通吧。</view>
+      <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}" class="message {{item.sideClass}}" style="{{item.rowStyle}}">
+        <image wx:if="{{item.sideClass === 'other' && item.senderAvatar}}" class="message-avatar" src="{{item.senderAvatar}}" mode="aspectFill" style="width:58rpx;height:58rpx;border-radius:18rpx;background:#E7EEF5;flex-shrink:0;"></image>
+        <view wx:elif="{{item.sideClass === 'other'}}" class="message-avatar" style="width:58rpx;height:58rpx;line-height:58rpx;border-radius:18rpx;background:#E7EEF5;color:#1F4E79;text-align:center;font-size:22rpx;font-weight:900;flex-shrink:0;">{{item.senderInitial}}</view>
+        <view class="bubble" style="{{item.bubbleStyle}}">
+          <view class="sender-line" style="margin-bottom:8rpx;font-size:20rpx;opacity:0.78;">{{item.senderLine}}</view>
+          <view class="message-content" style="font-size:28rpx;">{{item.content}}</view>
+          <view class="message-meta" style="margin-top:8rpx;font-size:20rpx;opacity:0.72;">{{item.time}} · {{item.hash}}</view>
+        </view>
+        <image wx:if="{{item.sideClass === 'mine' && item.senderAvatar}}" class="message-avatar mine-avatar" src="{{item.senderAvatar}}" mode="aspectFill" style="width:58rpx;height:58rpx;border-radius:18rpx;background:#C9973F;flex-shrink:0;"></image>
+        <view wx:elif="{{item.sideClass === 'mine'}}" class="message-avatar mine-avatar" style="width:58rpx;height:58rpx;line-height:58rpx;border-radius:18rpx;background:#C9973F;color:#ffffff;text-align:center;font-size:22rpx;font-weight:900;flex-shrink:0;">我</view>
+      </view>
+    </scroll-view>
+
+    <view class="composer" style="position:fixed;left:0;right:0;bottom:172rpx;display:flex;align-items:center;gap:12rpx;padding:18rpx 24rpx;background:#ffffff;border-top:1rpx solid rgba(31,78,121,0.10);box-shadow:0 -12rpx 32rpx rgba(31,78,121,0.08);box-sizing:border-box;">
+      <input class="input composer-input" style="flex:1;width:auto;min-width:0;height:76rpx;min-height:76rpx;margin:0;box-sizing:border-box;" placeholder="输入站内消息" value="{{input}}" bindinput="onInput" confirm-type="send" bindconfirm="send" />
+      <button class="btn send-btn" style="width:140rpx;height:76rpx;margin:0;padding:0;line-height:76rpx;border-radius:999rpx;background:#1F4E79;color:#ffffff;font-size:28rpx;font-weight:800;box-shadow:0 14rpx 30rpx rgba(31,78,121,0.20);" loading="{{sending}}" disabled="{{sending}}" bindtap="send">发送</button>
+    </view>
+  </view>
+</view>

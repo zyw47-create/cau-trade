@@ -1,0 +1,138 @@
+.order-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding-top: 0;
+}
+
+.order-filter {
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  background: #f4f5f7;
+  color: #5f6b7a;
+  font-size: 24rpx;
+}
+
+.order-filter.active {
+  background: #EEF3F7;
+  color: #c2416c;
+  font-weight: 700;
+}
+
+.order-card {
+  margin-bottom: 20rpx;
+}
+
+.order-title-area {
+  flex: 1;
+  min-width: 0;
+  padding-right: 18rpx;
+}
+
+.order-sn {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+}
+
+.order-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  color: #6F6068;
+  font-size: 24rpx;
+}
+
+.progress-box,
+.refund-box {
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border: 1rpx solid rgba(31, 78, 121, 0.10);
+  border-radius: 26rpx;
+  background: #F6F1E7;
+}
+
+.progress-title,
+.refund-title {
+  color: #2A2528;
+  font-weight: 800;
+  margin-bottom: 8rpx;
+}
+
+.progress-text,
+.refund-reason {
+  line-height: 40rpx;
+  color: #3A3238;
+}
+
+.latest-time {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+}
+
+.refund-box {
+  border-color: rgba(245, 158, 11, 0.20);
+  background: #FFF5DD;
+}
+
+.subtle-tag {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.empty-order {
+  color: #8A7D85;
+  text-align: center;
+  padding: 46rpx 30rpx;
+}
+
+.loading-line {
+  padding: 0 24rpx 18rpx;
+}
+
+.order-bottom {
+  margin-top: 24rpx;
+  align-items: flex-start;
+  gap: 18rpx;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.order-actions .btn {
+  min-width: 0;
+  max-width: 100%;
+  height: 62rpx;
+  line-height: 62rpx;
+  font-size: 24rpx;
+  padding: 0 18rpx;
+  box-shadow: 0 10rpx 22rpx rgba(31, 78, 121, 0.14);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.order-actions .btn.secondary {
+  box-shadow: none;
+}
+
+.event-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.event {
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #EEF3F7;
+  color: #9C6E80;
+  font-size: 22rpx;
+}

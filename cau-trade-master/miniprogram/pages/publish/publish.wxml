@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="section">
+    <view class="title">{{pageTitle}}</view>
+    <view class="muted">{{pageSubtitle}}</view>
+  </view>
+
+  <view class="publish-tip section">{{verifyTip}}</view>
+  <view wx:if="{{draftTip}}" class="draft-tip section">{{draftTip}}</view>
+
+  <view class="publish-tabs section">
+    <view wx:for="{{publishTabs}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="chooseType">{{item.text}}</view>
+  </view>
+
+  <view class="panel section">
+    <view class="sub-title">{{formTitle}}</view>
+    <input class="input" placeholder="标题" value="{{form.title}}" data-key="title" bindinput="updateField" />
+    <picker wx:if="{{showGoodsFields}}" range="{{categories}}" bindchange="chooseCategory">
+      <view class="picker">分类：{{form.category}}</view>
+    </picker>
+    <input wx:if="{{showGoodsFields}}" class="input" placeholder="成色，例如九成新" value="{{form.condition}}" data-key="condition" bindinput="updateField" />
+    <view class="price-editor">
+      <view class="price-editor-head">
+        <view class="price-editor-title">{{priceLabel}}</view>
+        <view class="price-editor-tag">一口价</view>
+      </view>
+      <view class="price-input-row">
+        <text class="currency-symbol">¥</text>
+        <input class="price-input" type="digit" placeholder="0.00" value="{{form.price}}" data-key="price" bindinput="onPriceInput" />
+        <text class="currency-unit">元</text>
+      </view>
+      <view class="price-hint">参考闲鱼定价格式，提交前请确认金额准确。</view>
+    </view>
+    <input wx:if="{{showGoodsFields}}" class="input" placeholder="交易地点，例如北区宿舍门口" value="{{form.location}}" data-key="location" bindinput="updateField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="{{extraPlaceholder}}" value="{{form.serviceTime}}" data-key="serviceTime" bindinput="updateField" />
+    <input wx:if="{{showServiceFields}}" class="input" placeholder="服务地点，例如图书馆一层或线上语音" value="{{form.location}}" data-key="location" bindinput="updateField" />
+    <input wx:if="{{showErrandFields}}" class="input" placeholder="取件地点，例如北门外卖架" value="{{form.pickupLocation}}" data-key="pickupLocation" bindinput="updateField" />
+    <input wx:if="{{showErrandFields}}" class="input" placeholder="送达地点，例如软件学院实验楼" value="{{form.deliveryLocation}}" data-key="deliveryLocation" bindinput="updateField" />
+    <view class="image-section">
+      <view class="row between">
+        <view>
+          <view class="sub-title image-title">图片材料</view>
+          <view class="muted image-tip">商品图、服务样例或跑腿凭证，最多6张</view>
+        </view>
+        <button class="upload-btn" bindtap="chooseImages">添加图片</button>
+      </view>
+      <view wx:if="{{form.images.length}}" class="image-grid">
+        <view wx:for="{{form.images}}" wx:key="id" class="image-card">
+          <image class="preview-image" src="{{item.tempFilePath || item.url}}" mode="aspectFill" data-url="{{item.tempFilePath || item.url}}" bindtap="previewImage"></image>
+          <view class="image-status {{item.status}}">{{item.statusText}}</view>
+          <view class="remove-image" data-id="{{item.id}}" catchtap="removeImage">×</view>
+        </view>
+      </view>
+    </view>
+    <textarea class="textarea" placeholder="{{descPlaceholder}}" value="{{form.desc}}" data-key="desc" bindinput="updateField" />
+    <view wx:if="{{aiTags.length}}" class="tag-row">
+      <text wx:for="{{aiTags}}" wx:key="*this" class="tag">{{item}}</text>
+    </view>
+    <view class="audit-note">提交后会进行内容初审；跑腿订单会先生成待支付订单，支付托管后再进入任务大厅。</view>
+    <view class="publish-actions">
+      <button class="btn secondary" bindtap="aiGenerate">AI 辅助描述</button>
+      <button class="btn" bindtap="submit">提交发布</button>
+    </view>
+  </view>
+</view>

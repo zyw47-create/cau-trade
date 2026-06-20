@@ -1,0 +1,76 @@
+.balance-card {
+  padding: 36rpx;
+  border-radius: 34rpx;
+  color: #ffffff;
+  background: #1F4E79;
+  box-shadow: 0 26rpx 58rpx rgba(31, 78, 121, 0.22);
+}
+
+.balance-card .muted {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.balance {
+  margin-top: 12rpx;
+  font-size: 64rpx;
+  font-weight: 900;
+}
+
+.balance-sub {
+  margin-top: 12rpx;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 42rpx;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.amount-input {
+  flex: 1;
+  margin-top: 0;
+}
+
+.action-btn {
+  width: 150rpx;
+  height: 72rpx;
+  line-height: 72rpx;
+  font-size: 25rpx;
+}
+
+.section-title-row {
+  margin-bottom: 8rpx;
+}
+
+.log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 22rpx 0;
+  border-top: 1rpx solid rgba(31, 78, 121, 0.08);
+}
+
+.log-title {
+  color: #2B252B;
+  font-weight: 800;
+}
+
+.income {
+  color: #027A48;
+  font-weight: 900;
+}
+
+.expense {
+  color: #B42318;
+  font-weight: 900;
+}
+
+.empty-line {
+  padding: 24rpx 0 10rpx;
+  color: #8A7D85;
+  text-align: center;
+}

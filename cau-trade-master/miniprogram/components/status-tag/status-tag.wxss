@@ -1,0 +1,33 @@
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 800;
+  border: 1rpx solid transparent;
+}
+
+.status-tag.default {
+  background: #EEF3F7;
+  color: #1F4E79;
+  border-color: rgba(31, 78, 121, 0.12);
+}
+
+.status-tag.success {
+  background: #ECFDF3;
+  color: #027A48;
+  border-color: rgba(2, 122, 72, 0.12);
+}
+
+.status-tag.warn {
+  background: #FFF5DD;
+  color: #9C6A00;
+  border-color: rgba(245, 158, 11, 0.16);
+}
+
+.status-tag.danger {
+  background: #FEF2F2;
+  color: #B42318;
+  border-color: rgba(180, 35, 24, 0.12);
+}

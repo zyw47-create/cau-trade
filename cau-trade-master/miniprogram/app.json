@@ -1,0 +1,72 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/user/user",
+    "pages/service-detail/service-detail",
+    "pages/order-detail/order-detail",
+    "pages/publish/publish",
+    "pages/publish/index",
+    "pages/category/category",
+    "pages/category/index",
+    "pages/favorite/favorite",
+    "pages/wallet/wallet",
+    "pages/settings/settings",
+    "pages/role-apply/role-apply",
+    "pages/orders/orders",
+    "pages/services/services",
+    "pages/chat/chat",
+    "pages/chat-room/chat-room",
+    "pages/profile/profile",
+    "pages/verify/verify",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "navigationBarTitleText": "校园二手",
+    "navigationBarBackgroundColor": "#F6F1E7",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F6F1E7",
+    "backgroundColorTop": "#F6F1E7",
+    "backgroundColorBottom": "#FFFFFF"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#999999",
+    "selectedColor": "#1F4E79",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/category/category",
+        "text": "分类"
+      },
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "usingComponents": {
+    "status-tag": "/components/status-tag/status-tag",
+    "skeleton": "/components/skeleton/skeleton",
+    "search-bar": "/components/search-bar/search-bar",
+    "category-sidebar": "/components/category-sidebar/category-sidebar",
+    "sort-dropdown": "/components/sort-dropdown/sort-dropdown",
+    "message-list": "/components/message-list/message-list",
+    "goods-card": "/components/goods-card/goods-card",
+    "filter-drawer": "/components/filter-drawer/filter-drawer",
+    "app-modal": "/components/app-modal/app-modal",
+    "profile-card": "/components/profile-card/profile-card"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
