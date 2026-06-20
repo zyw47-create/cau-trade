@@ -205,6 +205,63 @@ function mockOrderDetail(orderSn) {
   return order
 }
 
+function findMockServiceById(id) {
+  const rawId = String(id || "").replace(/^[a-zA-Z_]+/, "")
+  return (sourceMock.services || []).find((service) => String(service.id) === String(id) || String(service.id) === rawId)
+}
+
+function findMockUserForService(service) {
+  return (sourceMock.users || []).find((user) => (
+    user.username === service.username
+    || user.username === service.riderUsername
+    || user.nickname === service.provider
+  )) || {}
+}
+
+function createMockServiceOrder(data) {
+  const service = findMockServiceById(data.serviceId || data.id)
+  if (!service) throw new Error("\u670d\u52a1\u4e0d\u5b58\u5728")
+  if (service.type === "errand") throw new Error("\u8dd1\u817f\u4efb\u52a1\u8bf7\u4ece\u62a2\u5355\u5165\u53e3\u5904\u7406")
+  if (service.status !== "on_sale") throw new Error("\u670d\u52a1\u5f53\u524d\u4e0d\u53ef\u9884\u7ea6")
+
+  const provider = findMockUserForService(service)
+  const providerName = service.provider || provider.nickname || "\u6821\u56ed\u670d\u52a1\u8005"
+  const providerUsername = service.username || provider.username || "provider"
+  const orderSn = `SV${Date.now()}`
+  const createdAt = nowText()
+  const order = {
+    orderSn,
+    itemId: service.id,
+    itemType: "service",
+    itemTypeText: "\u6821\u56ed\u670d\u52a1",
+    title: service.title || "\u670d\u52a1\u9884\u7ea6\u8ba2\u5355",
+    amount: Number(service.price || 0),
+    status: "unpaid",
+    statusLabel: "\u5f85\u652f\u4ed8",
+    role: "buyer",
+    sellerName: providerName,
+    sellerUsername: providerUsername,
+    counterpartyName: providerName,
+    counterpartyUsername: providerUsername,
+    counterpartyAvatar: provider.avatar || service.ownerAvatar || "",
+    counterpartyLabel: "\u670d\u52a1\u8005",
+    fundStatus: "none",
+    fundText: "\u5f85\u652f\u4ed8",
+    createdAt,
+    createdTs: Date.now(),
+    remark: data.remark || service.desc || "",
+    progressText: "\u9884\u7ea6\u5df2\u521b\u5efa\uff0c\u7b49\u5f85\u652f\u4ed8\u670d\u52a1\u8d39",
+    events: ["\u9884\u7ea6\u670d\u52a1"],
+    timeline: [
+      { title: "\u9884\u7ea6\u670d\u52a1", desc: `\u5df2\u9884\u7ea6 ${providerName} \u7684\u6821\u56ed\u670d\u52a1\uff0c\u53ef\u5148\u804a\u5929\u786e\u8ba4\u65f6\u95f4\u3002`, time: createdAt, done: true },
+      { title: "\u7b49\u5f85\u652f\u4ed8", desc: "\u652f\u4ed8\u540e\u670d\u52a1\u8d39\u8fdb\u5165\u5e73\u53f0\u6258\u7ba1\uff0c\u53ef\u5728\u5c65\u7ea6\u524d\u53d6\u6d88\u3002", time: "\u5f85\u5b8c\u6210", done: false }
+    ]
+  }
+
+  ;(sourceMock.orders || (sourceMock.orders = [])).unshift(order)
+  return { orderSn, status: "unpaid" }
+}
+
 function publicUser(id) {
   const user = (sourceMock.users || []).find((item) => Number(item.id) === Number(id)) || sessionState.user
   return Object.assign({}, clone(user), {
@@ -1661,7 +1718,7 @@ async function handleApiPost(pathname, data) {
       return { id: item.id, status: item.status, orderSn: data.type === "errand" ? `ER${Date.now()}` : undefined }
     }))
   }
-  if (pathname === "/api/service/order" || pathname === "/api/services/orders/create") return ok(await withMockFallback(() => createServiceOrder(data), () => ({ orderSn: `SV${Date.now()}`, status: "unpaid" })))
+  if (pathname === "/api/service/order" || pathname === "/api/services/orders/create") return ok(await withMockFallback(() => createServiceOrder(data), () => createMockServiceOrder(data)))
   if (pathname === "/api/order/create" || pathname === "/api/orders/create") return ok(await withMockFallback(() => createGoodsOrder(data), () => ({ orderSn: `CT${Date.now()}`, status: "unpaid" })))
   if (pathname === "/api/order/pay") return ok(await withMockFallback(() => mutateOrder("pay", data), () => ({ status: "paid" })))
   if (pathname === "/api/order/cancel" || pathname === "/api/orders/cancel") return ok(await withMockFallback(() => cancelOrder(data), () => ({ status: "cancelled" })))
