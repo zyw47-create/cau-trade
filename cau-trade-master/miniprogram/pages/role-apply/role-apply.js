@@ -67,7 +67,11 @@ BasePage({
   },
 
   login() {
-    api({ url: '/api/auth/login', method: 'POST' }).then(() => {
+    api({ url: '/api/auth/login', method: 'POST' }).then((res) => {
+      if (res.code !== 200) {
+        wx.showToast({ title: res.msg || '登录失败', icon: 'none' })
+        return
+      }
       wx.showToast({ title: '登录成功' })
       this.onShow()
     })

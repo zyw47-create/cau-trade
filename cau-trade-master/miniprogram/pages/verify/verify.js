@@ -13,7 +13,7 @@ const COLLEGES = [
   '食品科学与营养工程学院',
   '工学院',
   '信息与电气工程学院',
-  '水利与智能工程学院（原水利与土木工程学院）',
+  '水利与智能工程学院',
   '理学院',
   '土地科学与技术学院',
   '经济管理学院',
@@ -41,8 +41,7 @@ Page({
     sendingCode: false,
     countdown: 0,
     backendStatusText: '正在检查认证服务...',
-    backendReady: false,
-    demoCode: ''
+    backendReady: false
   },
 
   onShow() {
@@ -78,21 +77,24 @@ Page({
   checkBackendStatus() {
     api({ url: '/api/status' }).then((res) => {
       if (res.code !== 200) throw new Error(res.msg || 'status error')
-      const mode = res.data && res.data.emailMode === 'mock' ? '演示验证码模式' : '真实邮箱发送模式'
       this.setData({
         backendReady: true,
-        backendStatusText: `认证服务正常：${mode}`
+        backendStatusText: '认证服务正常，请使用学校邮箱接收验证码。'
       })
     }).catch(() => {
       this.setData({
         backendReady: false,
-        backendStatusText: '认证服务未连通，可使用演示验证码继续测试。'
+        backendStatusText: '认证服务未连通，请先启动 Flask API 后再进行实名认证。'
       })
     })
   },
 
   login() {
-    api({ url: '/api/auth/login', method: 'POST' }).then(() => {
+    api({ url: '/api/auth/login', method: 'POST' }).then((res) => {
+      if (res.code !== 200) {
+        wx.showToast({ title: res.msg || '登录失败', icon: 'none' })
+        return
+      }
       wx.showToast({ title: '登录成功' })
       this.syncUserState()
     })
@@ -132,11 +134,11 @@ Page({
     const form = this.data.form
     const studentId = String(form.studentId || '').trim()
     const phone = String(form.phone || '').trim()
-    if (!/^\d{13}$/.test(studentId)) {
-      wx.showToast({ title: '学号应为13位数字', icon: 'none' })
+    if (!/^\d{8,13}$/.test(studentId)) {
+      wx.showToast({ title: '学号应为8到13位数字', icon: 'none' })
       return false
     }
-    if (!form.realName || !/^[\u4e00-\u9fa5A-Za-z·]{2,20}$/.test(String(form.realName).trim())) {
+    if (!form.realName || !/^[\u4e00-\u9fa5A-Za-z.·\s]{2,20}$/.test(String(form.realName).trim())) {
       wx.showToast({ title: '请输入正确姓名', icon: 'none' })
       return false
     }
@@ -164,24 +166,19 @@ Page({
 
     api({ url: '/api/user/email-code', method: 'POST', data: { email } }).then((res) => {
       if (res.code !== 200) throw new Error(res.msg || '发送失败')
-      const demoCode = res.data && res.data.demoCode
       this.setData({
         codeSent: true,
-        demoCode: demoCode || '',
-        codeTip: demoCode ? `演示验证码：${demoCode}，5分钟内有效。` : `验证码已发送到 ${email}，5分钟内有效。`
+        codeTip: `验证码已发送到 ${email}，5分钟内有效。`
       })
       this.startCountdown(60)
-      wx.showToast({ title: demoCode ? '已生成演示验证码' : '验证码已发送' })
+      wx.showToast({ title: '验证码已发送' })
     }).catch(() => {
-      const demoCode = String(Math.floor(100000 + Math.random() * 900000))
       this.setData({
         backendReady: false,
-        codeSent: true,
-        demoCode,
-        codeTip: `认证服务未连接，已启用演示验证码：${demoCode}`
+        codeSent: false,
+        codeTip: '认证服务暂不可用，请启动后端服务后重新获取验证码。'
       })
-      this.startCountdown(60)
-      wx.showToast({ title: '已启用演示验证码', icon: 'none' })
+      wx.showToast({ title: '认证服务暂不可用', icon: 'none' })
     }).finally(() => {
       this.setData({ sendingCode: false })
     })
@@ -197,31 +194,13 @@ Page({
     })
     if (!this.validateBaseFields(true)) return
 
-    if (!this.data.backendReady && this.data.demoCode && form.emailCode === this.data.demoCode) {
-      store.updateUser({
-        verified: true,
-        studentId: form.studentId,
-        realName: form.realName,
-        college: form.college,
-        schoolEmail: form.email,
-        phone: form.phone
-      })
-      wx.showModal({
-        title: '认证通过',
-        content: '演示模式已完成认证，可继续测试发布、下单和聊天。',
-        showCancel: false,
-        success: () => wx.switchTab({ url: '/pages/profile/profile' })
-      })
-      return
-    }
-
     api({ url: '/api/user/verify', method: 'POST', data: form }).then((res) => {
       if (res.code !== 200) {
         const isNetworkError = /网络请求|超时|后端服务/.test(res.msg || '')
-        wx.showToast({ title: isNetworkError ? '请使用演示验证码测试' : (res.msg || '认证失败'), icon: 'none' })
+        wx.showToast({ title: isNetworkError ? '请启动认证服务' : (res.msg || '认证失败'), icon: 'none' })
         this.setData({
           backendReady: isNetworkError ? false : this.data.backendReady,
-          codeTip: isNetworkError ? '认证服务未连接，请先获取演示验证码后提交。' : (res.msg || '认证失败，请检查验证码。')
+          codeTip: isNetworkError ? '认证服务未连接，请启动后端后重新获取验证码。' : (res.msg || '认证失败，请检查验证码。')
         })
         return
       }
@@ -235,7 +214,7 @@ Page({
       })
     }).catch(() => {
       wx.showToast({ title: '认证服务暂不可用', icon: 'none' })
-      this.setData({ codeTip: '请确认 backend/server.js 已启动，或使用演示验证码测试。' })
+      this.setData({ codeTip: '请确认 Flask API 服务已启动。' })
     })
   }
 })

@@ -59,7 +59,7 @@ function getState() {
 }
 
 function login() {
-  state.token = 'mock-jwt-token'
+  state.token = `dev-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   state.user = Object.assign({}, defaultUser)
   wx.setStorageSync(STORAGE_KEYS.token, state.token)
   wx.setStorageSync(STORAGE_KEYS.user, state.user)
@@ -67,7 +67,7 @@ function login() {
 }
 
 function setSession(token, user) {
-  state.token = token || state.token || 'remote-token'
+  state.token = token || state.token
   state.user = Object.assign({}, defaultUser, user || {})
   wx.setStorageSync(STORAGE_KEYS.token, state.token)
   wx.setStorageSync(STORAGE_KEYS.user, state.user)

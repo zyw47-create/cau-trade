@@ -135,7 +135,7 @@ Page({
       }
       this.setData({
         backendReady: true,
-        backendStatusText: res.data.emailMode === 'mock' ? '认证服务正常：演示验证码模式' : '认证服务正常：真实邮箱模式'
+        backendStatusText: '认证服务正常'
       })
     }).catch(() => {
       this.setData({
@@ -146,7 +146,11 @@ Page({
   },
 
   login() {
-    api({ url: '/api/auth/login', method: 'POST' }).then(() => {
+    api({ url: '/api/auth/login', method: 'POST' }).then((res) => {
+      if (res.code !== 200) {
+        wx.showToast({ title: res.msg || '登录失败', icon: 'none' })
+        return
+      }
       wx.showToast({ title: '登录成功' })
       this.refresh()
     })
@@ -198,24 +202,7 @@ Page({
   },
 
   chooseAvatar() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: (res) => {
-        const file = res.tempFiles && res.tempFiles[0]
-        if (!file || !file.tempFilePath) return
-        api({
-          url: '/api/user/profile/update',
-          method: 'POST',
-          data: Object.assign({}, this.data.profileForm, { avatar: file.tempFilePath })
-        }).then(() => {
-          wx.showToast({ title: '头像已更新' })
-          this.refresh()
-        })
-      }
-    })
+    wx.showToast({ title: '头像上传需后端文件接口支持', icon: 'none' })
   },
 
   saveProfile() {

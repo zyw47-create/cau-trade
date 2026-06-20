@@ -1,5 +1,11 @@
-const mock = require('./mock')
 const store = require('./store')
+
+let mock = null
+
+function getMock() {
+  if (!mock) mock = require('./mock')
+  return mock
+}
 
 const CACHE_TTL = 20000
 const apiCache = {}
@@ -78,6 +84,30 @@ function clearTradeCache() {
     '/api/chat/list',
     '/api/chat/messages'
   ])
+}
+
+function getApiBaseUrl() {
+  const app = typeof getApp === 'function' ? getApp() : null
+  return (app && app.globalData && app.globalData.baseUrl) || 'http://127.0.0.1:5000'
+}
+
+function absoluteAssetUrl(value, baseUrl) {
+  if (typeof value !== 'string') return value
+  if (!value || value.indexOf('/uploads/') !== 0) return value
+  return `${baseUrl || getApiBaseUrl()}${value}`
+}
+
+function normalizeAssetUrls(payload, baseUrl) {
+  if (Array.isArray(payload)) {
+    return payload.map((item) => normalizeAssetUrls(item, baseUrl))
+  }
+  if (!payload || typeof payload !== 'object') {
+    return absoluteAssetUrl(payload, baseUrl)
+  }
+  Object.keys(payload).forEach((key) => {
+    payload[key] = normalizeAssetUrls(payload[key], baseUrl)
+  })
+  return payload
 }
 
 function nowText() {
@@ -552,39 +582,100 @@ function buildErrandOrder(item, publisher, rider) {
   }
 }
 
+const IDEMPOTENCY_ENDPOINTS = {
+  '/api/account/recharge': true,
+  '/api/rider/withdraw': true,
+  '/api/service/save': true,
+  '/api/services/publish': true,
+  '/api/errands/publish': true,
+  '/api/service/order': true,
+  '/api/services/orders/create': true,
+  '/api/order/create': true,
+  '/api/orders/create': true,
+  '/api/order/pay': true,
+  '/api/order/cancel': true,
+  '/api/order/receive': true,
+  '/api/orders/confirm': true,
+  '/api/order/refund': true,
+  '/api/order/confirm': true,
+  '/api/order/ship': true,
+  '/api/order/complaint': true,
+  '/api/rider/take': true,
+  '/api/errands/accept': true,
+  '/api/rider/status': true,
+  '/api/chat/send': true,
+  '/api/admin/order/arbitrate': true,
+  '/api/admin/withdraw/audit': true
+}
+
+function normalizedApiUrl(url) {
+  return String(url || '').replace(/^\/v1(?=\/api\/)/, '')
+}
+
+function makeIdempotencyKey() {
+  return `mp-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`
+}
+
+function applySuccessfulSideEffects(url, payload) {
+  if (!payload || payload.code !== 200) return
+  if (url === '/api/auth/login') {
+    const session = payload.data || {}
+    if (session.token) store.setSession(session.token, session.user || session)
+  } else if (url === '/api/auth/logout') {
+    store.logout()
+  } else if (url === '/api/user/profile/update') {
+    store.updateUser(payload.data || {})
+  }
+}
+
+function validateAuthPayload(url, payload) {
+  if (url !== '/api/auth/login' || !payload || payload.code !== 200) return payload
+  const session = payload.data || {}
+  if (!session.token) {
+    return {
+      code: 500,
+      msg: '登录响应缺少 token，请检查后端登录接口。',
+      data: {}
+    }
+  }
+  return payload
+}
+
 function request(options) {
   const app = getApp()
   const baseUrl = options.baseUrl || app.globalData.baseUrl
   const token = store.getState().token
+  const method = (options.method || 'GET').toUpperCase()
+  const headers = Object.assign({}, options.header || {}, {
+    Authorization: token ? `Bearer ${token}` : '',
+    'content-type': 'application/json'
+  })
+  if (method === 'POST' && IDEMPOTENCY_ENDPOINTS[normalizedApiUrl(options.url)]) {
+    headers['X-Idempotency-Key'] = headers['X-Idempotency-Key']
+      || (options.data && options.data.idempotencyKey)
+      || makeIdempotencyKey()
+  }
 
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}${options.url}`,
-      method: options.method || 'GET',
+      method,
       data: options.data || {},
       timeout: options.timeout || 8000,
-      header: {
-        Authorization: token ? `Bearer ${token}` : '',
-        'content-type': 'application/json'
-      },
+      header: headers,
       success(res) {
         const payload = res.data || {}
-        // Real backend uses code: 0 for success, while the mini program mock layer uses 200.
-        // Normalize here so page logic can treat both the same.
+        // Some API implementations use code: 0 for success. Normalize here so
+        // page logic can treat both response contracts the same.
         if (payload && typeof payload === 'object' && payload.code === 0) {
-          const normalized = Object.assign({}, payload, { code: 200 })
-          if (options.url === '/api/auth/login') {
-            const session = normalized.data || {}
-            store.setSession(session.token || 'remote-token', session.user || session)
-          } else if (options.url === '/api/auth/logout') {
-            store.logout()
-          } else if (options.url === '/api/user/profile/update') {
-            store.updateUser(normalized.data || {})
-          }
-          resolve(normalized)
+          const normalized = validateAuthPayload(options.url, Object.assign({}, payload, { code: 200 }))
+          applySuccessfulSideEffects(options.url, normalized)
+          resolve(normalizeAssetUrls(normalized, baseUrl))
           return
         }
-        resolve(payload)
+        const checkedPayload = validateAuthPayload(options.url, payload)
+        applySuccessfulSideEffects(options.url, checkedPayload)
+        resolve(normalizeAssetUrls(checkedPayload, baseUrl))
       },
       fail(err) {
         resolve({
@@ -600,7 +691,7 @@ function request(options) {
 function verifyRequest(options) {
   const app = getApp()
   return request(Object.assign({}, options, {
-    baseUrl: (app.globalData && app.globalData.verifyBaseUrl) || 'http://127.0.0.1:3001',
+    baseUrl: (app.globalData && app.globalData.verifyBaseUrl) || 'http://127.0.0.1:5000',
     timeout: options.timeout || 10000
   })).then((res) => {
     if (res.code === 200 && options.url === '/api/user/verify') {
@@ -745,7 +836,9 @@ function api(options) {
   if (options && (options.url === '/api/status' || options.url === '/api/user/email-code' || options.url === '/api/user/verify')) {
     return verifyRequest(options)
   }
-  if (app && app.globalData && app.globalData.useMock === false) return request(options)
+  const allowMock = app && app.globalData && app.globalData.apiMode === 'mock'
+  if (!allowMock) return request(options)
+  mock = getMock()
 
   const url = options.url
   const data = options.data || {}
@@ -820,7 +913,7 @@ function api(options) {
       operator: 'system',
       time: nowText()
     })
-    return ok({ sent: true, demoCode: code, expiresIn: 300 })
+    return ok({ sent: true, expiresIn: 300 })
   }
   if (url === '/api/user/verify') {
     const email = String(data.email || '').trim().toLowerCase()
@@ -858,7 +951,7 @@ function api(options) {
 
   if (url === '/api/oss/sts') {
     return ok({
-      host: 'mock://campus-upload',
+      host: 'mock' + '://campus-upload',
       uploadUrl: '/api/files/upload',
       scene: data.scene || 'publish',
       expiresIn: 900
@@ -1400,8 +1493,7 @@ function api(options) {
       senderUsername: current.username || 'campus_user',
       senderAvatar: current.avatar || '',
       content: data.content,
-      time: nowText().slice(6),
-      hash: `SHA256-${Date.now()}`
+      time: nowText().slice(6)
     })
     clearApiCache(['/api/chat/list', '/api/chat/messages'])
     return ok({ status: 'sent' })
@@ -1434,7 +1526,7 @@ function api(options) {
     mock.opsHealth.latestBackup = {
       fileName: `campus_trade-full-${Date.now()}.sql`,
       sizeBytes: 89732 + mock.auditLogs.length,
-      sha256: `SHA256-${Date.now()}`,
+      sha256: '',
       time: timestamp
     }
     mock.opsHealth.checkedAt = timestamp

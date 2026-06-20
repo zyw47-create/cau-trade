@@ -304,7 +304,7 @@ Page({
         senderUsername: user.username || 'campus_user',
         content,
         time: data.time || '刚刚',
-        hash: data.hash || `SHA256-${Date.now()}`
+        hash: data.hash || data.contentHash || '等待后端返回'
       }
       this.setData({
         input: '',

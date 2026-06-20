@@ -1,10 +1,10 @@
 const { request: api } = require('../../utils/request')
 const store = require('../../utils/store')
 const { BasePage } = require('../../utils/base-page')
-const mock = require('../../utils/mock')
 
 const BLOCKED_KEYWORDS = ['违禁', '违规', '危险品', '仿冒', '代考', '作弊', '校园贷', '网贷', '烟草', '酒精', '管制刀具', '毒品', '枪支', '诈骗', '套现']
 const DRAFT_KEY = 'publish-main'
+const CATEGORIES = ['教材资料', '数码产品', '生活用品', '运动用品', '学习工具', '校园服务']
 
 function findBlockedKeywords(form) {
   const text = [
@@ -44,7 +44,7 @@ BasePage({
   requireAuth: true,
   requireVerified: true,
   data: {
-    categories: mock.categories,
+    categories: CATEGORIES,
     publishTabs: [
       { key: 'goods', text: '二手闲置', className: 'publish-tab active' },
       { key: 'service', text: '校园服务', className: 'publish-tab' },
@@ -239,7 +239,7 @@ BasePage({
   },
 
   uploadOneImage(file, credential) {
-    const host = credential.host || 'mock://upload'
+    const host = credential.host || ''
     const uploadUrl = credential.uploadUrl || ''
     const app = getApp()
     const targetUrl = uploadUrl.indexOf('http') === 0
@@ -247,15 +247,10 @@ BasePage({
       : uploadUrl.indexOf('/') === 0
         ? `${app.globalData.baseUrl}${uploadUrl}`
         : ''
-    if (!targetUrl || host.indexOf('mock://') === 0) {
-      return Promise.resolve({
-        id: file.id,
-        uploadedUrl: `${host}/${file.id}.jpg`,
-        status: 'done',
-        statusText: '已上传'
-      })
+    if (!targetUrl) {
+      return Promise.reject(new Error('missing upload endpoint'))
     }
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       wx.uploadFile({
         url: targetUrl,
         filePath: file.tempFilePath,
@@ -272,20 +267,19 @@ BasePage({
             body = {}
           }
           const data = body.data || {}
+          if (!data.url) {
+            reject(new Error('upload response missing url'))
+            return
+          }
           resolve({
             id: file.id,
-            uploadedUrl: data.url || `${host}/${file.id}.jpg`,
+            uploadedUrl: data.url,
             status: 'done',
             statusText: '已上传'
           })
         },
         fail: () => {
-          resolve({
-            id: file.id,
-            uploadedUrl: `${host}/${file.id}.jpg`,
-            status: 'done',
-            statusText: '本地上传'
-          })
+          reject(new Error('upload failed'))
         }
       })
     })

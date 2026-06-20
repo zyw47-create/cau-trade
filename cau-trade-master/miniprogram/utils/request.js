@@ -7,6 +7,7 @@ function request(options) {
   if (state.token) headers.Authorization = `Bearer ${state.token}`
   return api(Object.assign({}, options, { header: headers })).then((res) => {
     if (res && res.code === 401) {
+      store.logout()
       wx.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
       wx.switchTab({ url: '/pages/profile/profile' })
     }
