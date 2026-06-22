@@ -31,14 +31,17 @@ BasePage({
       loading: true,
       errorText: ''
     })
+    const canWithdraw = user.role === 'rider' || user.role === 'provider'
     Promise.all([
+      api({ url: '/api/user/profile' }),
       api({ url: '/api/account/logs' }),
-      api({ url: '/api/rider/earnings' })
-    ]).then(([logsRes, earningsRes]) => {
-      if (logsRes.code !== 200 || earningsRes.code !== 200) {
+      canWithdraw ? api({ url: '/api/rider/earnings' }) : Promise.resolve({ code: 200, data: { withdraws: [] } })
+    ]).then(([profileRes, logsRes, earningsRes]) => {
+      if (profileRes.code !== 200 || logsRes.code !== 200 || earningsRes.code !== 200) {
         this.setData({ errorText: (logsRes.msg || earningsRes.msg || '钱包数据加载失败') })
         return
       }
+      const latestUser = store.updateUser(profileRes.data || {})
       const logs = (logsRes.data.list || []).map((item) => Object.assign({}, item, {
         amountText: `${Number(item.amount) >= 0 ? '+' : ''}${item.amount}`,
         amountClass: Number(item.amount) >= 0 ? 'income' : 'expense'
@@ -47,6 +50,7 @@ BasePage({
         statusText: this.getWithdrawStatus(item.status)
       }))
       this.setData({
+        user: latestUser,
         logs,
         withdraws,
         noLogs: logs.length === 0,
@@ -77,6 +81,12 @@ BasePage({
     this.setData({ withdrawAmount: e.detail.value })
   },
 
+  syncUserBalance(balance) {
+    if (balance === undefined || balance === null || balance === '') return
+    const user = store.updateUser({ balance })
+    this.setData({ user })
+  },
+
   recharge() {
     api({
       url: '/api/account/recharge',
@@ -88,6 +98,7 @@ BasePage({
         return
       }
       wx.showToast({ title: '充值成功' })
+      this.syncUserBalance(res.data && res.data.balance)
       this.setData({ rechargeAmount: '' })
       this.loadWallet()
     })

@@ -16,6 +16,7 @@
     "pages/role-apply/role-apply",
     "pages/orders/orders",
     "pages/services/services",
+    "pages/errands/errands",
     "pages/chat/chat",
     "pages/chat-room/chat-room",
     "pages/profile/profile",

@@ -2,15 +2,16 @@ const store = require('./utils/store')
 
 App({
   globalData: {
-    apiMode: 'remote',
     baseUrl: 'http://127.0.0.1:5000',
     verifyBaseUrl: 'http://127.0.0.1:5000',
-    useMock: false,
+    // Local-only: set allowDevLogin to true with a seeded devOpenid when the
+    // Flask backend has ALLOW_DEV_LOGIN=1 and real WeChat credentials are absent.
+    allowDevLogin: false,
+    devOpenid: '',
     unreadCount: 0
   },
 
   onLaunch() {
-    this.globalData.useMock = this.globalData.apiMode === 'mock'
     store.bootstrap()
   }
 })

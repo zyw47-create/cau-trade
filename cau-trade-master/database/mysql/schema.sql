@@ -447,6 +447,7 @@ CREATE TABLE comments (
   status VARCHAR(20) NOT NULL DEFAULT 'normal',
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_comments_order_evaluator (order_sn, evaluator_id),
   KEY idx_comments_target (target_type, target_id, created_at),
   KEY idx_comments_order (order_sn),
   CONSTRAINT fk_comments_order FOREIGN KEY (order_sn) REFERENCES orders(order_sn) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -471,7 +472,7 @@ CREATE TABLE ai_audit_records (
   PRIMARY KEY (id),
   KEY idx_ai_target (target_type, target_id, created_at),
   KEY idx_ai_risk_created (risk_level, created_at),
-  CONSTRAINT chk_ai_target CHECK (target_type IN ('goods','service','comment','message')),
+  CONSTRAINT chk_ai_target CHECK (target_type IN ('goods','service','comment','message','draft')),
   CONSTRAINT chk_ai_audit_type CHECK (audit_type IN ('generate_title','generate_desc','recommend_tags','text_audit','image_audit')),
   CONSTRAINT chk_ai_risk CHECK (risk_level IN ('pass','manual','reject'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -3,20 +3,23 @@ param(
   [ValidateSet("goods", "service", "errand")]
   [string]$Type = "errand",
   [int]$Id = 206,
-  [int]$UserA = 6,
-  [int]$UserB = 8
+  [string]$DevOpenidA = "mock-openid-006",
+  [string]$DevOpenidB = "mock-openid-008"
 )
 
 $ErrorActionPreference = "Stop"
 
-function Login-User([int]$UserId) {
-  $body = @{ userId = $UserId } | ConvertTo-Json -Compress
+function Login-DevUser([string]$DevOpenid) {
+  $body = @{ devOpenid = $DevOpenid } | ConvertTo-Json -Compress
   $res = Invoke-RestMethod -Method Post -Uri "$BaseUrl/api/auth/login" -ContentType "application/json" -Body $body
   return $res.data.token
 }
 
 function Invoke-TradeAction([string]$Token, [string]$Name, [string]$BaseUrlArg, [string]$TypeArg, [int]$IdArg) {
-  $headers = @{ Authorization = "Bearer $Token" }
+  $headers = @{
+    Authorization = "Bearer $Token"
+    "X-Idempotency-Key" = "demo-$Name-$TypeArg-$IdArg-$(Get-Date -Format yyyyMMddHHmmssfff)"
+  }
   if ($TypeArg -eq "goods") {
     $uri = "$BaseUrlArg/api/order/create"
     $body = @{ goodsId = $IdArg } | ConvertTo-Json -Compress
@@ -46,8 +49,10 @@ function Invoke-TradeAction([string]$Token, [string]$Name, [string]$BaseUrlArg, 
   }
 }
 
-$tokenA = Login-User $UserA
-$tokenB = Login-User $UserB
+Write-Host "This script uses devOpenid login. Start Flask with ALLOW_DEV_LOGIN=1 only in local development."
+
+$tokenA = Login-DevUser $DevOpenidA
+$tokenB = Login-DevUser $DevOpenidB
 
 $jobA = Start-Job -ScriptBlock ${function:Invoke-TradeAction} -ArgumentList $tokenA, "A", $BaseUrl, $Type, $Id
 $jobB = Start-Job -ScriptBlock ${function:Invoke-TradeAction} -ArgumentList $tokenB, "B", $BaseUrl, $Type, $Id

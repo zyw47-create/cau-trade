@@ -175,7 +175,7 @@ BEGIN
   INSERT INTO order_events
     (order_sn, from_status, to_status, operator_id, event_type, note)
   VALUES
-    (p_order_sn, NULL, 'unpaid', p_buyer_id, 'create', '鍒涘缓璁㈠崟');
+    (p_order_sn, NULL, 'unpaid', p_buyer_id, 'create', '创建订单');
 
   UPDATE goods
   SET status = 'reserved',
@@ -339,7 +339,7 @@ BEGIN
     (user_id, order_sn, type, direction, amount, balance_after, title, note)
   VALUES
     (p_buyer_id, p_order_sn, 'pay', 'out', v_amount, v_next_balance,
-     CONCAT('鏀粯璁㈠崟 ', p_order_sn), '璧勯噾杩涘叆璁㈠崟鎵樼璐︽埛');
+     CONCAT('支付订单 ', p_order_sn), '资金进入订单托管账户');
 
   INSERT INTO order_events
     (order_sn, from_status, to_status, operator_id, event_type, note)
@@ -802,7 +802,7 @@ BEGIN
   INSERT INTO admin_audit_logs
     (admin_id, action, target_type, target_id, before_data, after_data, reason)
   VALUES
-    (p_admin_id, '璁㈠崟浠茶', 'refund', CAST(p_refund_id AS CHAR),
+    (p_admin_id, '订单仲裁', 'refund', CAST(p_refund_id AS CHAR),
      JSON_OBJECT('status', v_refund_status),
      JSON_OBJECT('result', p_result, 'order_sn', v_order_sn),
      p_note);
@@ -823,7 +823,6 @@ BEGIN
   DECLARE v_delivery_location VARCHAR(120);
   DECLARE v_fee DECIMAL(10,2);
   DECLARE v_order_sn VARCHAR(64);
-  DECLARE v_paid_order_count INT DEFAULT 0;
   DECLARE v_now DATETIME(6);
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -858,30 +857,17 @@ BEGIN
 
   SET v_now = NOW(6);
 
-  SELECT COUNT(*) INTO v_paid_order_count
+  SELECT order_sn INTO v_order_sn
   FROM orders
   WHERE item_type = 'errand'
     AND item_id = p_errand_id
-    AND status = 'paid';
-
-  IF v_paid_order_count > 0 THEN
-    SELECT order_sn INTO v_order_sn
-    FROM orders
-    WHERE item_type = 'errand'
-      AND item_id = p_errand_id
-      AND status = 'paid'
-    ORDER BY created_at DESC
-    LIMIT 1
-    FOR UPDATE;
-  END IF;
+    AND status = 'paid'
+  ORDER BY created_at DESC
+  LIMIT 1
+  FOR UPDATE;
 
   IF v_order_sn IS NULL THEN
-    SET v_order_sn = CONCAT(
-      'ER',
-      DATE_FORMAT(v_now, '%Y%m%d%H%i%s'),
-      LPAD(MICROSECOND(v_now), 6, '0'),
-      LPAD(p_errand_id, 4, '0')
-    );
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'publisher must pay the errand order before riders can take it';
   END IF;
 
   UPDATE errand_orders
@@ -891,36 +877,21 @@ BEGIN
       updated_at = v_now
   WHERE id = p_errand_id;
 
-  IF EXISTS (SELECT 1 FROM orders WHERE order_sn = v_order_sn) THEN
-    UPDATE orders
-    SET seller_id = p_rider_id,
-        status = 'shipped',
-        updated_at = v_now
-    WHERE order_sn = v_order_sn;
+  UPDATE orders
+  SET seller_id = p_rider_id,
+      status = 'confirmed',
+      updated_at = v_now
+  WHERE order_sn = v_order_sn;
 
-    INSERT INTO order_events
-      (order_sn, from_status, to_status, operator_id, event_type, note, created_at)
-    VALUES
-      (v_order_sn, 'paid', 'shipped', p_rider_id, 'errand_take', '骑手接单，等待配送', v_now);
-  ELSE
-    INSERT INTO orders
-      (order_sn, buyer_id, seller_id, item_type, item_id, item_snapshot, amount, status, remark, paid_at, created_at, updated_at)
-    VALUES
-      (v_order_sn, v_publisher_id, p_rider_id, 'errand', p_errand_id,
-       JSON_OBJECT('title', v_title, 'price', v_fee, 'pickup_location', v_pickup_location, 'delivery_location', v_delivery_location),
-       v_fee, 'shipped', '跑腿抢单后进入履约流程', v_now, v_now, v_now);
+  INSERT INTO order_events
+    (order_sn, from_status, to_status, operator_id, event_type, note, created_at)
+  VALUES
+    (v_order_sn, 'paid', 'confirmed', p_rider_id, 'errand_take', '骑手已接单，等待开始配送', v_now);
 
-    INSERT INTO order_funds
-      (order_sn, amount, status, frozen_at, created_at, updated_at)
-    VALUES
-      (v_order_sn, v_fee, 'frozen', v_now, v_now, v_now);
-
-    INSERT INTO order_events
-      (order_sn, from_status, to_status, operator_id, event_type, note, created_at)
-    VALUES
-      (v_order_sn, NULL, 'paid', v_publisher_id, 'errand_pay', '跑腿费用托管', v_now),
-      (v_order_sn, 'paid', 'shipped', p_rider_id, 'errand_take', '骑手接单，等待配送', v_now);
-  END IF;
+  INSERT INTO errand_events
+    (errand_id, operator_id, event_type, from_status, to_status, remark, created_at)
+  VALUES
+    (p_errand_id, p_rider_id, 'take', 'waiting_accept', 'accepted', 'rider accepted paid errand order', v_now);
 
   COMMIT;
 END$$
@@ -989,7 +960,7 @@ BEGIN
       (user_id, order_sn, type, direction, amount, balance_after, title, note)
     VALUES
       (v_user_id, NULL, 'withdraw', 'out', v_amount, v_next_balance,
-       CONCAT('鎻愮幇瀹℃牳閫氳繃 ', p_withdraw_id), p_note);
+       CONCAT('提现审核通过 ', p_withdraw_id), p_note);
   END IF;
 
   UPDATE withdraw_requests
@@ -1004,7 +975,7 @@ BEGIN
     (admin_id, action, target_type, target_id, before_data, after_data, reason)
   VALUES
     (p_admin_id,
-     IF(p_result = 'approved', '鎻愮幇瀹℃牳閫氳繃', '鎻愮幇椹冲洖'),
+     IF(p_result = 'approved', '提现审核通过', '提现驳回'),
      'withdraw',
      CAST(p_withdraw_id AS CHAR),
      JSON_OBJECT('status', v_status),
@@ -1015,4 +986,3 @@ BEGIN
 END$$
 
 DELIMITER ;
-

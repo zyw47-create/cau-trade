@@ -1,50 +1,52 @@
-# 校园交易管理后台（Flask）
+# Campus Trade Flask Backend
 
-这个后台直接连接 `campus_trade` MySQL 数据库，用于处理：
+`admin_web` is the current backend for the mini-program and admin console. It uses Flask, SQLAlchemy ORM, MySQL, Redis-compatible locks/cache, and the service/repository package under `campus_trade/`.
 
-- AI 判定为人工复核或疑似违规的商品内容；
-- 售后、退款与纠纷仲裁；
-- 校园实名认证人工审核；
-- 用户封禁、解封与信用处理；
-- AI 审核规则配置；
-- 管理员审计日志查询与 CSV 导出。
+Controllers and services must not contain SQL text, cursor calls, or direct driver imports. Data access lives in ORM repositories backed by `admin_web/models.py`; money, order, refund, withdrawal, idempotency, and errand writes use SQLAlchemy transactions with row locks instead of stored-procedure runtime calls.
 
-## 启动
+## Start Locally
 
-推荐直接双击或运行批处理脚本：
-
-```text
-D:\大三下\软件工程\admin_web\start-admin.bat
-```
-
-如果要在 PowerShell 里运行，也可以使用：
+Recommended entrypoint:
 
 ```powershell
-cd D:\大三下\软件工程\admin_web
-.\start-admin.ps1
+cd "D:\大三下\软件工程\cau-trade-master\admin_web"
+.\start-admin.bat
 ```
 
-也可以手动启动：
+The startup wizard prompts for Flask port, MySQL host/user/password, admin account/password, and local dev-login mode. It writes the answers to `admin_web/.env.local`, checks the database connection, then starts `python app.py`.
+
+For production, set `ADMIN_WEB_PASSWORD_HASH`; plaintext `ADMIN_WEB_PASSWORD` is accepted only for local development.
 
 ```powershell
-cd D:\大三下\软件工程\admin_web
-$env:ADMIN_DB_HOST="127.0.0.1"
-$env:ADMIN_DB_USER="root"
-$env:ADMIN_DB_PASSWORD="123456"
-$env:ADMIN_DB_NAME="campus_trade"
-$env:ADMIN_WEB_USERNAME="admin"
-$env:ADMIN_WEB_PASSWORD="admin123"
-python app.py
+python - <<'PY'
+import sys
+sys.path.insert(0, "admin_web")
+from campus_trade.security import hash_password
+print(hash_password("replace-with-a-strong-password"))
+PY
 ```
 
-浏览器访问：
+Then visit:
 
 ```text
 http://127.0.0.1:5000
 ```
 
-默认登录账号是 `admin / admin123`，正式展示前建议用环境变量改成自己的密码。
+## Authentication
 
-## 数据库事务说明
+`POST /api/auth/login` accepts a WeChat `code` and creates first-time WeChat users through the ORM repository after resolving `openid`. Local `devOpenid` login only works when `ALLOW_DEV_LOGIN=1`; bare `userId` and bare `openid` login are rejected.
 
-售后仲裁按钮会调用 `sp_arbitrate_refund` 存储过程，由数据库在同一事务里处理订单状态、托管资金、资金流水、订单事件和管理员审计日志。商品审核、实名审核、用户治理、AI 规则变更也会写入 `admin_audit_logs`，方便答辩时展示“操作可追溯”。
+Mini-program API calls use `Authorization: Bearer <JWT>`. Protected requests recheck the live user status, role, and token `openid` binding.
+Uploads use short-lived upload JWTs that are also rechecked against the live user row and limited by `MAX_UPLOAD_BYTES`. Publish payloads with images produce `image_audit` records alongside text audit records.
+
+## Architecture
+
+- `app.py`: thin WSGI/local startup entrypoint.
+- `campus_trade/app_factory.py`: Flask application factory and route registration.
+- `campus_trade/controllers/`: HTTP controllers for `/api/*`, `/v1/api/*`, uploads, admin APIs, and admin HTML pages.
+- `campus_trade/config.py`: environment loading and production unsafe-config validation.
+- `campus_trade/database.py`: SQLAlchemy Engine/Session factory.
+- `campus_trade/repositories/`: ORM-backed repositories.
+- `campus_trade/services/`: auth, user verification, account, publishing, order, chat, admin, AI, and security-check workflows without SQL or driver access.
+
+`../backend/server.js` is legacy-only and must not be used as the integration entrypoint.

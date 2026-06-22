@@ -1,17 +1,17 @@
 const defaultUser = {
-  id: 1,
-  nickname: '校园同学',
-  username: 'campus_user',
+  id: 0,
+  nickname: '',
+  username: '',
   avatar: '',
-  role: 'user',
-  status: 'active',
+  role: 'guest',
+  status: '',
   verified: false,
   studentId: '',
   realName: '',
   college: '',
   phone: '',
-  creditScore: 100,
-  balance: 128.6
+  creditScore: 0,
+  balance: 0
 }
 
 const state = {
@@ -42,10 +42,6 @@ function bootstrap() {
   if (state.token) wx.setStorageSync(STORAGE_KEYS.token, state.token)
   if (state.user) wx.setStorageSync(STORAGE_KEYS.user, state.user)
   wx.setStorageSync(STORAGE_KEYS.version, '1')
-  if (state.user && !state.user.username) {
-    state.user.username = 'campus_user'
-    wx.setStorageSync(STORAGE_KEYS.user, state.user)
-  }
 }
 
 function getState() {
@@ -56,14 +52,6 @@ function getState() {
     isVerified: Boolean(state.user && state.user.verified),
     role: state.user ? state.user.role : 'guest'
   }
-}
-
-function login() {
-  state.token = `dev-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  state.user = Object.assign({}, defaultUser)
-  wx.setStorageSync(STORAGE_KEYS.token, state.token)
-  wx.setStorageSync(STORAGE_KEYS.user, state.user)
-  return getState()
 }
 
 function setSession(token, user) {
@@ -95,26 +83,17 @@ function setRole(role) {
 
 function setRoleCertification(role, payload) {
   const current = (state.user && state.user.roleCertifications) || {}
+  const status = (payload && payload.status) || 'approved'
   const next = Object.assign({}, current, {
     [role]: Object.assign({
       role,
-      status: 'approved',
+      status,
       appliedAt: Date.now()
     }, payload || {})
   })
-  return updateUser({ role, roleCertifications: next })
-}
-
-function addBalance(amount) {
-  const current = Number((state.user && state.user.balance) || 0)
-  return updateUser({ balance: Number((current + Number(amount)).toFixed(2)) })
-}
-
-function reduceBalance(amount) {
-  const current = Number((state.user && state.user.balance) || 0)
-  const next = current - Number(amount)
-  if (next < 0) return null
-  return updateUser({ balance: Number(next.toFixed(2)) })
+  const patch = { roleCertifications: next }
+  if (status === 'approved') patch.role = role
+  return updateUser(patch)
 }
 
 function requireLogin() {
@@ -227,12 +206,13 @@ function addBrowseHistory(goods) {
   if (!goods || !goods.id) return getBrowseHistory()
   return addUniqueHistory(STORAGE_KEYS.browseHistory, {
     id: goods.id,
+    type: goods.type || 'goods',
     title: goods.title,
     price: goods.price,
     category: goods.category,
-    location: goods.location,
+    location: goods.location || goods.locationText,
     time: Date.now()
-  }, (item) => item.id)
+  }, (item) => `${item.type || 'goods'}:${item.id}`)
 }
 
 function clearBrowseHistory() {
@@ -258,14 +238,11 @@ function markConversationRead(conversationId, messageId) {
 module.exports = {
   bootstrap,
   getState,
-  login,
   setSession,
   logout,
   updateUser,
   setRole,
   setRoleCertification,
-  addBalance,
-  reduceBalance,
   requireLogin,
   requireVerified,
   saveDraft,

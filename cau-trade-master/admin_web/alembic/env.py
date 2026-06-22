@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import os
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from alembic import context
 from sqlalchemy import create_engine, pool
 
-from admin_web.models import Base
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from campus_trade.config import load_config
+from models import Base
 
 config = context.config
 
@@ -17,12 +22,7 @@ target_metadata = Base.metadata
 
 
 def database_url() -> str:
-    user = os.getenv("ADMIN_DB_USER", "root")
-    password = os.getenv("ADMIN_DB_PASSWORD", "123456")
-    host = os.getenv("ADMIN_DB_HOST", "127.0.0.1")
-    port = os.getenv("ADMIN_DB_PORT", "3306")
-    name = os.getenv("ADMIN_DB_NAME", "campus_trade")
-    return f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
+    return load_config().database_uri()
 
 
 def run_migrations_offline() -> None:

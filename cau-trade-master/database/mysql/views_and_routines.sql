@@ -94,7 +94,7 @@ SELECT
 FROM errand_orders e
 JOIN users publisher ON publisher.id = e.publisher_id
 LEFT JOIN users rider ON rider.id = e.rider_id
-LEFT JOIN orders o ON o.item_type = 'errand' AND o.item_id = e.id AND o.status IN ('paid','shipped','completed')
+LEFT JOIN orders o ON o.item_type = 'errand' AND o.item_id = e.id AND o.status IN ('paid','confirmed','shipped','completed')
 WHERE e.status IN ('waiting_accept','accepted','processing')
   AND o.order_sn IS NOT NULL;
 

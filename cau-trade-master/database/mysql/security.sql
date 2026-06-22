@@ -33,9 +33,9 @@ CREATE USER IF NOT EXISTS 'campus_migration'@'localhost'
 CREATE USER IF NOT EXISTS 'campus_migration'@'127.0.0.1'
   IDENTIFIED BY 'CampusMigration_ChangeMe_2026!';
 
--- Application account: read public/admin DTO views and write only normal
--- business input tables. Financial and evidence tables are mainly changed by
--- stored procedures and immutable triggers.
+-- Application account: read public/admin DTO views and write only the tables
+-- touched by the Flask + SQLAlchemy service layer. Financial append-only
+-- tables are still protected by immutable triggers.
 GRANT SELECT ON campus_trade.* TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.users TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.user_profiles TO 'campus_app_role';
@@ -46,6 +46,12 @@ GRANT INSERT, UPDATE ON campus_trade.goods TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.services TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.errand_orders TO 'campus_app_role';
 GRANT INSERT ON campus_trade.errand_events TO 'campus_app_role';
+GRANT INSERT, UPDATE ON campus_trade.orders TO 'campus_app_role';
+GRANT INSERT ON campus_trade.order_events TO 'campus_app_role';
+GRANT INSERT, UPDATE ON campus_trade.order_funds TO 'campus_app_role';
+GRANT INSERT ON campus_trade.wallet_logs TO 'campus_app_role';
+GRANT INSERT, UPDATE ON campus_trade.refund_requests TO 'campus_app_role';
+GRANT INSERT, UPDATE ON campus_trade.withdraw_requests TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.conversations TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.messages TO 'campus_app_role';
 GRANT INSERT, DELETE ON campus_trade.favorites TO 'campus_app_role';
@@ -53,6 +59,7 @@ GRANT INSERT, UPDATE ON campus_trade.comments TO 'campus_app_role';
 GRANT INSERT ON campus_trade.ai_audit_records TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.ai_rules TO 'campus_app_role';
 GRANT INSERT ON campus_trade.admin_audit_logs TO 'campus_app_role';
+GRANT INSERT ON campus_trade.job_logs TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.idempotency_keys TO 'campus_app_role';
 GRANT INSERT, UPDATE ON campus_trade.notifications TO 'campus_app_role';
 

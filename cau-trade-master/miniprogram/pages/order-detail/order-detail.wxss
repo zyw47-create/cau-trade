@@ -115,6 +115,13 @@
   border-color: #ffd6a6;
 }
 
+.refund-result {
+  margin-top: 10rpx;
+  color: #1f4e79;
+  font-weight: 700;
+  line-height: 42rpx;
+}
+
 .seller-reply {
   margin-top: 10rpx;
   line-height: 40rpx;

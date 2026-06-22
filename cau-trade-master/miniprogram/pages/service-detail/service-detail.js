@@ -53,6 +53,7 @@ Page({
 
   onLoad(query) {
     this.itemId = query.id
+    this.itemType = query.type || 'service'
   },
 
   onReady() {
@@ -68,12 +69,23 @@ Page({
     if (this.loadingDetail) return
     this.loadingDetail = true
     this.lastLoadAt = Date.now()
-    api({ url: '/api/service/detail', data: { id: this.itemId } }).then((res) => {
+    const detailUrl = this.itemType === 'errand'
+      ? `/api/errands/${this.itemId}`
+      : `/api/services/${this.itemId}`
+    api({ url: detailUrl }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
       const item = buildDetailView(res.data || {})
+      store.addBrowseHistory({
+        id: item.id,
+        type: item.type || this.itemType,
+        title: item.title,
+        price: item.price,
+        category: item.typeText,
+        location: item.locationText
+      })
       const action = this.getActionState(item, this.data.ordering || this.data.taking)
       const ownerReviews = res.data.ownerReviews || []
       this.setData(Object.assign({
@@ -147,7 +159,7 @@ Page({
     if (!store.requireVerified() || this.data.ordering) return
     this.setData({ ordering: true })
     this.syncActionState()
-    api({ url: '/api/service/order', method: 'POST', data: { id: this.data.item.id } }).then((res) => {
+    api({ url: `/api/services/${this.data.item.id}/orders`, method: 'POST' }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return
@@ -163,6 +175,17 @@ Page({
   takeErrand() {
     if (!store.requireVerified() || this.data.taking) return
     if (store.getState().role !== 'rider') {
+      api({ url: '/api/user/profile' }).then(() => {
+        if (store.getState().role === 'rider') {
+          this.takeErrand()
+          return
+        }
+        wx.showToast({ title: '\u8bf7\u5148\u5b8c\u6210\u9a91\u624b\u8ba4\u8bc1', icon: 'none' })
+        wx.navigateTo({ url: '/pages/role-apply/role-apply?role=rider' })
+      })
+      return
+    }
+    if (store.getState().role !== 'rider') {
       wx.showModal({
         title: '需要骑手认证',
         content: '抢跑腿单需要先完成实名认证，并提交骑手接单资料。',
@@ -175,7 +198,7 @@ Page({
     }
     this.setData({ taking: true })
     this.syncActionState()
-    api({ url: '/api/rider/take', method: 'POST', data: { id: this.data.item.id } }).then((res) => {
+    api({ url: `/api/errands/${this.data.item.id}/accept`, method: 'POST' }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         this.loadDetail()

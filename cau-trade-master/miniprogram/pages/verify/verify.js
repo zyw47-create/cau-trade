@@ -146,6 +146,10 @@ Page({
       wx.showToast({ title: '请输入 @cau.edu.cn 学校邮箱', icon: 'none' })
       return false
     }
+    if (String(form.email).trim().toLowerCase() !== `${studentId}@cau.edu.cn`) {
+      wx.showToast({ title: '邮箱必须与学号一致', icon: 'none' })
+      return false
+    }
     if (phone && !/^1\d{10}$/.test(phone)) {
       wx.showToast({ title: '手机号应为11位数字', icon: 'none' })
       return false
@@ -164,12 +168,14 @@ Page({
     const email = String(this.data.form.email || '').trim().toLowerCase()
     this.setData({ sendingCode: true })
 
-    api({ url: '/api/user/email-code', method: 'POST', data: { email } }).then((res) => {
+    api({ url: '/api/user/email-code', method: 'POST', data: { studentId: String(this.data.form.studentId || '').trim(), email } }).then((res) => {
       if (res.code !== 200) throw new Error(res.msg || '发送失败')
+      const demoCode = res.data && res.data.demoCode
       this.setData({
         codeSent: true,
-        codeTip: `验证码已发送到 ${email}，5分钟内有效。`
+        codeTip: demoCode ? `本地调试验证码：${demoCode}` : `验证码已发送到 ${email}，5分钟内有效。`
       })
+      if (demoCode) this.setData({ 'form.emailCode': demoCode })
       this.startCountdown(60)
       wx.showToast({ title: '验证码已发送' })
     }).catch(() => {
@@ -206,6 +212,7 @@ Page({
       }
       this.clearCountdown()
       this.setData({ countdown: 0 })
+      api({ url: '/api/user/profile' }).then(() => this.syncUserState())
       wx.showModal({
         title: '认证通过',
         content: '学校邮箱已验证，可继续发布、下单和聊天。',

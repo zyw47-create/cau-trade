@@ -48,6 +48,11 @@ Page({
     if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
     const now = Date.now()
     if (this.lastRefreshAt && now - this.lastRefreshAt < 1200) return
+    this.lastRefreshAt = now
+    if (store.getState().isLogin) {
+      api({ url: '/api/user/profile' }).finally(() => this.refresh())
+      return
+    }
     this.refresh()
   },
 
@@ -93,10 +98,11 @@ Page({
       this.refreshing = false
       return
     }
+    const canRequestEarnings = user && user.canWithdraw
     Promise.all([
       api({ url: '/api/user/credit' }),
       api({ url: '/api/goods/favorites' }),
-      api({ url: '/api/rider/earnings' }),
+      canRequestEarnings ? api({ url: '/api/rider/earnings' }) : Promise.resolve({ data: { amount: 0, acceptedCount: 0, withdraws: [] } }),
       api({ url: '/api/goods/mine' })
     ]).then(([creditRes, favoritesRes, earningsRes, mineRes]) => {
       const favorites = (favoritesRes.data.list || []).map((item) => Object.assign({}, item, {
@@ -211,7 +217,7 @@ Page({
       wx.showToast({ title: '手机号应为11位数字', icon: 'none' })
       return
     }
-    api({ url: '/api/user/profile/update', method: 'POST', data: this.data.profileForm }).then(() => {
+    api({ url: '/api/user/profile', method: 'PUT', data: this.data.profileForm }).then(() => {
       wx.showToast({ title: '资料已保存' })
       this.refresh()
     })
@@ -226,14 +232,14 @@ Page({
   },
 
   removeGoods(e) {
-    api({ url: '/api/goods/remove', method: 'POST', data: { id: e.currentTarget.dataset.id } }).then(() => {
+    api({ url: `/api/goods/${e.currentTarget.dataset.id}/status`, method: 'PUT', data: { status: 'removed' } }).then(() => {
       wx.showToast({ title: '已下架' })
       this.refresh()
     })
   },
 
   relistGoods(e) {
-    api({ url: '/api/goods/relist', method: 'POST', data: { id: e.currentTarget.dataset.id } }).then(() => {
+    api({ url: `/api/goods/${e.currentTarget.dataset.id}/status`, method: 'PUT', data: { status: 'on_sale' } }).then(() => {
       wx.showToast({ title: '已提交复核' })
       this.refresh()
     })

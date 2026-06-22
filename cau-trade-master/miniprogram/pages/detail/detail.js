@@ -24,7 +24,7 @@ Page({
     if (this.loadingDetail) return
     this.loadingDetail = true
     this.lastLoadAt = Date.now()
-    api({ url: '/api/goods/detail', data: { id: this.goodsId } }).then((res) => {
+    api({ url: `/api/goods/${this.goodsId}` }).then((res) => {
       const item = this.decorateItem(res.data)
       store.addBrowseHistory(item)
       this.setData({ item })
@@ -66,7 +66,7 @@ Page({
 
   createOrder() {
     if (!store.requireVerified()) return
-    api({ url: '/api/order/create', method: 'POST', data: { goodsId: this.data.item.id } }).then((res) => {
+    api({ url: '/api/orders', method: 'POST', data: { goodsId: this.data.item.id } }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return
@@ -85,7 +85,7 @@ Page({
   },
 
   pay(orderSn) {
-    api({ url: '/api/order/pay', method: 'POST', data: { orderSn } }).then((res) => {
+    api({ url: `/api/orders/${orderSn}/pay`, method: 'POST' }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return

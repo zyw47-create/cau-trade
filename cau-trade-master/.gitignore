@@ -1,5 +1,10 @@
 .runtime/
 .idea/
+.env
+.env.local
+.env.*.local
+.pytest_cache/
+.coverage
 backend/.idea/
 admin_web/__pycache__/
 __pycache__/
@@ -11,6 +16,9 @@ miniprogram/project.private.config.json
 backend/.env
 backend/.env.key
 backend/.env.enc
+admin_web/.env
+admin_web/.env.local
+admin_web/.env.*.local
 backend/backend.out.log
 backend/backend.err.log
 backend/backend.pid

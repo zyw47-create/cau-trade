@@ -29,6 +29,10 @@ Page({
   },
 
   onShow() {
+    if (store.getState().isLogin) {
+      api({ url: '/api/user/profile' }).finally(() => this.refresh())
+      return
+    }
     this.refresh()
   },
 
@@ -92,7 +96,7 @@ Page({
 
   saveProfile() {
     if (!store.requireLogin()) return
-    api({ url: '/api/user/profile/update', method: 'POST', data: this.data.profileForm }).then(() => {
+    api({ url: '/api/user/profile', method: 'PUT', data: this.data.profileForm }).then(() => {
       wx.showToast({ title: '资料已保存' })
       this.refresh()
     })
@@ -132,7 +136,12 @@ Page({
   },
 
   openBrowseItem(e) {
-    wx.navigateTo({ url: `/pages/detail/detail?id=${e.currentTarget.dataset.id}` })
+    const type = e.currentTarget.dataset.type || 'goods'
+    const id = e.currentTarget.dataset.id
+    const url = type === 'goods'
+      ? `/pages/detail/detail?id=${id}`
+      : `/pages/service-detail/service-detail?id=${id}&type=${type}`
+    wx.navigateTo({ url })
   },
 
   clearLocalCache() {

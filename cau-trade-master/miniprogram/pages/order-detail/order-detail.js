@@ -3,33 +3,39 @@ const store = require('../../utils/store')
 const { openChatRoom } = require('../../utils/chat-nav')
 
 function buildOrderView(order) {
+  const refund = order.refund || null
+  const activeRefund = refund && refund.active
   const waitingErrandPeer = order.itemType === 'errand' && order.canChat === false
   const isBuyer = order.role === 'buyer'
   const isSeller = order.role === 'seller'
   const isPublisher = order.role === 'publisher'
   const isRider = order.role === 'rider'
   const canFulfill = order.itemType === 'errand'
-    ? (isRider && order.status === 'paid' && !waitingErrandPeer)
+    ? (isRider && order.status === 'confirmed' && !waitingErrandPeer)
     : (isSeller && order.status === 'paid' && !waitingErrandPeer)
   const canComplete = order.itemType === 'errand'
-    ? ((isPublisher && order.status === 'shipped') || (isPublisher && order.status === 'paid' && !waitingErrandPeer))
+    ? (isPublisher && order.status === 'shipped')
     : ((isBuyer && order.status === 'shipped') || (isBuyer && order.status === 'paid' && !waitingErrandPeer))
   const canCancel = (isBuyer || (isPublisher && order.itemType === 'errand'))
     && (order.status === 'unpaid' || (order.status === 'paid' && (order.itemType === 'service' || order.itemType === 'errand')))
-  const canRefund = isBuyer && order.status === 'paid' && !waitingErrandPeer
-  const canComplain = (isBuyer || isPublisher) && ((order.status === 'paid' && !waitingErrandPeer) || order.status === 'shipped' || order.status === 'refunding')
+  const refundableStatus = ['paid', 'confirmed', 'shipped', 'completed'].indexOf(order.status) >= 0
+  const complainableStatus = ['paid', 'confirmed', 'shipped', 'refunding', 'disputed'].indexOf(order.status) >= 0
+  const canRefund = (isBuyer || isPublisher) && refundableStatus && !waitingErrandPeer && !activeRefund
+  const canComplain = (isBuyer || isSeller || isPublisher || isRider) && complainableStatus && !waitingErrandPeer && !activeRefund
   const autoConfirm = order.autoConfirm || {}
-  const actionHint = waitingErrandPeer
+  const actionHint = order.actionHint || (waitingErrandPeer
     ? '跑腿任务正在等待骑手接单，接单后可以继续聊天、投诉和查看进度。'
     : order.status === 'unpaid'
       ? '当前订单待支付，支付后资金会进入平台托管。'
-      : order.status === 'paid'
-        ? '当前资金已托管，可继续履约、申请售后或联系对方。'
-        : order.status === 'shipped'
-          ? '当前订单履约中，确认完成后会进行结算。'
-          : order.status === 'completed'
-            ? '订单已完成，现在可以补充评价。'
-            : '可在此查看订单进度、售后状态和聊天证据。'
+      : order.status === 'confirmed'
+        ? '骑手已接单，可开始配送并同步履约进度。'
+        : order.status === 'paid'
+          ? '当前资金已托管，可继续履约、申请售后或联系对方。'
+          : order.status === 'shipped'
+            ? '当前订单履约中，确认完成后会进行结算。'
+            : order.status === 'completed'
+              ? '订单已完成，现在可以补充评价。'
+              : '可在此查看订单进度、售后状态和聊天证据。')
 
   return Object.assign({}, order, {
     canPay: (isBuyer || (isPublisher && order.itemType === 'errand')) && order.status === 'unpaid',
@@ -39,7 +45,7 @@ function buildOrderView(order) {
     canRefund,
     canComplain,
     canChat: order.canChat !== false && !waitingErrandPeer,
-    canComment: order.status === 'completed',
+    canComment: order.canComment === true,
     autoConfirm,
     actionHint,
     summaryCards: [
@@ -80,7 +86,7 @@ Page({
     if (this.loadingDetail) return
     this.loadingDetail = true
     this.lastLoadAt = Date.now()
-    api({ url: '/api/order/detail', data: { orderSn: this.orderSn } }).then((res) => {
+    api({ url: `/api/orders/${this.orderSn}` }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return
@@ -103,7 +109,7 @@ Page({
   },
 
   pay() {
-    api({ url: '/api/order/pay', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
+    api({ url: `/api/orders/${this.orderSn}/pay`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '支付成功' })
       this.loadDetail()
@@ -117,7 +123,7 @@ Page({
       confirmText: '确认取消',
       success: (modal) => {
         if (!modal.confirm) return
-        api({ url: '/api/order/cancel', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
+        api({ url: `/api/orders/${this.orderSn}/cancel`, method: 'POST' }).then((res) => {
           if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
           wx.showToast({ title: '已取消' })
           this.loadDetail()
@@ -127,7 +133,7 @@ Page({
   },
 
   ship() {
-    api({ url: '/api/order/ship', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
+    api({ url: `/api/orders/${this.orderSn}/ship`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '进度已更新' })
       this.loadDetail()
@@ -135,7 +141,7 @@ Page({
   },
 
   receive() {
-    api({ url: '/api/order/receive', method: 'POST', data: { orderSn: this.orderSn } }).then((res) => {
+    api({ url: `/api/orders/${this.orderSn}/receive`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已确认完成' })
       this.loadDetail()
@@ -151,7 +157,7 @@ Page({
         if (!res.confirm) return
         const reason = String(res.content || '').trim()
         if (reason.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
-        api({ url: '/api/order/refund', method: 'POST', data: { orderSn: this.orderSn, reason } }).then((apiRes) => {
+        api({ url: `/api/orders/${this.orderSn}/refunds`, method: 'POST', data: { reason } }).then((apiRes) => {
           if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '已提交售后' })
           this.loadDetail()
@@ -169,7 +175,7 @@ Page({
         if (!res.confirm) return
         const content = String(res.content || '').trim()
         if (content.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
-        api({ url: '/api/order/complaint', method: 'POST', data: { orderSn: this.orderSn, content } }).then((apiRes) => {
+        api({ url: `/api/orders/${this.orderSn}/complaints`, method: 'POST', data: { content } }).then((apiRes) => {
           if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '投诉已提交' })
           this.loadDetail()
@@ -216,7 +222,7 @@ Page({
     }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '评价成功' })
-      this.setData({ commentContent: '' })
+      this.setData({ commentContent: '', 'order.canComment': false, 'order.hasComment': true })
       this.loadDetail()
     })
   }

@@ -117,9 +117,9 @@ BasePage({
     const id = e.currentTarget.dataset.id
     const result = e.currentTarget.dataset.result
     api({
-      url: '/api/admin/goods/audit',
+      url: `/api/admin/goods/${id}/audit`,
       method: 'POST',
-      data: { id, result, reason: result === 'reject' ? '内容不合规' : '' }
+      data: { result, reason: result === 'reject' ? '内容不合规' : '' }
     }).then(() => {
       wx.showToast({ title: result === 'reject' ? '已驳回' : '已通过' })
       this.loadAll()
@@ -127,12 +127,12 @@ BasePage({
   },
 
   arbitrate(e) {
-    const orderSn = e.currentTarget.dataset.sn
+    const refundId = e.currentTarget.dataset.id
     const result = e.currentTarget.dataset.result
     api({
-      url: '/api/admin/order/arbitrate',
+      url: `/api/admin/refunds/${refundId}/arbitration`,
       method: 'POST',
-      data: { orderSn, result }
+      data: { result }
     }).then(() => {
       wx.showToast({ title: '仲裁完成' })
       this.loadAll()
@@ -143,9 +143,9 @@ BasePage({
     const id = e.currentTarget.dataset.id
     const result = e.currentTarget.dataset.result
     api({
-      url: '/api/admin/withdraw/audit',
+      url: `/api/admin/withdraws/${id}/audit`,
       method: 'POST',
-      data: { id, result }
+      data: { result }
     }).then(() => {
       wx.showToast({ title: result === 'reject' ? '已驳回' : '已通过' })
       this.loadAll()
@@ -156,9 +156,9 @@ BasePage({
     const id = e.currentTarget.dataset.id
     const status = e.currentTarget.dataset.status
     api({
-      url: '/api/admin/user/status',
-      method: 'POST',
-      data: { id, status }
+      url: `/api/admin/users/${id}/status`,
+      method: 'PUT',
+      data: { status }
     }).then(() => {
       wx.showToast({ title: status === 'banned' ? '已封禁' : '已解封' })
       this.loadAll()
@@ -176,7 +176,7 @@ BasePage({
   },
 
   saveRules() {
-    api({ url: '/api/admin/ai/rules/update', method: 'POST', data: this.data.aiRules }).then((res) => {
+    api({ url: '/api/admin/ai/rules', method: 'PUT', data: this.data.aiRules }).then((res) => {
       wx.showToast({ title: '规则已保存' })
       this.setData({ aiRules: res.data })
       this.loadAll()
@@ -193,7 +193,7 @@ BasePage({
   runBackup() {
     if (this.data.backupRunning) return
     this.setData({ backupRunning: true })
-    api({ url: '/api/admin/backup/run', method: 'POST' }).then((res) => {
+    api({ url: '/api/admin/backups', method: 'POST' }).then((res) => {
       this.setData({ latestBackup: res.data })
       wx.showToast({ title: '备份已生成' })
       this.loadAll()

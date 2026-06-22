@@ -15,7 +15,7 @@
     <view class="row between">
       <view class="order-title-area">
         <view class="sub-title">{{item.title}}</view>
-        <view class="muted order-sn">订单号：{{item.orderSn}}</view>
+        <view class="muted order-sn">{{item.snLabel}}：{{item.displaySn}}</view>
       </view>
       <text class="tag">{{item.statusLabel}}</text>
     </view>
@@ -38,7 +38,7 @@
 
     <view wx:if="{{item.hasRefund}}" class="refund-box">
       <view class="row between">
-        <view class="refund-title">售后处理中</view>
+        <view class="refund-title">{{item.refundTitle}}</view>
         <text class="tag">{{item.refundStatusText}}</text>
       </view>
       <view class="refund-reason">{{item.refundReason}}</view>
@@ -51,7 +51,7 @@
     <view class="row between order-bottom">
       <text class="price">￥{{item.amount}}</text>
       <view class="order-actions">
-        <button class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openDetail">详情</button>
+        <button class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openDetail">{{item.detailText}}</button>
         <button wx:if="{{item.canPay}}" class="btn" data-sn="{{item.orderSn}}" catchtap="pay">支付</button>
         <button wx:if="{{item.canCancel}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="cancelOrder">取消</button>
         <button wx:if="{{item.canShip}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="ship">履约</button>

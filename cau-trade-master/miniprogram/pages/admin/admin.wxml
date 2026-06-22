@@ -127,8 +127,8 @@
           <view class="muted">{{item.orderSn}} · ¥{{item.amount}}</view>
         </view>
         <view class="actions">
-          <button class="btn secondary mini" data-sn="{{item.orderSn}}" data-result="seller" bindtap="arbitrate">卖家胜诉</button>
-          <button class="btn mini" data-sn="{{item.orderSn}}" data-result="buyer" bindtap="arbitrate">买家胜诉</button>
+          <button class="btn secondary mini" data-id="{{item.id}}" data-sn="{{item.orderSn}}" data-result="seller" bindtap="arbitrate">卖家胜诉</button>
+          <button class="btn mini" data-id="{{item.id}}" data-sn="{{item.orderSn}}" data-result="buyer" bindtap="arbitrate">买家胜诉</button>
         </view>
       </view>
     </view>

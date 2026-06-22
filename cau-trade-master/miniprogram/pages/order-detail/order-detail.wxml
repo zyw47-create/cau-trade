@@ -57,11 +57,14 @@
 
   <view wx:if="{{hasRefund}}" class="panel section refund-panel">
     <view class="row between">
-      <view class="sub-title">售后进度</view>
+      <view class="sub-title">{{refund.title || '售后进度'}}</view>
       <text class="tag">{{refund.statusText}}</text>
     </view>
     <view class="refund-text">{{refund.reason}}</view>
-    <view class="muted seller-reply">{{refund.sellerReply}}</view>
+    <view wx:if="{{refund.resultText}}" class="refund-result">{{refund.resultText}}</view>
+    <view wx:if="{{refund.adminNote}}" class="muted seller-reply">平台说明：{{refund.adminNote}}</view>
+    <view wx:if="{{refund.resolvedAt}}" class="muted seller-reply">处理时间：{{refund.resolvedAt}}</view>
+    <view wx:if="{{refund.sellerReply}}" class="muted seller-reply">对方说明：{{refund.sellerReply}}</view>
     <view wx:for="{{refundProgress}}" wx:key="id" class="timeline-row">
       <view class="{{item.className}}"></view>
       <view class="timeline-main">

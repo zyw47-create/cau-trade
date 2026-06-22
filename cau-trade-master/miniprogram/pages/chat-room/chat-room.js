@@ -111,7 +111,7 @@ Page({
     this.lastLoadAt = Date.now()
     this.setData({ loadingConversations: true })
 
-    api({ url: '/api/chat/list' }).then((res) => {
+    api({ url: '/api/chats' }).then((res) => {
       const list = (res.data && res.data.list) || []
       const conversations = list.map((item) => {
         const messages = item.messages || []
@@ -150,7 +150,7 @@ Page({
     this.setData({ loadingMessages: true })
 
     api({
-      url: '/api/chat/messages',
+      url: '/api/chats/messages',
       data: {
         goodsId: this.data.goodsId,
         businessType: this.data.businessType,
@@ -269,7 +269,7 @@ Page({
     this.setData({ sending: true })
 
     api({
-      url: '/api/chat/send',
+      url: '/api/chats/messages',
       method: 'POST',
       data: {
         goodsId: this.data.goodsId,

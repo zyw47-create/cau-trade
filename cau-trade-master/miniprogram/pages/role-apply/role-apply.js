@@ -53,6 +53,20 @@ BasePage({
   },
 
   onShow() {
+    const now = Date.now()
+    if (store.getState().isLogin && (!this.lastProfileSyncAt || now - this.lastProfileSyncAt > 2000)) {
+      this.lastProfileSyncAt = now
+      this.refreshingProfile = true
+      api({ url: '/api/user/profile' }).finally(() => {
+        this.refreshingProfile = false
+        this.renderLocalState()
+      })
+      return
+    }
+    this.renderLocalState()
+  },
+
+  renderLocalState() {
     const state = store.getState()
     const certifications = (state.user && state.user.roleCertifications) || {}
     const certification = certifications[this.data.role] || null
@@ -126,6 +140,7 @@ BasePage({
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
+      this.onShow()
       wx.showModal({
         title: this.data.config.successText,
         content: `${this.data.config.roleText}权限已开通，可在对应业务中使用。`,

@@ -28,6 +28,30 @@ WHERE TABLE_SCHEMA = DATABASE()
   );
 
 SELECT
+  'app_role_required_orm_write_grants' AS check_name,
+  COUNT(*) AS actual_count,
+  24 AS expected_count,
+  CASE WHEN COUNT(*) = 24 THEN 'OK' ELSE 'MISSING' END AS result
+FROM information_schema.TABLE_PRIVILEGES
+WHERE TABLE_SCHEMA = DATABASE()
+  AND GRANTEE LIKE '%campus_app_role%'
+  AND (
+    (TABLE_NAME = 'users' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'goods' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'errand_orders' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'orders' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'order_events' AND PRIVILEGE_TYPE = 'INSERT') OR
+    (TABLE_NAME = 'order_funds' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'wallet_logs' AND PRIVILEGE_TYPE = 'INSERT') OR
+    (TABLE_NAME = 'refund_requests' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'withdraw_requests' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'admin_audit_logs' AND PRIVILEGE_TYPE = 'INSERT') OR
+    (TABLE_NAME = 'job_logs' AND PRIVILEGE_TYPE = 'INSERT') OR
+    (TABLE_NAME = 'idempotency_keys' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE')) OR
+    (TABLE_NAME = 'notifications' AND PRIVILEGE_TYPE IN ('INSERT', 'UPDATE'))
+  );
+
+SELECT
   'required_immutable_triggers' AS check_name,
   COUNT(*) AS actual_count,
   8 AS expected_count,

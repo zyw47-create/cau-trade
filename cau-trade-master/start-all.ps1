@@ -1,13 +1,14 @@
 $ErrorActionPreference = "Stop"
 
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BackendScript = Join-Path $Root "backend\start-backend.ps1"
+$FlaskScript = Join-Path $Root "admin_web\start-admin.ps1"
 
-Write-Host "Starting campus trade Node backend..."
-Write-Host "Backend API: http://127.0.0.1:3001"
+Write-Host "Starting campus trade Flask API and admin web..."
+Write-Host "Flask API: http://127.0.0.1:5000/api/status"
+Write-Host "Admin web: http://127.0.0.1:5000"
 Write-Host ""
 
-& $BackendScript
+& $FlaskScript
 
 Write-Host ""
 Write-Host "Mini-program project path:"

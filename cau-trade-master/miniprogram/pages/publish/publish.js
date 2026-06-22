@@ -37,7 +37,59 @@ function createDefaultForm() {
 
 function getImageDisplayUrl(item) {
   // 前端列表和详情页需要可直接预览的地址，模拟上传地址仅保留在元数据里。
-  return (item && (item.url || item.tempFilePath || item.uploadedUrl)) || ''
+  return (item && (item.uploadedUrl || item.url || item.tempFilePath)) || ''
+}
+
+function isTemporaryImageUrl(url) {
+  return typeof url === 'string' && (
+    url.indexOf('/__tmp__/') >= 0 ||
+    url.indexOf('://tmp/') >= 0 ||
+    url.indexOf('wxfile://tmp') === 0
+  )
+}
+
+function cleanDraftImage(item) {
+  if (!item) return item
+  if (item.status === 'done' && item.uploadedUrl) {
+    return {
+      id: item.id,
+      url: item.uploadedUrl,
+      uploadedUrl: item.uploadedUrl,
+      status: item.status,
+      statusText: item.statusText || ''
+    }
+  }
+  return item
+}
+
+function restoreDraftImage(item) {
+  if (!item) return null
+  const stableUrl = item.uploadedUrl || item.url || ''
+  if (stableUrl && !isTemporaryImageUrl(stableUrl)) {
+    return cleanDraftImage(Object.assign({}, item, {
+      url: stableUrl,
+      uploadedUrl: item.uploadedUrl || stableUrl,
+      tempFilePath: ''
+    }))
+  }
+  return null
+}
+
+function localGeneratedMetadata(activeType, form) {
+  const { title, category, condition, pickupLocation, deliveryLocation, serviceTime, location } = form
+  let generatedTitle = title || `${condition}${category}闲置`
+  let desc = `${category}闲置，${condition}，支持校内当面验货。可通过平台聊天确认交易时间和地点。`
+  let tags = [category, condition, '校内自提', '平台留痕']
+  if (activeType === 'service') {
+    generatedTitle = title || '校园服务预约'
+    desc = `说明服务内容、可预约时间${serviceTime ? `，${serviceTime}` : ''}、服务地点${location ? `，${location}` : ''}和完成标准，服务费通过平台托管。`
+    tags = ['校园服务', '可预约', '资金托管', '服务评价']
+  } else if (activeType === 'errand') {
+    generatedTitle = title || '校内跑腿代取'
+    desc = `请从${pickupLocation || '取件点'}取件，送到${deliveryLocation || '送达点'}，接单后通过聊天同步进度，完成后确认结算。`
+    tags = ['跑腿订单', '可抢单', '进度留痕', '完成结算']
+  }
+  return { title: generatedTitle, description: desc, tags }
 }
 
 BasePage({
@@ -79,19 +131,24 @@ BasePage({
     if (!draft) return
     const activeType = draft.activeType || 'goods'
     const copy = this.getTypeCopy(activeType)
+    const form = Object.assign(createDefaultForm(), draft.form || {})
+    form.images = (form.images || []).map(restoreDraftImage).filter(Boolean)
     this.setData(Object.assign({
       activeType,
       publishTabs: this.buildTabs(activeType),
-      form: Object.assign(createDefaultForm(), draft.form || {}),
+      form,
       aiTags: draft.aiTags || [],
       draftTip: '已恢复上次未提交的草稿。'
     }, copy))
   },
 
   persistDraft() {
+    const form = Object.assign({}, this.data.form, {
+      images: (this.data.form.images || []).map(cleanDraftImage)
+    })
     store.saveDraft(DRAFT_KEY, {
       activeType: this.data.activeType,
-      form: this.data.form,
+      form,
       aiTags: this.data.aiTags
     })
   },
@@ -257,7 +314,8 @@ BasePage({
         name: 'file',
         formData: {
           scene: credential.scene || this.data.activeType,
-          objectKey: `${file.id}.jpg`
+          objectKey: `${file.id}.jpg`,
+          uploadToken: credential.uploadToken || ''
         },
         success: (uploadRes) => {
           let body = {}
@@ -274,6 +332,8 @@ BasePage({
           resolve({
             id: file.id,
             uploadedUrl: data.url,
+            url: data.url,
+            tempFilePath: '',
             status: 'done',
             statusText: '已上传'
           })
@@ -302,26 +362,37 @@ BasePage({
   },
 
   aiGenerate() {
-    const { title, category, condition, pickupLocation, deliveryLocation, serviceTime, location } = this.data.form
-    let generatedTitle = title || `${condition}${category}闲置`
-    let desc = `${category}闲置，${condition}，支持校内当面验货。可通过平台聊天确认交易时间和地点。`
-    let tags = [category, condition, '校内自提', '平台留痕']
-    if (this.data.activeType === 'service') {
-      generatedTitle = title || '校园服务预约'
-      desc = `说明服务内容、可预约时间${serviceTime ? `（${serviceTime}）` : ''}、服务地点${location ? `（${location}）` : ''}和完成标准，服务费通过平台托管。`
-      tags = ['校园服务', '可预约', '资金托管', '服务评价']
-    } else if (this.data.activeType === 'errand') {
-      generatedTitle = title || '校内跑腿代取'
-      desc = `请从${pickupLocation || '取件点'}取件，送到${deliveryLocation || '送达点'}，接单后通过聊天同步进度，完成后确认结算。`
-      tags = ['跑腿订单', '可抢单', '进度留痕', '完成结算']
-    }
-    this.setData({
-      'form.title': generatedTitle,
-      'form.desc': desc,
-      aiTags: tags,
-      draftTip: '草稿已自动保存。'
+    const fallback = localGeneratedMetadata(this.data.activeType, this.data.form)
+    wx.showLoading({ title: 'AI 生成中' })
+    api({
+      url: '/api/ai/listing/generate',
+      method: 'POST',
+      data: Object.assign({}, this.data.form, { type: this.data.activeType })
+    }).then((res) => {
+      const data = res && res.code === 200 ? (res.data || {}) : {}
+      const next = {
+        title: data.title || fallback.title,
+        description: data.description || fallback.description,
+        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : fallback.tags
+      }
+      this.setData({
+        'form.title': next.title,
+        'form.desc': next.description,
+        aiTags: next.tags,
+        draftTip: 'AI 已生成，草稿已保存。'
+      })
+      this.persistDraft()
+    }).catch(() => {
+      this.setData({
+        'form.title': fallback.title,
+        'form.desc': fallback.description,
+        aiTags: fallback.tags,
+        draftTip: 'AI 服务暂不可用，已使用本地模板。'
+      })
+      this.persistDraft()
+    }).finally(() => {
+      wx.hideLoading()
     })
-    this.persistDraft()
   },
 
   validateForm() {
@@ -378,7 +449,9 @@ BasePage({
     const form = this.data.form
     if (!this.validateForm()) return
 
-    const url = this.data.activeType === 'goods' ? '/api/goods/save' : '/api/service/save'
+    const url = this.data.activeType === 'goods'
+      ? '/api/goods'
+      : this.data.activeType === 'errand' ? '/api/errands' : '/api/services'
     const payload = Object.assign({}, form, {
       type: this.data.activeType === 'goods' ? 'goods' : this.data.activeType === 'errand' ? 'errand' : 'service',
       location: this.data.activeType === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location,

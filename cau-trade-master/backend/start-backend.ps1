@@ -1,5 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
+if ($env:ENABLE_LEGACY_NODE -ne '1') {
+  throw 'backend/server.js is a legacy compatibility service. Set ENABLE_LEGACY_NODE=1 only when explicitly testing legacy APIs; use admin_web/start-admin.ps1 for the Flask backend.'
+}
+
 $BackendDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $NodeCandidates = @(
   'D:\Soft\Node\node.exe',

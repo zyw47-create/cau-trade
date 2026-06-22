@@ -1,5 +1,6 @@
 const { request: api } = require('../../utils/request')
 const store = require('../../utils/store')
+const { localizeGoodsImages } = require('../../utils/image-cache')
 
 const SORT_OPTIONS = [
   { key: 'default', text: '综合' },
@@ -70,7 +71,7 @@ Page({
     if (this.loading) return
     this.loading = true
     this.setData({ loading: true, errorText: '' })
-    api({ url: '/api/goods/list' }).then((res) => {
+    api({ url: '/api/goods' }).then((res) => {
       if (res.code !== 200) {
         this.setData({ errorText: res.msg || '商品加载失败' })
         return
@@ -79,23 +80,26 @@ Page({
       const categoryNames = ['全部'].concat(res.data.categories || [])
       const activeCategory = this.data.activeCategory === '全部' ? this.queryCategory : this.data.activeCategory
       const keyword = this.data.keyword || this.queryKeyword || ''
-      this.rawGoods = goods
-      this.setData({
-        goods,
-        keyword,
-        activeCategory,
-        categories: this.decorateCategories(categoryNames, activeCategory),
-        filterConditions: this.uniqueValues(goods, 'condition'),
-        filterLocations: this.uniqueValues(goods, 'location')
-      })
-      if (keyword) {
-        const searchHistory = store.addSearchHistory(keyword)
+      return localizeGoodsImages(goods).then((localizedGoods) => {
+        this.rawGoods = localizedGoods
         this.setData({
-          searchHistory,
-          hasSearchHistory: searchHistory.length > 0
+          goods: localizedGoods,
+          keyword,
+          activeCategory,
+          categories: this.decorateCategories(categoryNames, activeCategory),
+          filterConditions: this.uniqueValues(localizedGoods, 'condition'),
+          filterLocations: this.uniqueValues(localizedGoods, 'location')
         })
-      }
-      this.applyDisplay({ goods, keyword, activeCategory })
+        if (keyword) {
+          const searchHistory = store.addSearchHistory(keyword)
+          this.setData({
+            searchHistory,
+            hasSearchHistory: searchHistory.length > 0
+          })
+        }
+        this.applyDisplay({ goods: localizedGoods, keyword, activeCategory })
+      })
+    }).then(() => {
       this.loaded = true
       this.queryCategory = ''
       this.queryKeyword = ''
@@ -284,7 +288,7 @@ Page({
     const goods = this.data.pendingOrderGoods
     if (!goods) return this.cancelOrderModal()
     this.setData({ orderModalVisible: false })
-    api({ url: '/api/order/create', method: 'POST', data: { goodsId: Number(goods.id) } }).then((res) => {
+    api({ url: '/api/orders', method: 'POST', data: { goodsId: Number(goods.id) } }).then((res) => {
       if (res.code !== 200) {
         wx.showToast({ title: res.msg, icon: 'none' })
         return

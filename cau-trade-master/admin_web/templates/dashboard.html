@@ -45,6 +45,7 @@
           <td><span class="badge">{{ item.status | label }}</span></td>
           <td class="actions-cell">
             <form method="post" action="{{ url_for('audit_goods', goods_id=item.id) }}" class="inline-form">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
               <input name="note" placeholder="处理说明" value="{{ item.ai_reason or '' }}">
               <button name="result" value="pass" class="primary">通过</button>
               <button name="result" value="reject">驳回</button>
@@ -115,6 +116,7 @@
           </td>
           <td class="actions-cell">
             <form method="post" action="{{ url_for('arbitrate_refund', refund_id=refund.id) }}" class="inline-form">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
               <input name="note" placeholder="仲裁说明" value="{{ refund.reason }}">
               <button name="result" value="buyer" class="primary">买家胜诉退款</button>
               <button name="result" value="seller">卖家胜诉结算</button>
@@ -167,6 +169,7 @@
           <td class="actions-cell">
             {% if item.status == 'pending' %}
             <form method="post" action="{{ url_for('audit_verification', verification_id=item.id) }}" class="inline-form">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
               <input name="note" placeholder="审核说明" value="邮箱与校园身份材料一致">
               <button name="result" value="approve" class="primary">通过</button>
               <button name="result" value="reject">驳回</button>
@@ -221,6 +224,7 @@
           <td class="actions-cell">
             {% if user.id != 99 %}
             <form method="post" action="{{ url_for('change_user_status', user_id=user.id) }}" class="inline-form">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
               <input name="note" placeholder="处理原因" value="平台治理处理">
               {% if user.status == 'banned' %}
               <button name="action" value="unban" class="primary">解封</button>
@@ -245,6 +249,7 @@
     <p>发布内容命中关键字或风险等级后进入人工复核池。外部 AI 服务不可用时，也可以降级到人工复核。</p>
   </div>
   <form method="post" action="{{ url_for('save_ai_rules') }}" class="rule-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <label class="check-row">
       <input type="checkbox" name="text_audit_enabled" {% if ai_rule.text_audit_enabled %}checked{% endif %}>
       <span>启用文本审核</span>
@@ -276,6 +281,7 @@
     <p>管理员可手动触发订单、托管资金与钱包流水的三表对账；结果写入 job_logs，并返回异常订单数量，便于演示备份性与安全审计。</p>
   </div>
   <form method="post" action="{{ url_for('run_wallet_reconcile') }}" class="rule-form">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     <label>
       <span>对账日期</span>
       <input type="date" name="stat_date" value="{{ today }}">

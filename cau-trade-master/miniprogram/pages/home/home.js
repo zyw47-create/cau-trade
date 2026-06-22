@@ -1,5 +1,6 @@
 const { request: api } = require('../../utils/request')
 const store = require('../../utils/store')
+const { localizeGoodsImages } = require('../../utils/image-cache')
 
 function buildHotGoods(goods) {
   const browseHistory = store.getBrowseHistory()
@@ -57,7 +58,7 @@ Page({
         icon: "跑",
         theme: "theme-violet",
         tint: "tint-violet",
-        path: "/pages/services/services",
+        path: "/pages/errands/errands",
         tab: false
       }
     ],
@@ -103,12 +104,15 @@ Page({
   loadHotGoods: function () {
     if (this.loadingHotGoods) return
     this.loadingHotGoods = true
-    api({ url: '/api/goods/list' }).then((res) => {
+    api({ url: '/api/goods' }).then((res) => {
       const hotGoods = buildHotGoods((res.data && res.data.list) || [])
-      this.setData({
-        hotGoods,
-        hasHotGoods: hotGoods.length > 0
+      return localizeGoodsImages(hotGoods).then((localizedGoods) => {
+        this.setData({
+          hotGoods: localizedGoods,
+          hasHotGoods: localizedGoods.length > 0
+        })
       })
+    }).then(() => {
       this.loadedHotGoods = true
     }).finally(() => {
       this.loadingHotGoods = false

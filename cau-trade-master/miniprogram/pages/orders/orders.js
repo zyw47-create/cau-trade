@@ -18,25 +18,31 @@ function buildFilters(activeKey) {
 }
 
 function decorateOrder(item) {
+  const refund = item.refund || null
+  const activeRefund = refund && refund.active
   const waitingErrandPeer = item.itemType === 'errand' && item.canChat === false
   const isBuyer = item.role === 'buyer'
   const isSeller = item.role === 'seller'
   const isPublisher = item.role === 'publisher'
   const isRider = item.role === 'rider'
   const canFulfill = item.itemType === 'errand'
-    ? (isRider && item.status === 'paid' && !waitingErrandPeer)
+    ? (isRider && item.status === 'confirmed' && !waitingErrandPeer)
     : (isSeller && item.status === 'paid' && !waitingErrandPeer)
   const canComplete = item.itemType === 'errand'
-    ? ((isPublisher && item.status === 'shipped') || (isPublisher && item.status === 'paid' && !waitingErrandPeer))
+    ? (isPublisher && item.status === 'shipped')
     : ((isBuyer && item.status === 'shipped') || (isBuyer && item.status === 'paid' && !waitingErrandPeer))
   const canCancel = (isBuyer || (isPublisher && item.itemType === 'errand'))
     && (item.status === 'unpaid' || (item.status === 'paid' && (item.itemType === 'service' || item.itemType === 'errand')))
-  const canRefund = isBuyer && item.status === 'paid' && !waitingErrandPeer
-  const canComplain = (isBuyer || isPublisher) && ((item.status === 'paid' && !waitingErrandPeer) || item.status === 'shipped')
+  const refundableStatus = ['paid', 'confirmed', 'shipped', 'completed'].indexOf(item.status) >= 0
+  const complainableStatus = ['paid', 'confirmed', 'shipped', 'refunding', 'disputed'].indexOf(item.status) >= 0
+  const canRefund = (isBuyer || isPublisher) && refundableStatus && !waitingErrandPeer && !activeRefund
+  const canComplain = (isBuyer || isSeller || isPublisher || isRider) && complainableStatus && !waitingErrandPeer && !activeRefund
   const canPay = (isBuyer || (isPublisher && item.itemType === 'errand')) && item.status === 'unpaid'
   const autoConfirm = item.autoConfirm || {}
   return {
     orderSn: item.orderSn,
+    displaySn: item.isPublication ? (item.publicationId || item.orderSn) : item.orderSn,
+    snLabel: item.isPublication ? '发布编号' : '订单号',
     itemId: item.itemId,
     itemType: item.itemType,
     itemTypeText: item.itemTypeText,
@@ -58,10 +64,12 @@ function decorateOrder(item) {
     fundText: item.fundText,
     progressText: item.progressText,
     latestTime: item.latestTime,
-    hasRefund: item.hasRefund,
+    hasRefund: Boolean(refund) || item.hasRefund,
     isPublication: Boolean(item.isPublication),
-    refundStatusText: item.refundStatusText,
-    refundReason: item.refund ? item.refund.reason : '',
+    detailText: item.isPublication ? '查看' : '详情',
+    refundTitle: refund ? (refund.title || '售后进度') : (item.refundTitle || '售后进度'),
+    refundStatusText: refund ? (refund.statusText || item.refundStatusText) : item.refundStatusText,
+    refundReason: refund ? (refund.summary || refund.reason || refund.resultText || '') : (item.refundReason || ''),
     summaryEvents: item.summaryEvents || [],
     autoConfirm,
     canChat: item.canChat !== false && !waitingErrandPeer,
@@ -71,18 +79,20 @@ function decorateOrder(item) {
     canCancel,
     canRefund,
     canComplain,
-    canComment: item.status === 'completed',
-    actionHint: waitingErrandPeer
+    canComment: item.canComment === true,
+    actionHint: item.actionHint || (waitingErrandPeer
       ? '等待骑手接单中'
       : item.status === 'unpaid'
         ? '待支付'
-        : item.status === 'paid'
-          ? '待履约'
-          : item.status === 'shipped'
-            ? '履约中'
-            : item.status === 'completed'
-              ? '可评价'
-              : item.statusLabel
+        : item.status === 'confirmed'
+          ? '已接单'
+          : item.status === 'paid'
+            ? '待履约'
+            : item.status === 'shipped'
+              ? '履约中'
+              : item.status === 'completed'
+                ? '可评价'
+                : item.statusLabel)
   }
 }
 
@@ -153,7 +163,7 @@ BasePage({
 
   confirmReceive(e) {
     const orderSn = e.currentTarget.dataset.sn
-    api({ url: '/api/order/receive', method: 'POST', data: { orderSn } }).then((res) => {
+    api({ url: `/api/orders/${orderSn}/receive`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已确认收货' })
       this.loadOrders()
@@ -162,7 +172,7 @@ BasePage({
 
   pay(e) {
     const orderSn = e.currentTarget.dataset.sn
-    api({ url: '/api/order/pay', method: 'POST', data: { orderSn } }).then((res) => {
+    api({ url: `/api/orders/${orderSn}/pay`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '支付成功' })
       this.loadOrders()
@@ -177,7 +187,7 @@ BasePage({
       confirmText: '确认取消',
       success: (modal) => {
         if (!modal.confirm) return
-        api({ url: '/api/order/cancel', method: 'POST', data: { orderSn } }).then((res) => {
+        api({ url: `/api/orders/${orderSn}/cancel`, method: 'POST' }).then((res) => {
           if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
           wx.showToast({ title: '已取消' })
           this.loadOrders()
@@ -188,7 +198,7 @@ BasePage({
 
   ship(e) {
     const orderSn = e.currentTarget.dataset.sn
-    api({ url: '/api/order/ship', method: 'POST', data: { orderSn } }).then((res) => {
+    api({ url: `/api/orders/${orderSn}/ship`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已更新履约进度' })
       this.loadOrders()
@@ -205,7 +215,7 @@ BasePage({
         if (!res.confirm) return
         const reason = String(res.content || '').trim()
         if (reason.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
-        api({ url: '/api/order/refund', method: 'POST', data: { orderSn, reason } }).then((apiRes) => {
+        api({ url: `/api/orders/${orderSn}/refunds`, method: 'POST', data: { reason } }).then((apiRes) => {
           if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '已提交售后' })
           this.loadOrders()
@@ -224,7 +234,7 @@ BasePage({
         if (!res.confirm) return
         const content = String(res.content || '').trim()
         if (content.length < 6) return wx.showToast({ title: '请至少填写 6 个字说明', icon: 'none' })
-        api({ url: '/api/order/complaint', method: 'POST', data: { orderSn, content } }).then((apiRes) => {
+        api({ url: `/api/orders/${orderSn}/complaints`, method: 'POST', data: { content } }).then((apiRes) => {
           if (apiRes.code !== 200) return wx.showToast({ title: apiRes.msg, icon: 'none' })
           wx.showToast({ title: '投诉已提交' })
           this.loadOrders()
@@ -261,7 +271,7 @@ BasePage({
     this.loadingOrders = true
     this.lastLoadAt = Date.now()
     this.setData({ loadingOrders: true })
-    api({ url: '/api/order/list' }).then((res) => {
+    api({ url: '/api/orders' }).then((res) => {
       const orders = (res.data.list || []).map(decorateOrder)
       this.setData({
         orders,

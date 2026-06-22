@@ -60,7 +60,7 @@
         <text class="tag">{{browseHistory.length}} 条</text>
       </view>
       <view wx:if="{{!hasBrowseHistory}}" class="empty-line">暂无浏览记录</view>
-      <view wx:for="{{browseHistory}}" wx:key="id" class="history-row" data-id="{{item.id}}" bindtap="openBrowseItem">
+      <view wx:for="{{browseHistory}}" wx:key="id" class="history-row" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openBrowseItem">
         <view>
           <view class="history-title">{{item.title}}</view>
           <view class="muted">{{item.category}} · {{item.location}}</view>
