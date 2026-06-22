@@ -455,6 +455,10 @@ BasePage({
     const payload = Object.assign({}, form, {
       type: this.data.activeType === 'goods' ? 'goods' : this.data.activeType === 'errand' ? 'errand' : 'service',
       location: this.data.activeType === 'errand' ? `${form.pickupLocation} -> ${form.deliveryLocation}` : form.location,
+      pickupLocation: String(form.pickupLocation || '').trim(),
+      deliveryLocation: String(form.deliveryLocation || '').trim(),
+      pickup_location: String(form.pickupLocation || '').trim(),
+      delivery_location: String(form.deliveryLocation || '').trim(),
       images: (form.images || []).filter((item) => item.status === 'done').map(getImageDisplayUrl).filter(Boolean),
       imageObjects: (form.images || []).filter((item) => item.status === 'done').map((item) => ({
         url: getImageDisplayUrl(item),

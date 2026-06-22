@@ -121,13 +121,14 @@ function validateAuthPayload(url, payload) {
 function applySuccessfulSideEffects(url, payload, method) {
   if (!payload || payload.code !== 200) return
   const normalized = normalizedApiUrl(url)
+  const baseUrl = requestBaseUrl({ url }, getApp())
   if (normalized === '/api/auth/login') {
     const session = payload.data || {}
-    if (session.token) store.setSession(session.token, session.user || session)
+    if (session.token) store.setSession(session.token, normalizeAssetUrls(session.user || session, baseUrl))
   } else if (normalized === '/api/auth/logout') {
     store.logout()
   } else if (normalized === '/api/user/profile') {
-    const data = Object.assign({}, payload.data || {})
+    const data = normalizeAssetUrls(Object.assign({}, payload.data || {}), baseUrl)
     if ((method || 'GET').toUpperCase() === 'GET') {
       const current = store.getState().user || {}
       if (!data.phone && current.phone) data.phone = current.phone
@@ -137,11 +138,16 @@ function applySuccessfulSideEffects(url, payload, method) {
   } else if (normalized === '/api/user/verify') {
     const data = payload.data || {}
     const patch = Object.assign({}, data)
+    patch.verificationStatus = data.status || data.verificationStatus || 'pending'
+    patch.verified = data.verified === true || data.status === 'approved'
     delete patch.status
     store.updateUser(patch)
   } else if (normalized === '/api/user/role') {
     const data = payload.data || {}
     if (data.role) store.setRoleCertification(data.role, data)
+  } else if (normalized === '/api/user/avatar') {
+    const data = normalizeAssetUrls(payload.data || {}, baseUrl)
+    if (data.avatar) store.updateUser({ avatar: data.avatar })
   } else if (normalized === '/api/account/recharge') {
     const data = payload.data || {}
     if (data.balance !== undefined) store.updateUser({ balance: data.balance })

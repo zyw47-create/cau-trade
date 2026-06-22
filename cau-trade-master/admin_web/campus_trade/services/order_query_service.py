@@ -357,6 +357,15 @@ def decorate_order(row: dict, viewer_id: int | None = None) -> dict:
         "hasComment": has_comment,
         "canComment": status == "completed" and not has_comment,
     }
+    if item_type == "errand":
+        order["errandDetail"] = {
+            "description": row.get("item_desc") or row.get("remark") or "",
+            "pickupLocation": row.get("pickup_location") or "",
+            "deliveryLocation": row.get("delivery_location") or "",
+            "routeText": " -> ".join(
+                [value for value in [row.get("pickup_location"), row.get("delivery_location")] if value]
+            ),
+        }
     return order
 
 
@@ -460,4 +469,11 @@ def get_order_detail_for_user(user_id: int, order_sn: str) -> dict | None:
         order["rawEvents"] = event_timeline
     order["timeline"] = timeline
     order["summaryEvents"] = [item["title"] for item in timeline if item.get("done")][-3:]
+    detail = order.get("errandDetail") or {}
+    if detail:
+        order["summaryCards"] = [
+            {"label": "任务说明", "value": detail.get("description") or "暂无补充说明"},
+            {"label": "取件地点", "value": detail.get("pickupLocation") or "待沟通"},
+            {"label": "送达地点", "value": detail.get("deliveryLocation") or "待沟通"},
+        ]
     return order

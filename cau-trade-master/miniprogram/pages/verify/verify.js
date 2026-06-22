@@ -55,10 +55,12 @@ Page({
 
   syncUserState() {
     const state = store.getState()
+    const verificationStatus = state.user ? (state.user.verificationStatus || '') : ''
+    const isPending = verificationStatus === 'pending'
     const user = state.user ? Object.assign({}, state.user, {
-      verifyText: state.user.verified ? '已实名' : '待认证',
+      verifyText: state.user.verified ? '已实名' : (isPending ? '待管理员审核' : '待认证'),
       verifyClass: state.user.verified ? 'ok' : 'warn',
-      submitText: state.user.verified ? '更新实名资料' : '提交认证'
+      submitText: isPending ? '更新实名申请' : (state.user.verified ? '更新实名资料' : '提交认证')
     }) : null
     this.setData({
       isLogin: state.isLogin,
@@ -214,8 +216,8 @@ Page({
       this.setData({ countdown: 0 })
       api({ url: '/api/user/profile' }).then(() => this.syncUserState())
       wx.showModal({
-        title: '认证通过',
-        content: '学校邮箱已验证，可继续发布、下单和聊天。',
+        title: '已提交审核',
+        content: '学校邮箱验证码已通过，实名资料已提交到管理员端。管理员审核通过后才能发布、申请服务者/骑手权限。',
         showCancel: false,
         success: () => wx.switchTab({ url: '/pages/profile/profile' })
       })

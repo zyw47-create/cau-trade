@@ -141,9 +141,12 @@ BasePage({
         return
       }
       this.onShow()
+      const pending = res.data && res.data.status === 'pending'
       wx.showModal({
-        title: this.data.config.successText,
-        content: `${this.data.config.roleText}权限已开通，可在对应业务中使用。`,
+        title: pending ? '已提交审核' : this.data.config.successText,
+        content: pending
+          ? `${this.data.config.roleText}资料已提交到管理员端，审核通过后才能使用对应业务。`
+          : `${this.data.config.roleText}权限已开通，可在对应业务中使用。`,
         showCancel: false,
         success: () => wx.switchTab({ url: '/pages/profile/profile' })
       })

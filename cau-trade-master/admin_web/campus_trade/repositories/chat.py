@@ -89,6 +89,20 @@ def list_conversations(user_id: int) -> list[dict]:
             .limit(1)
             .scalar_subquery()
         )
+        last_message_id = (
+            select(Message.id)
+            .where(Message.conversation_id == Conversation.id, Message.status == "normal")
+            .order_by(desc(Message.created_at), desc(Message.id))
+            .limit(1)
+            .scalar_subquery()
+        )
+        last_sender_id = (
+            select(Message.sender_id)
+            .where(Message.conversation_id == Conversation.id, Message.status == "normal")
+            .order_by(desc(Message.created_at), desc(Message.id))
+            .limit(1)
+            .scalar_subquery()
+        )
         latest_hash = (
             select(Message.content_hash)
             .where(Message.conversation_id == Conversation.id, Message.status == "normal")
@@ -108,6 +122,8 @@ def list_conversations(user_id: int) -> list[dict]:
                 peer_id_expr.label("peer_id"),
                 peer.c.nickname.label("peer_name"),
                 peer.c.username.label("peer_username"),
+                last_message_id.label("last_message_id"),
+                last_sender_id.label("last_sender_id"),
                 last_content.label("last_message"),
                 latest_hash.label("latest_hash"),
                 Conversation.last_message_at.label("last_time"),

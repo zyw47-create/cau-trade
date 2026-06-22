@@ -35,10 +35,27 @@ const LEGACY_KEYS = {
 }
 
 const HISTORY_LIMIT = 20
+const DEFAULT_API_BASE_URL = 'http://127.0.0.1:5000'
+
+function getAssetBaseUrl() {
+  const app = typeof getApp === 'function' ? getApp() : null
+  return (app && app.globalData && app.globalData.baseUrl) || DEFAULT_API_BASE_URL
+}
+
+function normalizeUserAssets(user) {
+  if (!user || typeof user !== 'object') return user
+  const next = Object.assign({}, user)
+  ;['avatar', 'avatarUrl', 'avatar_url'].forEach((key) => {
+    if (typeof next[key] === 'string' && next[key].indexOf('/uploads/') === 0) {
+      next[key] = `${getAssetBaseUrl()}${next[key]}`
+    }
+  })
+  return next
+}
 
 function bootstrap() {
   state.token = wx.getStorageSync(STORAGE_KEYS.token) || wx.getStorageSync(LEGACY_KEYS.token) || ''
-  state.user = wx.getStorageSync(STORAGE_KEYS.user) || wx.getStorageSync(LEGACY_KEYS.user) || null
+  state.user = normalizeUserAssets(wx.getStorageSync(STORAGE_KEYS.user) || wx.getStorageSync(LEGACY_KEYS.user) || null)
   if (state.token) wx.setStorageSync(STORAGE_KEYS.token, state.token)
   if (state.user) wx.setStorageSync(STORAGE_KEYS.user, state.user)
   wx.setStorageSync(STORAGE_KEYS.version, '1')
@@ -56,7 +73,7 @@ function getState() {
 
 function setSession(token, user) {
   state.token = token || state.token
-  state.user = Object.assign({}, defaultUser, user || {})
+  state.user = normalizeUserAssets(Object.assign({}, defaultUser, user || {}))
   wx.setStorageSync(STORAGE_KEYS.token, state.token)
   wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return getState()
@@ -72,7 +89,7 @@ function logout() {
 }
 
 function updateUser(patch) {
-  state.user = Object.assign({}, state.user || defaultUser, patch)
+  state.user = normalizeUserAssets(Object.assign({}, state.user || defaultUser, patch))
   wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return state.user
 }
@@ -94,6 +111,11 @@ function setRoleCertification(role, payload) {
   const patch = { roleCertifications: next }
   if (status === 'approved') patch.role = role
   return updateUser(patch)
+}
+
+function setUnreadCount(count) {
+  const app = typeof getApp === 'function' ? getApp() : null
+  if (app && app.globalData) app.globalData.unreadCount = Math.max(0, Number(count || 0))
 }
 
 function requireLogin() {
@@ -256,6 +278,7 @@ module.exports = {
   clearBrowseHistory,
   getConversationReadId,
   markConversationRead,
+  setUnreadCount,
   setPendingCategory,
   takePendingCategory,
   setPendingChat,

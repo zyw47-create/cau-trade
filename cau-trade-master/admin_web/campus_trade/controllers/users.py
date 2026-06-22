@@ -97,12 +97,11 @@ def api_user_credit():
 @require_api_auth
 def api_user_role():
     try:
-        config = app_config()
         result = user_service.request_role(
             current_user_id(),
             request_json(),
-            auto_approve=not config.is_production,
-            admin_id=config.admin_id,
+            auto_approve=False,
+            admin_id=app_config().admin_id,
         )
     except UserError as exc:
         return api_error(exc)
@@ -110,6 +109,23 @@ def api_user_role():
         return api_error(exc)
     message = "角色申请已提交，等待管理员审核" if result.get("status") == "pending" else "success"
     return api_ok(result, message)
+
+
+@bp.route("/api/user/avatar", methods=["POST"])
+@bp.route("/v1/api/user/avatar", methods=["POST"])
+@require_api_auth
+def api_user_avatar():
+    data = request_json()
+    avatar = str(data.get("avatar") or data.get("avatarUrl") or "").strip()
+    if not avatar:
+        return api_error("missing avatar url")
+    try:
+        account_service.update_avatar(current_user_id(), avatar)
+    except AccountError as exc:
+        return api_error(exc)
+    except DatabaseError as exc:
+        return api_error(exc)
+    return api_user_profile()
 
 
 @bp.route("/api/account/logs")
@@ -130,7 +146,16 @@ def api_rider_earnings():
         return api_error(exc, 403, 403)
     except DatabaseError as exc:
         return api_error(exc)
-    return api_ok({"total": summary["total"], "list": [row_to_api(row) for row in summary["list"]]})
+    return api_ok(
+        {
+            "total": summary["total"],
+            "amount": summary["amount"],
+            "pendingAmount": summary["pendingAmount"],
+            "acceptedCount": summary["acceptedCount"],
+            "list": [row_to_api(row) for row in summary["list"]],
+            "withdraws": [row_to_api(row) for row in summary["withdraws"]],
+        }
+    )
 
 
 @bp.route("/api/rider/withdraw", methods=["POST"])

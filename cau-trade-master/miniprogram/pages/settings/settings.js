@@ -48,15 +48,19 @@ Page({
       state,
       user,
       roles: visibleRoles.map((item) => {
-        const certified = Boolean(roleCertifications[item.value] && roleCertifications[item.value].status === 'approved')
+        const cert = roleCertifications[item.value] || null
+        const certified = Boolean(cert && cert.status === 'approved')
+        const pending = Boolean(cert && cert.status === 'pending')
         const current = state.role === item.value
         return Object.assign({}, item, {
-          statusText: current ? '当前身份' : certified ? '已认证' : '未认证',
+          statusText: current ? '当前身份' : certified ? '已认证' : pending ? '待审核' : '未认证',
           statusType: current || certified ? 'ok' : 'warn',
           buttonText: item.value === 'admin'
             ? '进入后台'
             : certified
               ? (current ? '查看资料' : '切换身份')
+              : pending
+                ? '查看申请'
               : '去申请'
         })
       }),

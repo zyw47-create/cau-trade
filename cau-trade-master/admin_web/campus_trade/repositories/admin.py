@@ -23,6 +23,7 @@ from models import (
     WalletLog,
     WithdrawRequest,
 )
+from ..crypto_utils import stable_sensitive_hash
 from ..database import engine, session_scope
 
 
@@ -417,7 +418,24 @@ def fetch_pending_goods() -> list[dict]:
             .order_by(desc(Goods.created_at))
             .limit(50)
         )
-        return [dict(row._mapping) for row in rows]
+        result = []
+        for row in rows:
+            data = dict(row._mapping)
+            marker = str(data.get("student_id_enc") or "")
+            if marker == "ROLE_PROVIDER":
+                data["application_type"] = "role"
+                data["application_title"] = "服务者认证"
+                data["material_label"] = "服务者资料"
+            elif marker == "ROLE_RIDER":
+                data["application_type"] = "role"
+                data["application_title"] = "骑手认证"
+                data["material_label"] = "骑手资料"
+            else:
+                data["application_type"] = "identity"
+                data["application_title"] = "实名认证"
+                data["material_label"] = "学号/姓名"
+            result.append(data)
+        return result
 
 
 def fetch_refunds() -> list[dict]:
@@ -754,8 +772,8 @@ def audit_verification(verification_id: int, result: str, note: str, admin_id: i
             else:
                 user.is_verified = 1
                 user.status = "active"
-                user.student_id_enc = verification.student_id_enc
-                user.real_name_enc = verification.real_name_enc
+                user.student_id_enc = stable_sensitive_hash(verification.student_id_enc, "student_id")
+                user.real_name_enc = stable_sensitive_hash(verification.real_name_enc, "real_name")
                 user.college = verification.college
                 next_score = min(100, int(user.credit_score) + 5)
                 change = max(0, next_score - int(user.credit_score))
@@ -780,16 +798,24 @@ def audit_verification(verification_id: int, result: str, note: str, admin_id: i
             verification.reviewer_id = normalized_admin_id
             verification.review_note = note
             verification.reviewed_at = now
-            approved_count = session.scalar(
-                select(func.count()).select_from(UserVerification).where(
-                    and_(UserVerification.user_id == user.id, UserVerification.status == "approved")
+            if target_role:
+                after = {"status": "rejected", "role": target_role, "note": note}
+                action = "role application rejected"
+            else:
+                approved_count = session.scalar(
+                    select(func.count()).select_from(UserVerification).where(
+                        and_(
+                            UserVerification.user_id == user.id,
+                            UserVerification.status == "approved",
+                            ~UserVerification.student_id_enc.in_(["ROLE_PROVIDER", "ROLE_RIDER"]),
+                        )
+                    )
                 )
-            )
-            if int(approved_count or 0) == 0:
-                user.is_verified = 0
-                user.status = "pending_verify"
-            after = {"status": "rejected", "note": note}
-            action = "real-name verification rejected"
+                if int(approved_count or 0) == 0:
+                    user.is_verified = 0
+                    user.status = "pending_verify"
+                after = {"status": "rejected", "note": note}
+                action = "real-name verification rejected"
         user.updated_at = now
         session.add(
             AdminAuditLog(

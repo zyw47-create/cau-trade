@@ -135,7 +135,7 @@ def publish_service_or_errand(user_id: int, data: dict) -> dict:
         delivery = data.get("deliveryLocation") or data.get("delivery_location")
         if not pickup or not delivery:
             raise BusinessError("pickup and delivery locations are required")
-        task_status = "unpaid"
+        task_status = "waiting_accept"
         order_sn = _order_sn("ER")
         created = content_repository.create_errand_with_order_and_audit(
             user_id,

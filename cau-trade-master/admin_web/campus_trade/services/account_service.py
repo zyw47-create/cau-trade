@@ -26,16 +26,26 @@ def list_wallet_logs(user_id: int) -> list[dict]:
 
 
 def list_rider_earnings(user_id: int) -> dict:
-    if user_repository.get_user_role(user_id) not in {"rider", "admin"}:
-        raise AccountError("rider role is required before viewing rider earnings")
+    if user_repository.get_user_role(user_id) not in {"rider", "provider", "admin"}:
+        raise AccountError("rider or provider role is required before viewing earnings")
     rows = account_repository.list_rider_earnings(user_id)
+    withdraws = account_repository.list_withdraw_requests(user_id)
     total = sum(Decimal(row["amount"]) for row in rows if row["status"] in {"settled", "frozen"})
-    return {"total": str(total), "list": rows}
+    settled = sum(Decimal(row["amount"]) for row in rows if row["status"] == "settled")
+    pending = sum(Decimal(row["amount"]) for row in rows if row["status"] == "frozen")
+    return {
+        "total": str(total),
+        "amount": str(settled),
+        "pendingAmount": str(pending),
+        "acceptedCount": len(rows),
+        "list": rows,
+        "withdraws": withdraws,
+    }
 
 
 def request_withdraw(user_id: int, data: dict) -> dict:
-    if user_repository.get_user_role(user_id) not in {"rider", "admin"}:
-        raise AccountError("rider role is required before requesting withdrawal")
+    if user_repository.get_user_role(user_id) not in {"rider", "provider", "admin"}:
+        raise AccountError("rider or provider role is required before requesting withdrawal")
     amount = _positive_decimal(data.get("amount"))
     withdraw_id = account_repository.request_withdraw(user_id, amount, data.get("reason") or "withdraw request")
     return {"id": withdraw_id, "status": "pending"}
@@ -46,7 +56,23 @@ def get_profile_payload(user_id: int, decrypt_phone) -> dict | None:
     if not user:
         return None
     data = row_to_api(user)
+    identity = user_repository.latest_identity_verification(user_id) or {}
+    identity_api = row_to_api(identity) or {}
+    student_id = identity.get("student_id_enc") or identity_api.get("studentIdEnc") or ""
+    real_name = identity.get("real_name_enc") or identity_api.get("realNameEnc") or ""
+    school_email = identity.get("school_email") or identity_api.get("schoolEmail") or ""
+    if str(student_id).startswith("hmac-sha256:"):
+        student_id = school_email.split("@", 1)[0] if school_email.endswith("@cau.edu.cn") else ""
+    if str(real_name).startswith("hmac-sha256:"):
+        real_name = user.get("nickname") or ""
     data["verified"] = bool(user.get("is_verified"))
+    data["verificationStatus"] = identity.get("status") or identity_api.get("status") or ("approved" if data["verified"] else "")
+    data["verificationId"] = identity.get("id") or identity_api.get("id") or ""
+    data["studentId"] = student_id
+    data["realName"] = real_name
+    data["schoolEmail"] = school_email
+    data["emailVerifiedAt"] = identity.get("email_verified_at") or identity_api.get("emailVerifiedAt") or ""
+    data["reviewNote"] = identity.get("review_note") or identity_api.get("reviewNote") or ""
     data["creditScore"] = user.get("credit_score")
     data["avatar"] = user.get("avatar_url") or ""
     data["phone"] = decrypt_phone(user.get("phone_enc"))
@@ -72,3 +98,10 @@ def update_profile(user_id: int, data: dict, encrypt_phone) -> None:
     from ..repositories import users as user_repository
 
     user_repository.update_profile(user_id, nickname, username, encrypt_phone(phone) if phone else "", address)
+
+
+def update_avatar(user_id: int, avatar_url: str) -> None:
+    text = str(avatar_url or "").strip()
+    if not text:
+        raise AccountError("avatar url is required")
+    user_repository.update_avatar(user_id, text)

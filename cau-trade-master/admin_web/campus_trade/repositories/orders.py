@@ -122,8 +122,7 @@ def pay_order(order_sn: str, user_id: int) -> None:
         order.updated_at = now
         if order.item_type == "errand":
             errand = session.execute(select(ErrandOrder).where(ErrandOrder.id == order.item_id).with_for_update()).scalar_one_or_none()
-            if errand and errand.status == "unpaid":
-                errand.status = "waiting_accept"
+            if errand and errand.status == "waiting_accept":
                 errand.updated_at = now
         session.add(
             OrderFund(
@@ -202,7 +201,7 @@ def cancel_order(order_sn: str, user_id: int, reason: str) -> None:
                 goods.updated_at = now
         elif order.item_type == "errand":
             errand = session.execute(select(ErrandOrder).where(ErrandOrder.id == order.item_id).with_for_update()).scalar_one_or_none()
-            if errand and errand.status in {"unpaid", "waiting_accept"}:
+            if errand and errand.status == "waiting_accept":
                 errand.status = "cancelled"
                 errand.updated_at = now
         session.add(_event(order_sn, old_status, "cancelled", user_id, "cancel", reason or "用户取消订单", now))
@@ -311,9 +310,9 @@ def ship_order(order_sn: str, user_id: int) -> None:
         if not order:
             raise ValueError("order not found")
         if int(order.seller_id) != user_id:
-            raise ValueError("order does not belong to seller")
+            raise ValueError("只有卖家、服务者或接单骑手可以履约")
         if order.status != "confirmed":
-            raise ValueError("order status cannot be shipped")
+            raise ValueError("请先确认订单，确认后才能发货或开始履约")
         now = _now()
         order.status = "shipped"
         order.updated_at = now
@@ -813,5 +812,15 @@ def _order_row(row) -> dict:
     data = dict(row._mapping)
     snapshot = data.pop("item_snapshot") or {}
     data["item_title"] = snapshot.get("title") if isinstance(snapshot, dict) else None
+    if isinstance(snapshot, dict):
+        data["item_snapshot"] = snapshot
+        data["pickup_location"] = snapshot.get("pickup_location") or ""
+        data["delivery_location"] = snapshot.get("delivery_location") or ""
+        data["item_desc"] = snapshot.get("description") or snapshot.get("desc") or ""
+    else:
+        data["item_snapshot"] = {}
+        data["pickup_location"] = ""
+        data["delivery_location"] = ""
+        data["item_desc"] = ""
     data["fund_status"] = data.get("fund_status") or "none"
     return data

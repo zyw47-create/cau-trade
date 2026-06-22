@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import and_, desc, select
+from sqlalchemy import desc, select
 
 from models import Order, OrderFund, User, WalletLog, WithdrawRequest
 from ..database import session_scope
@@ -37,6 +37,9 @@ def list_rider_earnings(user_id: int) -> list[dict]:
     with session_scope() as session:
         rows = session.execute(
             select(
+                Order.item_type,
+                Order.item_id,
+                Order.item_snapshot,
                 OrderFund.order_sn,
                 OrderFund.amount,
                 OrderFund.status,
@@ -44,8 +47,38 @@ def list_rider_earnings(user_id: int) -> list[dict]:
                 OrderFund.created_at,
             )
             .join(Order, Order.order_sn == OrderFund.order_sn)
-            .where(and_(Order.seller_id == user_id, Order.item_type == "errand"))
+            .where(
+                Order.seller_id == user_id,
+                Order.item_type.in_(["goods", "service", "errand"]),
+            )
             .order_by(desc(OrderFund.created_at))
+        )
+        result = []
+        for row in rows:
+            item = dict(row._mapping)
+            snapshot = item.pop("item_snapshot", None) or {}
+            if not isinstance(snapshot, dict):
+                snapshot = {}
+            item["title"] = snapshot.get("title") or "收益订单"
+            item["type_text"] = {"goods": "商品", "service": "服务", "errand": "跑腿"}.get(item.get("item_type"), "订单")
+            result.append(item)
+        return result
+
+
+def list_withdraw_requests(user_id: int) -> list[dict]:
+    with session_scope() as session:
+        rows = session.execute(
+            select(
+                WithdrawRequest.id,
+                WithdrawRequest.amount,
+                WithdrawRequest.reason,
+                WithdrawRequest.status,
+                WithdrawRequest.created_at,
+                WithdrawRequest.reviewed_at,
+            )
+            .where(WithdrawRequest.user_id == user_id)
+            .order_by(desc(WithdrawRequest.created_at), desc(WithdrawRequest.id))
+            .limit(50)
         )
         return [dict(row._mapping) for row in rows]
 

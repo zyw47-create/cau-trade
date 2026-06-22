@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -160,6 +161,35 @@ def _normalized_generated(parsed: dict) -> dict:
     }
 
 
+def _looks_like_normal_listing_text(text: str) -> bool:
+    value = str(text or "")
+    chinese = re.findall(r"[\u4e00-\u9fff]", value)
+    letters = re.findall(r"[A-Za-z]", value)
+    digits = re.findall(r"\d", value)
+    question_marks = value.count("?") + value.count("？")
+    meaningful_count = len(chinese) + len(letters) + len(digits)
+    if meaningful_count < 8:
+        return False
+    if question_marks >= 3 and question_marks >= meaningful_count:
+        return False
+    return True
+
+
+def _is_low_quality_false_positive(reason: str) -> bool:
+    lowered = str(reason or "").lower()
+    markers = [
+        "garbled",
+        "empty",
+        "spam",
+        "nonsensical",
+        "invalid content",
+        "valid product listing",
+        "cannot determine",
+        "question mark",
+    ]
+    return any(marker in lowered for marker in markers)
+
+
 def rule_audit(text: str, rule: dict | None = None) -> AuditResult:
     keywords = _rule_keywords(rule)
     manual_level = (rule or {}).get("manual_risk_level") or "manual"
@@ -306,11 +336,16 @@ def ai_audit(text: str, rule: dict | None = None) -> AuditResult:
         risk = str(parsed.get("risk_level") or "manual").lower()
         if risk not in {"pass", "manual", "reject"}:
             risk = "manual"
+        reason = str(parsed.get("reason") or "AI audit completed")[:255]
+        if risk == "reject" and _is_low_quality_false_positive(reason) and _looks_like_normal_listing_text(text):
+            risk = "pass"
+            parsed["local_quality_override"] = True
+            reason = "AI low-quality rejection overridden after local Chinese text quality check"
         _mark_success()
         return AuditResult(
             provider="deepseek",
             risk_level=risk,
-            reason=str(parsed.get("reason") or "AI audit completed")[:255],
+            reason=reason,
             request_id=request_id,
             raw_result={"deepseek": result, "parsed": parsed},
             generated=_normalized_generated(parsed),

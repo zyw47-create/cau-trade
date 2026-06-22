@@ -74,9 +74,9 @@ Page({
       removed: '已注销'
     }
     const user = state.user ? Object.assign({}, state.user, {
-      verifyText: state.user.verified ? '已实名' : '未实名',
+      verifyText: state.user.verified ? '已实名' : (state.user.verificationStatus === 'pending' ? '实名待审' : '未实名'),
       verifyClass: state.user.verified ? 'ok' : 'warn',
-      verifyButtonText: state.user.verified ? '查看实名' : '去实名认证',
+      verifyButtonText: state.user.verificationStatus === 'pending' ? '查看申请' : (state.user.verified ? '查看实名' : '去实名认证'),
       isAdmin: state.user.role === 'admin',
       canWithdraw: state.user.role === 'rider' || state.user.role === 'provider',
       roleText: roleNames[state.user.role] || state.user.role,
@@ -208,7 +208,59 @@ Page({
   },
 
   chooseAvatar() {
-    wx.showToast({ title: '头像上传需后端文件接口支持', icon: 'none' })
+    if (!store.requireLogin()) return
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        if (!file || !file.tempFilePath) return
+        wx.showLoading({ title: '上传头像' })
+        api({ url: '/api/oss/sts', method: 'POST', data: { scene: 'avatar' } }).then((credentialRes) => {
+          const credential = credentialRes.data || {}
+          const app = getApp()
+          const uploadUrl = credential.uploadUrl || ''
+          const targetUrl = uploadUrl.indexOf('http') === 0 ? uploadUrl : `${app.globalData.baseUrl}${uploadUrl}`
+          return new Promise((resolve, reject) => {
+            wx.uploadFile({
+              url: targetUrl,
+              filePath: file.tempFilePath,
+              name: 'file',
+              formData: {
+                scene: 'avatar',
+                objectKey: `avatar-${Date.now()}.jpg`,
+                uploadToken: credential.uploadToken || ''
+              },
+              success: (uploadRes) => {
+                let body = {}
+                try {
+                  body = JSON.parse(uploadRes.data || '{}')
+                } catch (error) {
+                  body = {}
+                }
+                const url = body.data && body.data.url
+                url ? resolve(url) : reject(new Error('missing url'))
+              },
+              fail: reject
+            })
+          })
+        }).then((avatar) => api({ url: '/api/user/avatar', method: 'POST', data: { avatar } }))
+          .then((saveRes) => {
+            if (saveRes.code !== 200) {
+              wx.showToast({ title: saveRes.msg || '头像保存失败', icon: 'none' })
+              return
+            }
+            wx.showToast({ title: '头像已更新' })
+            this.refresh()
+          }).catch(() => {
+            wx.showToast({ title: '头像上传失败', icon: 'none' })
+          }).finally(() => {
+            wx.hideLoading()
+          })
+      }
+    })
   },
 
   saveProfile() {
@@ -267,7 +319,8 @@ Page({
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
-      wx.showToast({ title: '提现已提交' })
+      const amount = this.data.withdrawAmount
+      wx.showToast({ title: `提现¥${amount}待审核`, icon: 'none' })
       this.setData({ withdrawAmount: '' })
       this.refresh()
     })

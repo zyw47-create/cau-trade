@@ -25,9 +25,10 @@ function decorateOrder(item) {
   const isSeller = item.role === 'seller'
   const isPublisher = item.role === 'publisher'
   const isRider = item.role === 'rider'
+  const canConfirm = isSeller && item.status === 'paid' && !waitingErrandPeer
   const canFulfill = item.itemType === 'errand'
     ? (isRider && item.status === 'confirmed' && !waitingErrandPeer)
-    : (isSeller && item.status === 'paid' && !waitingErrandPeer)
+    : (isSeller && item.status === 'confirmed' && !waitingErrandPeer)
   const canComplete = item.itemType === 'errand'
     ? (isPublisher && item.status === 'shipped')
     : ((isBuyer && item.status === 'shipped') || (isBuyer && item.status === 'paid' && !waitingErrandPeer))
@@ -74,6 +75,7 @@ function decorateOrder(item) {
     autoConfirm,
     canChat: item.canChat !== false && !waitingErrandPeer,
     canPay,
+    canConfirm,
     canShip: canFulfill,
     canReceive: canComplete,
     canCancel,
@@ -201,6 +203,15 @@ BasePage({
     api({ url: `/api/orders/${orderSn}/ship`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已更新履约进度' })
+      this.loadOrders()
+    })
+  },
+
+  confirmOrder(e) {
+    const orderSn = e.currentTarget.dataset.sn
+    api({ url: `/api/orders/${orderSn}/confirm`, method: 'POST' }).then((res) => {
+      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
+      wx.showToast({ title: '已确认订单' })
       this.loadOrders()
     })
   },

@@ -85,6 +85,7 @@
     <view class="action-grid">
       <button wx:if="{{order.canPay}}" class="btn" bindtap="pay">支付</button>
       <button wx:if="{{order.canCancel}}" class="btn secondary" bindtap="cancelOrder">取消订单</button>
+      <button wx:if="{{order.canConfirm}}" class="btn secondary" bindtap="confirmOrder">确认接单</button>
       <button wx:if="{{order.canShip}}" class="btn secondary" bindtap="ship">发货 / 履约</button>
       <button wx:if="{{order.canReceive}}" class="btn" bindtap="receive">确认完成</button>
       <button wx:if="{{order.canRefund}}" class="btn secondary" bindtap="refund">申请售后</button>

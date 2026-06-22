@@ -74,8 +74,6 @@ def request_role(user_id: int, data: dict, *, auto_approve: bool = False, admin_
     marker = ROLE_APPLICATION_PREFIX + role.upper()
     existing = user_repository.find_pending_role_application(user_id, marker)
     if existing:
-        if auto_approve:
-            return user_repository.approve_role_application(user_id, role, admin_id)
         return {"role": role, "status": "pending", "verificationId": existing["id"]}
 
     service_category = str(data.get("serviceCategory") or "").strip()
@@ -88,8 +86,6 @@ def request_role(user_id: int, data: dict, *, auto_approve: bool = False, admin_
         campus_area or service_category or "role_application",
         role,
     )
-    if auto_approve:
-        return user_repository.approve_role_application(user_id, role, admin_id)
     return {"role": role, "status": "pending", "verificationId": verification_id}
 
 
@@ -126,19 +122,27 @@ def verify_campus_identity(user_id: int, data: dict, admin_id: int) -> dict:
     owner_id = user_repository.student_hash_owner(student_enc)
     if owner_id and int(owner_id) != int(user_id):
         raise UserError("student id has already been verified by another account")
-    user_repository.approve_campus_identity(
+    verification_id = user_repository.submit_campus_identity_application(
         user_id,
         record["id"],
-        student_enc,
-        name_enc,
+        student_id,
+        real_name,
         college,
         email,
-        admin_id,
     )
     phone = str(data.get("phone") or "").strip()
     if phone:
         user_repository.update_phone(user_id, encrypt_sensitive(phone))
-    return {"status": "approved", "email": email, "verified": True, "phone": phone, "college": college}
+    return {
+        "status": "pending",
+        "verificationId": verification_id,
+        "email": email,
+        "verified": False,
+        "phone": phone,
+        "college": college,
+        "studentId": student_id,
+        "realName": real_name,
+    }
 
 
 def toggle_goods_favorite(user_id: int, goods_id: int) -> dict:

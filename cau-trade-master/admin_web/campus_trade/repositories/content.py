@@ -173,6 +173,7 @@ def create_errand_with_order_and_audit(
                 item_snapshot={
                     "title": errand.title,
                     "price": str(errand.fee),
+                    "description": errand.description,
                     "pickup_location": errand.pickup_location,
                     "delivery_location": errand.delivery_location,
                 },

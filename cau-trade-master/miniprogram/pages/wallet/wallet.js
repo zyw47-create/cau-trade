@@ -43,11 +43,15 @@ BasePage({
       }
       const latestUser = store.updateUser(profileRes.data || {})
       const logs = (logsRes.data.list || []).map((item) => Object.assign({}, item, {
-        amountText: `${Number(item.amount) >= 0 ? '+' : ''}${item.amount}`,
-        amountClass: Number(item.amount) >= 0 ? 'income' : 'expense'
+        amountText: `${item.direction === 'out' ? '-' : '+'}${item.amount}`,
+        amountClass: item.direction === 'out' ? 'expense' : 'income',
+        balanceAfter: item.balanceAfter || item.balance_after || '0.00',
+        time: item.createdAt || item.created_at || item.time || ''
       }))
       const withdraws = ((earningsRes.data && earningsRes.data.withdraws) || []).map((item) => Object.assign({}, item, {
-        statusText: this.getWithdrawStatus(item.status)
+        statusText: this.getWithdrawStatus(item.status),
+        time: item.createdAt || item.created_at || '',
+        reviewedText: item.reviewedAt || item.reviewed_at || ''
       }))
       this.setData({
         user: latestUser,
@@ -114,7 +118,8 @@ BasePage({
         wx.showToast({ title: res.msg, icon: 'none' })
         return
       }
-      wx.showToast({ title: '提现已提交' })
+      const amount = this.data.withdrawAmount
+      wx.showToast({ title: `提现¥${amount}待审核`, icon: 'none' })
       this.setData({ withdrawAmount: '' })
       this.loadWallet()
     })
