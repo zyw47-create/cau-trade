@@ -48,19 +48,15 @@ Page({
       state,
       user,
       roles: visibleRoles.map((item) => {
-        const cert = roleCertifications[item.value] || null
-        const certified = Boolean(cert && cert.status === 'approved')
-        const pending = Boolean(cert && cert.status === 'pending')
+        const certified = Boolean(roleCertifications[item.value] && roleCertifications[item.value].status === 'approved')
         const current = state.role === item.value
         return Object.assign({}, item, {
-          statusText: current ? '当前身份' : certified ? '已认证' : pending ? '待审核' : '未认证',
+          statusText: current ? '当前身份' : certified ? '已认证' : '未认证',
           statusType: current || certified ? 'ok' : 'warn',
           buttonText: item.value === 'admin'
             ? '进入后台'
             : certified
               ? (current ? '查看资料' : '切换身份')
-              : pending
-                ? '查看申请'
               : '去申请'
         })
       }),
@@ -93,11 +89,58 @@ Page({
     })
   },
 
+  chooseAvatar() {
+    if (!store.requireLogin()) return
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        this.uploadAvatarFile(file && file.tempFilePath)
+      },
+      fail: () => {}
+    })
+  },
+
   onProfileInput(e) {
     const key = e.currentTarget.dataset.key
     this.setData({ [`profileForm.${key}`]: e.detail.value })
   },
 
+  uploadAvatarFile(filePath) {
+    if (!filePath || this.avatarUploading) return
+    this.avatarUploading = true
+    wx.showLoading({ title: '\u4e0a\u4f20\u4e2d', mask: true })
+    api({ url: '/api/files/upload-credential', method: 'POST', data: { scene: 'avatars' } }).then((res) => {
+      if (res.code !== 200) throw new Error(res.msg || '\u83b7\u53d6\u4e0a\u4f20\u51ed\u8bc1\u5931\u8d25')
+      const credential = res.data || {}
+      const baseUrl = (getApp().globalData && getApp().globalData.baseUrl) || ''
+      const relativeUploadUrl = credential.uploadUrl || '/api/files/upload'
+      return new Promise((resolve, reject) => wx.uploadFile({
+        url: /^https?:/i.test(relativeUploadUrl) ? relativeUploadUrl : baseUrl + relativeUploadUrl,
+        filePath,
+        name: 'file',
+        formData: { scene: credential.scene || 'avatars', uploadToken: credential.uploadToken || '', objectKey: 'avatar.jpg' },
+        success: (uploadRes) => {
+          let payload = {}
+          try { payload = JSON.parse(uploadRes.data || '{}') } catch (err) {}
+          if (payload.code !== 200 || !payload.data || !payload.data.url) return reject(new Error(payload.msg || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+          resolve({ avatar: payload.data.url, baseUrl })
+        },
+        fail: () => reject(new Error('\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+      }))
+    }).then(({ avatar, baseUrl }) => api({ url: '/api/user/profile', method: 'PUT', data: Object.assign({}, this.data.profileForm || {}, { avatar }) }).then((saved) => {
+      if (saved.code !== 200) throw new Error(saved.msg || '\u5934\u50cf\u4fdd\u5b58\u5931\u8d25')
+      store.updateUser({ avatar: /^https?:/i.test(avatar) ? avatar : baseUrl + avatar })
+      wx.showToast({ title: '\u5934\u50cf\u5df2\u66f4\u65b0' })
+      this.refresh()
+    })).catch((err) => wx.showToast({ title: err.message || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25', icon: 'none' })).finally(() => {
+      this.avatarUploading = false
+      wx.hideLoading()
+    })
+  },
   saveProfile() {
     if (!store.requireLogin()) return
     api({ url: '/api/user/profile', method: 'PUT', data: this.data.profileForm }).then(() => {

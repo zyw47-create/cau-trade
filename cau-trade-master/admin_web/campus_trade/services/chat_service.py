@@ -66,8 +66,6 @@ def list_conversations(user_id: int) -> list[dict]:
         item["businessId"] = row.get("business_id")
         item["messages"] = [
             {
-                "id": row.get("last_message_id"),
-                "from": "me" if int(row.get("last_sender_id") or 0) == int(user_id) else "other",
                 "content": row.get("last_message") or "",
                 "hash": row.get("latest_hash") or "SHA256-EMPTY",
             }

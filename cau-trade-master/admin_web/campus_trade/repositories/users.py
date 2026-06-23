@@ -149,35 +149,6 @@ def get_profile(user_id: int) -> dict | None:
         }
 
 
-def latest_identity_verification(user_id: int) -> dict | None:
-    with session_scope() as session:
-        record = session.execute(
-            select(UserVerification)
-            .where(
-                and_(
-                    UserVerification.user_id == user_id,
-                    ~UserVerification.student_id_enc.in_(["ROLE_PROVIDER", "ROLE_RIDER"]),
-                )
-            )
-            .order_by(desc(UserVerification.created_at), desc(UserVerification.id))
-            .limit(1)
-        ).scalar_one_or_none()
-        if not record:
-            return None
-        return {
-            "id": record.id,
-            "student_id_enc": record.student_id_enc,
-            "real_name_enc": record.real_name_enc,
-            "college": record.college,
-            "school_email": record.school_email,
-            "email_verified_at": record.email_verified_at,
-            "status": record.status,
-            "review_note": record.review_note,
-            "reviewed_at": record.reviewed_at,
-            "created_at": record.created_at,
-        }
-
-
 def list_role_certifications(user_id: int, current_role: str | None = None) -> dict:
     role_markers = {"ROLE_PROVIDER": "provider", "ROLE_RIDER": "rider"}
     certifications: dict[str, dict] = {}
@@ -220,7 +191,7 @@ def list_role_certifications(user_id: int, current_role: str | None = None) -> d
     return certifications
 
 
-def update_profile(user_id: int, nickname: str, username: str, phone_enc: str, address: str) -> None:
+def update_profile(user_id: int, nickname: str, username: str, phone_enc: str, address: str, avatar_url: str = "") -> None:
     with session_scope() as session:
         user = session.get(User, user_id)
         if user:
@@ -228,14 +199,8 @@ def update_profile(user_id: int, nickname: str, username: str, phone_enc: str, a
             user.username = username
             user.phone_enc = phone_enc
             user.address = address
-            user.updated_at = _now()
-
-
-def update_avatar(user_id: int, avatar_url: str) -> None:
-    with session_scope() as session:
-        user = session.get(User, user_id)
-        if user:
-            user.avatar_url = str(avatar_url or "")[:255] or None
+            if avatar_url:
+                user.avatar_url = avatar_url[:255]
             user.updated_at = _now()
 
 
@@ -600,47 +565,6 @@ def approve_campus_identity(
     real_name_hash: str,
     college: str,
     email: str,
-    admin_id: int,
-) -> None:
-    with session_scope() as session:
-        now = _now()
-        code_record = session.get(EmailVerificationCode, record_id)
-        if code_record:
-            code_record.status = "verified"
-            code_record.verified_at = now
-            code_record.updated_at = now
-        user = session.get(User, user_id)
-        if user:
-            user.student_id_enc = student_hash
-            user.real_name_enc = real_name_hash
-            user.college = college
-            user.is_verified = 1
-            user.status = "active"
-            user.updated_at = now
-        session.add(
-            UserVerification(
-                user_id=user_id,
-                student_id_enc=student_hash,
-                real_name_enc=real_name_hash,
-                college=college,
-                school_email=email,
-                email_verified_at=now,
-                status="approved",
-                reviewer_id=admin_id,
-                review_note="Campus email code verified automatically",
-                reviewed_at=now,
-                created_at=now,
-            )
-        )
-
-
-def submit_campus_identity_application(
-    user_id: int,
-    record_id: int,
-    student_hash: str,
-    real_name_hash: str,
-    college: str,
-    email: str,
 ) -> int:
     with session_scope() as session:
         now = _now()
@@ -649,10 +573,20 @@ def submit_campus_identity_application(
             code_record.status = "verified"
             code_record.verified_at = now
             code_record.updated_at = now
-        user = session.get(User, user_id)
-        if user:
-            user.status = "pending_verify"
-            user.updated_at = now
+        existing = session.execute(
+            select(UserVerification)
+            .where(
+                and_(
+                    UserVerification.user_id == user_id,
+                    UserVerification.student_id_enc == student_hash,
+                    UserVerification.status == "pending",
+                )
+            )
+            .order_by(desc(UserVerification.id))
+            .limit(1)
+        ).scalar_one_or_none()
+        if existing:
+            return int(existing.id)
         verification = UserVerification(
             user_id=user_id,
             student_id_enc=student_hash,
@@ -661,14 +595,12 @@ def submit_campus_identity_application(
             school_email=email,
             email_verified_at=now,
             status="pending",
-            review_note="Campus email verified; waiting admin review",
+            review_note="Campus email verified; awaiting manual review",
             created_at=now,
         )
         session.add(verification)
         session.flush()
         return int(verification.id)
-
-
 def toggle_goods_favorite(user_id: int, goods_id: int) -> dict | None:
     with session_scope() as session:
         goods = session.execute(

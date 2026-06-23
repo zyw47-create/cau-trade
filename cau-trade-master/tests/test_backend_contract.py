@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import re
@@ -575,7 +575,8 @@ def test_identity_verification_accepts_frontend_student_id_length(monkeypatch):
         99,
     )
 
-    assert result["verified"] is True
+    assert result["verified"] is False
+    assert result["status"] == "pending"
 
 
 def test_student_email_must_match_student_id():

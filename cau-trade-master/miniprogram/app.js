@@ -1,4 +1,4 @@
-const store = require('./utils/store')
+﻿const store = require('./utils/store')
 
 App({
   globalData: {
@@ -15,3 +15,5 @@ App({
     store.bootstrap()
   }
 })
+
+

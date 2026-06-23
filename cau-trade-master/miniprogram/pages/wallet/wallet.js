@@ -42,16 +42,18 @@ BasePage({
         return
       }
       const latestUser = store.updateUser(profileRes.data || {})
-      const logs = (logsRes.data.list || []).map((item) => Object.assign({}, item, {
-        amountText: `${item.direction === 'out' ? '-' : '+'}${item.amount}`,
-        amountClass: item.direction === 'out' ? 'expense' : 'income',
-        balanceAfter: item.balanceAfter || item.balance_after || '0.00',
-        time: item.createdAt || item.created_at || item.time || ''
-      }))
-      const withdraws = ((earningsRes.data && earningsRes.data.withdraws) || []).map((item) => Object.assign({}, item, {
-        statusText: this.getWithdrawStatus(item.status),
-        time: item.createdAt || item.created_at || '',
-        reviewedText: item.reviewedAt || item.reviewed_at || ''
+      const expenseTypes = { pay: true, payment: true, withdraw: true, refund_out: true, escrow: true }
+      const logs = (logsRes.data.list || []).map((item) => {
+        const amount = Math.abs(Number(item.amount || 0))
+        const isExpense = item.direction === 'out' || expenseTypes[item.type]
+        return Object.assign({}, item, {
+          amountText: (isExpense ? '-' : '+') + amount.toFixed(2),
+          amountClass: isExpense ? 'expense' : 'income'
+        })
+      })
+      const earningsData = earningsRes.data || {}
+      const withdraws = (earningsData.withdraws || earningsData.list || []).map((item) => Object.assign({}, item, {
+        statusText: this.getWithdrawStatus(item.status)
       }))
       this.setData({
         user: latestUser,
@@ -119,7 +121,8 @@ BasePage({
         return
       }
       const amount = this.data.withdrawAmount
-      wx.showToast({ title: `提现¥${amount}待审核`, icon: 'none' })
+      wx.showToast({ title: '\u63d0\u73b0\u7533\u8bf7\u5df2\u63d0\u4ea4' })
+      wx.showModal({ title: '?????', content: '??? ?' + amount + ' ?????????????????', showCancel: false })
       this.setData({ withdrawAmount: '' })
       this.loadWallet()
     })

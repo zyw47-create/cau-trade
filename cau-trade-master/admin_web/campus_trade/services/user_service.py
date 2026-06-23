@@ -16,6 +16,17 @@ class UserError(ValueError):
 
 
 ROLE_APPLICATION_PREFIX = "ROLE_"
+TRUSTED_CREDIT_MINIMUM = 60
+
+
+def is_trusted_for_business(user_id: int) -> bool:
+    user = user_repository.get_profile(user_id)
+    if not user:
+        return False
+    if user.get("role") == "admin":
+        return True
+    return int(user.get("credit_score") or 0) >= TRUSTED_CREDIT_MINIMUM
+
 
 
 def _to_int(value, default: int = 0) -> int:
@@ -74,6 +85,8 @@ def request_role(user_id: int, data: dict, *, auto_approve: bool = False, admin_
     marker = ROLE_APPLICATION_PREFIX + role.upper()
     existing = user_repository.find_pending_role_application(user_id, marker)
     if existing:
+        if auto_approve:
+            return user_repository.approve_role_application(user_id, role, admin_id)
         return {"role": role, "status": "pending", "verificationId": existing["id"]}
 
     service_category = str(data.get("serviceCategory") or "").strip()
@@ -86,6 +99,8 @@ def request_role(user_id: int, data: dict, *, auto_approve: bool = False, admin_
         campus_area or service_category or "role_application",
         role,
     )
+    if auto_approve:
+        return user_repository.approve_role_application(user_id, role, admin_id)
     return {"role": role, "status": "pending", "verificationId": verification_id}
 
 
@@ -122,27 +137,19 @@ def verify_campus_identity(user_id: int, data: dict, admin_id: int) -> dict:
     owner_id = user_repository.student_hash_owner(student_enc)
     if owner_id and int(owner_id) != int(user_id):
         raise UserError("student id has already been verified by another account")
-    verification_id = user_repository.submit_campus_identity_application(
+    verification_id = user_repository.approve_campus_identity(
         user_id,
         record["id"],
-        student_id,
-        real_name,
+        student_enc,
+        name_enc,
         college,
         email,
+        admin_id,
     )
     phone = str(data.get("phone") or "").strip()
     if phone:
         user_repository.update_phone(user_id, encrypt_sensitive(phone))
-    return {
-        "status": "pending",
-        "verificationId": verification_id,
-        "email": email,
-        "verified": False,
-        "phone": phone,
-        "college": college,
-        "studentId": student_id,
-        "realName": real_name,
-    }
+    return {"status": "pending", "verificationId": verification_id, "email": email, "verified": False, "phone": phone, "college": college}
 
 
 def toggle_goods_favorite(user_id: int, goods_id: int) -> dict:

@@ -92,7 +92,9 @@ Every canonical route below is also registered under `/v1/api/*` with the same m
 | `/api/admin/orders/refunding` | GET | admin bearer |
 | `/api/admin/refunds/<int:refund_id>/arbitration` | POST | admin bearer + idempotency |
 | `/api/admin/withdraws` | GET | admin bearer |
-| `/api/admin/withdraws/<int:withdraw_id>/audit` | POST | admin bearer + idempotency |
+| `/api/admin/withdraws/<int:withdraw_id>/audit`
+- /api/admin/verifications (GET) - list pending and reviewed verification applications.
+- /api/admin/verifications/<int:verification_id>/audit (POST) - approve or reject an identity or role application. | POST | admin bearer + idempotency |
 | `/api/admin/users` | GET | admin bearer |
 | `/api/admin/users/<int:user_id>/status` | PUT | admin bearer + idempotency |
 | `/api/admin/ai/rules` | GET | admin bearer |
@@ -130,3 +132,8 @@ The backend still registers these aliases so old clients fail gracefully during 
 - when `LEGACY_ALLOW_MUTATIONS=1`, this boundary service still returns 501 for writes because it intentionally has no write implementation;
 - read APIs return 410 and direct callers to Flask;
 - write mock fallback and database read mock fallback are not implemented.
+
+## Verification Review APIs
+
+- `/api/admin/verifications` (GET): list identity and role verification applications.
+- `/api/admin/verifications/<int:verification_id>/audit` (POST): approve or reject a pending application.

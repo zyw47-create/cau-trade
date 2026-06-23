@@ -6,6 +6,7 @@ from datetime import datetime
 from ..cache import redis_lock, redis_unlock
 from ..repositories import orders as order_repository
 from ..repositories import users as user_repository
+from . import user_service
 
 
 class OrderError(ValueError):
@@ -138,10 +139,14 @@ def complaint_order(user_id: int, data: dict) -> dict:
         raise OrderError("only order participants can complain")
     if result.get("error") == "closed_after_sale":
         raise OrderError("after-sale or complaint has already been resolved")
+    if result.get("error") == "bad_status":
+        raise OrderError("order status cannot be complained")
     return result
 
 
 def take_errand(user_id: int, data: dict) -> dict:
+    if not user_service.is_trusted_for_business(user_id):
+        raise OrderError("credit score is below 60; taking errands is temporarily restricted")
     if user_repository.get_user_role(user_id) not in {"rider", "admin"}:
         raise OrderError("rider role is required before taking errands")
     errand_id = _to_int(data.get("id") or data.get("errandId"))

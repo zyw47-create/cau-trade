@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import desc, select
+from sqlalchemy import and_, desc, func, select
 
 from models import Order, OrderFund, User, WalletLog, WithdrawRequest
 from ..database import session_scope
@@ -37,20 +37,12 @@ def list_rider_earnings(user_id: int) -> list[dict]:
     with session_scope() as session:
         rows = session.execute(
             select(
-                Order.item_type,
-                Order.item_id,
-                Order.item_snapshot,
-                OrderFund.order_sn,
-                OrderFund.amount,
-                OrderFund.status,
-                OrderFund.settled_at,
-                OrderFund.created_at,
+                Order.item_type, Order.item_id, Order.item_snapshot,
+                OrderFund.order_sn, OrderFund.amount, OrderFund.status,
+                OrderFund.settled_at, OrderFund.created_at,
             )
             .join(Order, Order.order_sn == OrderFund.order_sn)
-            .where(
-                Order.seller_id == user_id,
-                Order.item_type.in_(["goods", "service", "errand"]),
-            )
+            .where(Order.seller_id == user_id)
             .order_by(desc(OrderFund.created_at))
         )
         result = []
@@ -68,14 +60,7 @@ def list_rider_earnings(user_id: int) -> list[dict]:
 def list_withdraw_requests(user_id: int) -> list[dict]:
     with session_scope() as session:
         rows = session.execute(
-            select(
-                WithdrawRequest.id,
-                WithdrawRequest.amount,
-                WithdrawRequest.reason,
-                WithdrawRequest.status,
-                WithdrawRequest.created_at,
-                WithdrawRequest.reviewed_at,
-            )
+            select(WithdrawRequest.id, WithdrawRequest.amount, WithdrawRequest.reason, WithdrawRequest.status, WithdrawRequest.created_at, WithdrawRequest.reviewed_at)
             .where(WithdrawRequest.user_id == user_id)
             .order_by(desc(WithdrawRequest.created_at), desc(WithdrawRequest.id))
             .limit(50)
@@ -85,6 +70,17 @@ def list_withdraw_requests(user_id: int) -> list[dict]:
 
 def request_withdraw(user_id: int, amount: Decimal, reason: str) -> int:
     with session_scope() as session:
+        user = session.execute(select(User).where(User.id == user_id).with_for_update()).scalar_one_or_none()
+        if not user:
+            raise ValueError("user does not exist")
+        pending_amount = session.scalar(
+            select(func.coalesce(func.sum(WithdrawRequest.amount), 0)).where(
+                and_(WithdrawRequest.user_id == user_id, WithdrawRequest.status == "pending")
+            )
+        ) or Decimal("0")
+        available = Decimal(user.balance) - Decimal(pending_amount)
+        if amount > available:
+            raise ValueError("insufficient withdraw balance")
         now = _now()
         record = WithdrawRequest(
             user_id=user_id,

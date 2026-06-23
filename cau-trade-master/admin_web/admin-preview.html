@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>校园二手交易平台管理后台预览</title>
+    <link rel="stylesheet" href="static/admin.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <div class="brand">校园二手交易平台</div>
+        <div class="subtitle">管理员后台 · MySQL 数据联动</div>
+      </div>
+      <nav class="nav">
+        <a href="#goods">内容审核</a>
+        <a href="#refunds">投诉仲裁</a>
+        <a href="#verifications">实名审核</a>
+        <a href="#users">用户治理</a>
+        <a href="#ai-rules">AI 规则</a>
+        <a href="#logs">审计日志</a>
+        <a href="#logout">退出</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="summary-grid">
+        <article class="metric"><span>待审内容</span><strong>12</strong></article>
+        <article class="metric"><span>AI 风险记录</span><strong>8</strong></article>
+        <article class="metric"><span>投诉/售后</span><strong>3</strong></article>
+        <article class="metric"><span>实名待审</span><strong>5</strong></article>
+        <article class="metric"><span>用户数</span><strong>268</strong></article>
+        <article class="metric"><span>订单数</span><strong>91</strong></article>
+        <article class="metric wide"><span>交易金额</span><strong>¥18,620.00</strong></article>
+      </section>
+
+      <section id="goods" class="section-block">
+        <div class="section-head">
+          <div>
+            <h2>AI 违规复核与商品审核</h2>
+            <p>处理 AI 标记为人工复核或疑似违规的内容，审核结果会同步商品状态并写入管理员审计日志。</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>商品</th><th>卖家</th><th>AI 结论</th><th>状态</th><th>处理</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="main-cell">
+                  <strong>数据结构复习资料</strong>
+                  <span>学习资料 · ¥29.90 · 八成新</span>
+                  <small>同校自提，附带重点标注和历年题。</small>
+                </td>
+                <td>
+                  <strong>林同学</strong>
+                  <span>@lin · 信用 96</span>
+                </td>
+                <td>
+                  <span class="badge risk-manual">人工复核</span>
+                  <small>图片文字需人工确认。</small>
+                </td>
+                <td><span class="badge">待审核</span></td>
+                <td class="actions-cell">
+                  <form class="inline-form">
+                    <input placeholder="处理说明" value="内容正常，可通过">
+                    <button type="button" class="primary">通过</button>
+                    <button type="button">驳回</button>
+                    <button type="button" class="danger">下架</button>
+                  </form>
+                </td>
+              </tr>
+              <tr>
+                <td class="main-cell">
+                  <strong>宿舍折叠桌</strong>
+                  <span>生活用品 · ¥35.00 · 九成新</span>
+                  <small>可在教学楼或宿舍区交接。</small>
+                </td>
+                <td>
+                  <strong>周同学</strong>
+                  <span>@zhou · 信用 91</span>
+                </td>
+                <td>
+                  <span class="badge risk-pass">通过</span>
+                  <small>未发现敏感内容。</small>
+                </td>
+                <td><span class="badge">在售</span></td>
+                <td class="actions-cell">
+                  <form class="inline-form">
+                    <input placeholder="处理说明">
+                    <button type="button" class="primary">通过</button>
+                    <button type="button">驳回</button>
+                    <button type="button" class="danger">下架</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="refunds" class="section-block">
+        <div class="section-head">
+          <div>
+            <h2>投诉举证与售后仲裁</h2>
+            <p>后台展示订单事件、托管资金、聊天证据链哈希，并由管理员仲裁退款或结算。</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="refund-table">
+            <thead>
+              <tr><th>订单与来源</th><th>双方信息</th><th>资金状态</th><th>投诉/售后原因</th><th>证据链</th><th>仲裁处理</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="main-cell">
+                  <strong>CT202606220001</strong>
+                  <span>商品订单 · goods #1024</span>
+                  <span class="badge">退款中</span>
+                  <small>订单事件 6 条 · 2026-06-22 09:30</small>
+                </td>
+                <td>
+                  <strong>申请方 王同学</strong>
+                  <span>@wang · 信用 88</span>
+                  <strong>交易对方 赵同学</strong>
+                  <span>@zhao · 信用 93</span>
+                </td>
+                <td>
+                  <strong>¥88.00</strong>
+                  <span>托管中 · 托管 ¥88.00</span>
+                  <span class="badge">待仲裁</span>
+                </td>
+                <td class="main-cell">
+                  <strong>商品与描述不符，申请退款。</strong>
+                  <small>卖家说明：已提前说明使用痕迹。</small>
+                </td>
+                <td>
+                  <span>聊天自动关联：是</span>
+                  <span>会话 ID：56</span>
+                  <span>消息数：14</span>
+                  <small class="hash-text">最新哈希：8a72c4b2e9f31f0d7c</small>
+                </td>
+                <td class="actions-cell">
+                  <form class="inline-form">
+                    <input placeholder="仲裁说明" value="证据完整，建议退款">
+                    <button type="button" class="primary">买家胜诉退款</button>
+                    <button type="button">卖家胜诉结算</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="ai-rules" class="section-block two-col">
+        <div>
+          <h2>AI 审核规则</h2>
+          <p>发布内容命中关键词或风险等级后进入人工复核池。外部 AI 服务不可用时，也可以降级到人工复核。</p>
+        </div>
+        <form class="rule-form">
+          <label class="check-row"><input type="checkbox" checked><span>启用文本审核</span></label>
+          <label class="check-row"><input type="checkbox" checked><span>启用图片审核</span></label>
+          <label>
+            <span>人工复核等级</span>
+            <select><option>manual</option><option>reject</option><option>pass</option></select>
+          </label>
+          <label>
+            <span>关键词</span>
+            <textarea rows="5">违禁, 高风险, 虚假交易</textarea>
+          </label>
+          <button class="primary" type="button">保存规则</button>
+          <small class="muted">最后更新：2026-06-22 10:00</small>
+        </form>
+      </section>
+
+      <section id="logs" class="section-block">
+        <div class="section-head">
+          <div>
+            <h2>管理员审计日志</h2>
+            <p>记录审核、仲裁、封禁、规则变更等敏感操作，支持导出 CSV。</p>
+          </div>
+          <a class="button-link">导出 CSV</a>
+        </div>
+        <div class="empty-inline">这里是预览页，真实数据需要启动 Flask 后台后查看。</div>
+      </section>
+    </main>
+  </body>
+</html>

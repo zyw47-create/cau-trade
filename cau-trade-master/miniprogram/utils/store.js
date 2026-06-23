@@ -35,27 +35,10 @@ const LEGACY_KEYS = {
 }
 
 const HISTORY_LIMIT = 20
-const DEFAULT_API_BASE_URL = 'http://127.0.0.1:5000'
-
-function getAssetBaseUrl() {
-  const app = typeof getApp === 'function' ? getApp() : null
-  return (app && app.globalData && app.globalData.baseUrl) || DEFAULT_API_BASE_URL
-}
-
-function normalizeUserAssets(user) {
-  if (!user || typeof user !== 'object') return user
-  const next = Object.assign({}, user)
-  ;['avatar', 'avatarUrl', 'avatar_url'].forEach((key) => {
-    if (typeof next[key] === 'string' && next[key].indexOf('/uploads/') === 0) {
-      next[key] = `${getAssetBaseUrl()}${next[key]}`
-    }
-  })
-  return next
-}
 
 function bootstrap() {
   state.token = wx.getStorageSync(STORAGE_KEYS.token) || wx.getStorageSync(LEGACY_KEYS.token) || ''
-  state.user = normalizeUserAssets(wx.getStorageSync(STORAGE_KEYS.user) || wx.getStorageSync(LEGACY_KEYS.user) || null)
+  state.user = wx.getStorageSync(STORAGE_KEYS.user) || wx.getStorageSync(LEGACY_KEYS.user) || null
   if (state.token) wx.setStorageSync(STORAGE_KEYS.token, state.token)
   if (state.user) wx.setStorageSync(STORAGE_KEYS.user, state.user)
   wx.setStorageSync(STORAGE_KEYS.version, '1')
@@ -73,7 +56,7 @@ function getState() {
 
 function setSession(token, user) {
   state.token = token || state.token
-  state.user = normalizeUserAssets(Object.assign({}, defaultUser, user || {}))
+  state.user = Object.assign({}, defaultUser, user || {})
   wx.setStorageSync(STORAGE_KEYS.token, state.token)
   wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return getState()
@@ -89,7 +72,7 @@ function logout() {
 }
 
 function updateUser(patch) {
-  state.user = normalizeUserAssets(Object.assign({}, state.user || defaultUser, patch))
+  state.user = Object.assign({}, state.user || defaultUser, patch)
   wx.setStorageSync(STORAGE_KEYS.user, state.user)
   return state.user
 }
@@ -113,14 +96,20 @@ function setRoleCertification(role, payload) {
   return updateUser(patch)
 }
 
-function setUnreadCount(count) {
-  const app = typeof getApp === 'function' ? getApp() : null
-  if (app && app.globalData) app.globalData.unreadCount = Math.max(0, Number(count || 0))
+function currentRouteUrl() {
+  const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : []
+  const page = pages.length ? pages[pages.length - 1] : null
+  if (!page || !page.route) return ''
+  const options = page.options || {}
+  const query = Object.keys(options).map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(options[key])).join('&')
+  return '/' + page.route + (query ? '?' + query : '')
 }
 
 function requireLogin() {
   if (!getState().isLogin) {
-    wx.showToast({ title: '请先登录', icon: 'none' })
+    const returnUrl = currentRouteUrl()
+    if (returnUrl && returnUrl !== '/pages/profile/profile') wx.setStorageSync('loginReturnUrl', returnUrl)
+    wx.showToast({ title: '??????', icon: 'none' })
     wx.switchTab({ url: '/pages/profile/profile' })
     return false
   }
@@ -257,6 +246,12 @@ function markConversationRead(conversationId, messageId) {
   wx.setStorageSync(STORAGE_KEYS.chatRead, map)
 }
 
+function clearChatRead() {
+  wx.removeStorageSync(STORAGE_KEYS.chatRead)
+  const app = typeof getApp === 'function' ? getApp() : null
+  if (app && app.globalData) app.globalData.unreadCount = 0
+}
+
 module.exports = {
   bootstrap,
   getState,
@@ -278,7 +273,7 @@ module.exports = {
   clearBrowseHistory,
   getConversationReadId,
   markConversationRead,
-  setUnreadCount,
+  clearChatRead,
   setPendingCategory,
   takePendingCategory,
   setPendingChat,

@@ -27,6 +27,16 @@
       </view>
     </view>
 
+    <view wx:if="{{pendingCertified}}" class="panel section certified-card">
+      <view class="row between">
+        <view>
+          <view class="sub-title">?????</view>
+          <view class="muted">??????????????????????</view>
+        </view>
+        <status-tag text="???" type="pending"></status-tag>
+      </view>
+    </view>
+
     <view wx:if="{{alreadyCertified}}" class="panel section certified-card">
       <view class="row between">
         <view>

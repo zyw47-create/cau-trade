@@ -7,6 +7,7 @@ from ..ai_gateway import ai_audit, generate_listing_metadata, image_audit
 from ..config import load_config
 from ..repositories import content as content_repository
 from ..repositories import users as user_repository
+from . import user_service
 
 
 class BusinessError(ValueError):
@@ -31,6 +32,8 @@ def _assert_publish_user(user_id: int) -> dict:
         raise BusinessError("account is not active")
     if not int(user.get("is_verified") or 0):
         raise BusinessError("real-name verification is required before publishing")
+    if not user_service.is_trusted_for_business(user_id):
+        raise BusinessError("credit score is below 60; publishing is temporarily restricted")
     return user
 
 
@@ -135,7 +138,7 @@ def publish_service_or_errand(user_id: int, data: dict) -> dict:
         delivery = data.get("deliveryLocation") or data.get("delivery_location")
         if not pickup or not delivery:
             raise BusinessError("pickup and delivery locations are required")
-        task_status = "waiting_accept"
+        task_status = "unpaid"
         order_sn = _order_sn("ER")
         created = content_repository.create_errand_with_order_and_audit(
             user_id,

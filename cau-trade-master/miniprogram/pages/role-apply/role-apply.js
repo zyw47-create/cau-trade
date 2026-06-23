@@ -35,6 +35,7 @@ BasePage({
     isVerified: false,
     user: null,
     alreadyCertified: false,
+    pendingCertified: false,
     canActivateRole: false,
     certification: null,
     form: {
@@ -76,6 +77,7 @@ BasePage({
       user: state.user,
       certification,
       alreadyCertified: Boolean(certification && certification.status === 'approved'),
+      pendingCertified: Boolean(certification && certification.status === 'pending'),
       canActivateRole: Boolean(certification && certification.status === 'approved' && state.role !== this.data.role)
     })
   },
@@ -141,12 +143,10 @@ BasePage({
         return
       }
       this.onShow()
-      const pending = res.data && res.data.status === 'pending'
+      const approved = res.data && res.data.status === 'approved'
       wx.showModal({
-        title: pending ? '已提交审核' : this.data.config.successText,
-        content: pending
-          ? `${this.data.config.roleText}资料已提交到管理员端，审核通过后才能使用对应业务。`
-          : `${this.data.config.roleText}权限已开通，可在对应业务中使用。`,
+        title: approved ? this.data.config.successText : '?????',
+        content: approved ? this.data.config.roleText + '????????????????' : this.data.config.roleText + '??????????????',
         showCancel: false,
         success: () => wx.switchTab({ url: '/pages/profile/profile' })
       })

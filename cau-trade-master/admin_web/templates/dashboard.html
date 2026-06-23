@@ -135,15 +135,15 @@
 <section id="verifications" class="section-block">
   <div class="section-head">
     <div>
-      <h2>认证与角色审核</h2>
-      <p>实名认证、服务者认证和骑手认证都需要管理员审核；审核通过后才开通对应权限。</p>
+      <h2>实名认证审核</h2>
+      <p>核验学校邮箱、学号、姓名、学院和学生证材料，审核通过后用户恢复核心交易权限。</p>
     </div>
   </div>
   {% if verifications %}
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>用户</th><th>申请类型/资料</th><th>邮箱/OCR</th><th>状态</th><th>处理</th></tr>
+        <tr><th>用户</th><th>认证资料</th><th>邮箱/OCR</th><th>状态</th><th>处理</th></tr>
       </thead>
       <tbody>
         {% for item in verifications %}
@@ -153,8 +153,8 @@
             <span>@{{ item.username }} · {{ item.role }} · 信用 {{ item.credit_score }}</span>
           </td>
           <td class="main-cell">
-            <strong>{{ item.application_title }} · {{ item.college }}</strong>
-            <span>{{ item.material_label }}：{{ item.student_id_enc }} · {{ item.real_name_enc }}</span>
+            <strong>{{ item.college }}</strong>
+            <span>学号 {{ item.student_id_enc }} · 姓名 {{ item.real_name_enc }}</span>
             <small>{{ item.student_card_image_url or "未上传学生证图片" }}</small>
           </td>
           <td>

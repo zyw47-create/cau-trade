@@ -110,6 +110,11 @@ Page({
   openChat() {
     if (!store.requireLogin()) return
     const item = this.data.item || {}
+    const user = store.getState().user || {}
+    if (String(item.sellerId || '') === String(user.id || '')) {
+      wx.showToast({ title: '???????', icon: 'none' })
+      return
+    }
     openChatRoom({
       businessType: 'goods',
       businessId: item.id,

@@ -25,10 +25,9 @@ function decorateOrder(item) {
   const isSeller = item.role === 'seller'
   const isPublisher = item.role === 'publisher'
   const isRider = item.role === 'rider'
-  const canConfirm = isSeller && item.status === 'paid' && !waitingErrandPeer
   const canFulfill = item.itemType === 'errand'
     ? (isRider && item.status === 'confirmed' && !waitingErrandPeer)
-    : (isSeller && item.status === 'confirmed' && !waitingErrandPeer)
+    : (isSeller && item.status === 'paid' && !waitingErrandPeer)
   const canComplete = item.itemType === 'errand'
     ? (isPublisher && item.status === 'shipped')
     : ((isBuyer && item.status === 'shipped') || (isBuyer && item.status === 'paid' && !waitingErrandPeer))
@@ -75,7 +74,6 @@ function decorateOrder(item) {
     autoConfirm,
     canChat: item.canChat !== false && !waitingErrandPeer,
     canPay,
-    canConfirm,
     canShip: canFulfill,
     canReceive: canComplete,
     canCancel,
@@ -105,6 +103,7 @@ BasePage({
     visibleOrders: [],
     noOrders: true,
     loadingOrders: false,
+    actionSubmitting: false,
     activeFilter: 'all',
     filters: buildFilters('all')
   },
@@ -173,11 +172,15 @@ BasePage({
   },
 
   pay(e) {
+    if (this.data.actionSubmitting) return
     const orderSn = e.currentTarget.dataset.sn
+    this.setData({ actionSubmitting: true })
     api({ url: `/api/orders/${orderSn}/pay`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '支付成功' })
       this.loadOrders()
+    }).finally(() => {
+      this.setData({ actionSubmitting: false })
     })
   },
 
@@ -188,11 +191,14 @@ BasePage({
       content: '未支付订单会直接取消；已托管但未履约的服务或跑腿订单会退回余额。',
       confirmText: '确认取消',
       success: (modal) => {
-        if (!modal.confirm) return
+        if (!modal.confirm || this.data.actionSubmitting) return
+        this.setData({ actionSubmitting: true })
         api({ url: `/api/orders/${orderSn}/cancel`, method: 'POST' }).then((res) => {
           if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
           wx.showToast({ title: '已取消' })
           this.loadOrders()
+        }).finally(() => {
+          this.setData({ actionSubmitting: false })
         })
       }
     })
@@ -203,15 +209,6 @@ BasePage({
     api({ url: `/api/orders/${orderSn}/ship`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '已更新履约进度' })
-      this.loadOrders()
-    })
-  },
-
-  confirmOrder(e) {
-    const orderSn = e.currentTarget.dataset.sn
-    api({ url: `/api/orders/${orderSn}/confirm`, method: 'POST' }).then((res) => {
-      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
-      wx.showToast({ title: '已确认订单' })
       this.loadOrders()
     })
   },

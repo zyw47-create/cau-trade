@@ -179,7 +179,7 @@ def list_public_errands(limit: int = 50) -> list[dict]:
             .join(publisher, publisher.c.id == ErrandOrder.publisher_id)
             .outerjoin(rider, rider.c.id == ErrandOrder.rider_id)
             .outerjoin(Order, and_(Order.item_type == "errand", Order.item_id == ErrandOrder.id))
-            .where(ErrandOrder.status == "waiting_accept", Order.status == "paid")
+            .where(ErrandOrder.status == "waiting_accept")
             .order_by(desc(ErrandOrder.created_at), desc(ErrandOrder.id))
             .limit(limit)
         )

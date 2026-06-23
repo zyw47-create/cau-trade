@@ -98,6 +98,32 @@ def api_admin_order_arbitrate(refund_id: int | None = None):
         return api_error(exc)
 
 
+@bp.route("/api/admin/verifications")
+@bp.route("/v1/api/admin/verifications")
+@require_admin_api
+def api_admin_verifications():
+    return api_ok({"list": [row_to_api(row) for row in admin_query_service.fetch_verifications()]})
+
+
+@bp.route("/api/admin/verifications/<int:verification_id>/audit", methods=["POST"])
+@bp.route("/v1/api/admin/verifications/<int:verification_id>/audit", methods=["POST"])
+@require_admin_api
+def api_admin_verification_audit(verification_id: int):
+    data = request_json()
+    try:
+        result = admin_service.audit_verification(
+            verification_id,
+            data.get("result") or "",
+            data.get("note") or "Manual verification review",
+            current_user_id(),
+            client_ip(),
+        )
+    except AdminError as exc:
+        return api_error(exc)
+    except DatabaseError as exc:
+        return api_error(exc)
+    return api_ok(result)
+
 @bp.route("/api/admin/withdraws")
 @bp.route("/v1/api/admin/withdraws")
 @require_admin_api

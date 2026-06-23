@@ -52,7 +52,7 @@
     <view wx:for="{{withdraws}}" wx:key="id" class="log-row">
       <view>
         <view class="log-title">提现 ¥{{item.amount}}</view>
-        <view class="muted">{{item.statusText}} · {{item.reason || '收益提现'}} · {{item.reviewedText || item.time}}</view>
+        <view class="muted">{{item.reason || '收益提现'}}</view>
       </view>
       <status-tag text="{{item.statusText}}" type="{{item.status}}"></status-tag>
     </view>

@@ -122,7 +122,8 @@ def pay_order(order_sn: str, user_id: int) -> None:
         order.updated_at = now
         if order.item_type == "errand":
             errand = session.execute(select(ErrandOrder).where(ErrandOrder.id == order.item_id).with_for_update()).scalar_one_or_none()
-            if errand and errand.status == "waiting_accept":
+            if errand and errand.status == "unpaid":
+                errand.status = "waiting_accept"
                 errand.updated_at = now
         session.add(
             OrderFund(
@@ -201,7 +202,7 @@ def cancel_order(order_sn: str, user_id: int, reason: str) -> None:
                 goods.updated_at = now
         elif order.item_type == "errand":
             errand = session.execute(select(ErrandOrder).where(ErrandOrder.id == order.item_id).with_for_update()).scalar_one_or_none()
-            if errand and errand.status == "waiting_accept":
+            if errand and errand.status in {"unpaid", "waiting_accept"}:
                 errand.status = "cancelled"
                 errand.updated_at = now
         session.add(_event(order_sn, old_status, "cancelled", user_id, "cancel", reason or "用户取消订单", now))
@@ -310,10 +311,12 @@ def ship_order(order_sn: str, user_id: int) -> None:
         if not order:
             raise ValueError("order not found")
         if int(order.seller_id) != user_id:
-            raise ValueError("只有卖家、服务者或接单骑手可以履约")
-        if order.status != "confirmed":
-            raise ValueError("请先确认订单，确认后才能发货或开始履约")
+            raise ValueError("order does not belong to seller")
+        expected_status = "confirmed" if order.item_type == "errand" else "paid"
+        if order.status != expected_status:
+            raise ValueError("order status cannot be fulfilled")
         now = _now()
+        previous_status = order.status
         order.status = "shipped"
         order.updated_at = now
         if order.item_type == "errand":
@@ -336,7 +339,7 @@ def ship_order(order_sn: str, user_id: int) -> None:
                         created_at=now,
                     )
                 )
-        session.add(_event(order_sn, "confirmed", "shipped", user_id, "ship", "卖家/服务者发货或开始履约", now))
+        session.add(_event(order_sn, previous_status, "shipped", user_id, "ship", "卖家/服务者发货或开始履约", now))
 
 
 def take_errand_order(errand_id: int, rider_id: int) -> dict:
@@ -445,6 +448,8 @@ def complaint_order(order_sn: str, user_id: int, content: str) -> dict | None:
             return None
         if user_id not in {int(order.buyer_id), int(order.seller_id)}:
             return {"error": "not_participant"}
+        if order.status not in {"paid", "confirmed", "shipped", "refunding", "disputed"}:
+            return {"error": "bad_status"}
         existing_refund = session.execute(
             select(RefundRequest)
             .where(
@@ -810,17 +815,11 @@ def _refund_row(refund: RefundRequest, arbitration: dict | None = None) -> dict:
 
 def _order_row(row) -> dict:
     data = dict(row._mapping)
-    snapshot = data.pop("item_snapshot") or {}
+    snapshot = data.get("item_snapshot") or {}
+    data["item_snapshot"] = snapshot if isinstance(snapshot, dict) else {}
     data["item_title"] = snapshot.get("title") if isinstance(snapshot, dict) else None
-    if isinstance(snapshot, dict):
-        data["item_snapshot"] = snapshot
-        data["pickup_location"] = snapshot.get("pickup_location") or ""
-        data["delivery_location"] = snapshot.get("delivery_location") or ""
-        data["item_desc"] = snapshot.get("description") or snapshot.get("desc") or ""
-    else:
-        data["item_snapshot"] = {}
-        data["pickup_location"] = ""
-        data["delivery_location"] = ""
-        data["item_desc"] = ""
+    data["pickup_location"] = snapshot.get("pickup_location") or "" if isinstance(snapshot, dict) else ""
+    data["delivery_location"] = snapshot.get("delivery_location") or "" if isinstance(snapshot, dict) else ""
+    data["item_desc"] = snapshot.get("description") or snapshot.get("desc") or "" if isinstance(snapshot, dict) else ""
     data["fund_status"] = data.get("fund_status") or "none"
     return data

@@ -32,13 +32,6 @@ function buildTrade(conversation) {
   }
 }
 
-function syncTabBar() {
-  const pages = getCurrentPages()
-  const current = pages.length ? pages[pages.length - 1] : null
-  const tabBar = current && typeof current.getTabBar === 'function' ? current.getTabBar() : null
-  if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
-}
-
 Page({
   data: {
     mode: 'list',
@@ -83,7 +76,8 @@ Page({
   },
 
   onShow() {
-    syncTabBar()
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
     if (!store.requireLogin()) return
 
     const pending = store.takePendingChat()
@@ -126,9 +120,7 @@ Page({
         const readId = store.getConversationReadId(conversationId)
         const readIndex = messages.findIndex((message) => String(message.id) === String(readId))
         const unreadMessages = readIndex >= 0 ? messages.slice(readIndex + 1) : messages
-        const unread = last && last.from === 'me'
-          ? 0
-          : Number(item.unreadCount || item.unread_count || unreadMessages.filter((message) => message.from !== 'me').length || 0)
+        const unread = Number(item.unreadCount || item.unread_count || unreadMessages.filter((message) => message.from !== 'me').length || 0)
         return Object.assign({}, item, {
           lastMessage: last ? last.content : '暂无消息',
           countText: `${messages.length}条`,
@@ -142,7 +134,8 @@ Page({
       })
       const app = getApp()
       app.globalData.unreadCount = conversations.reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
-      syncTabBar()
+      const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+      if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
       this.setData({ conversations, loadingConversations: false })
     }).finally(() => {
       this.loadingConversations = false
@@ -194,13 +187,11 @@ Page({
       })
       const last = messages[messages.length - 1]
       if (last) {
-        const conversationId = String(conversation.id || this.data.conversationId || '')
-        const current = (this.data.conversations || []).find((item) => String(item.id || '') === conversationId)
-        const unreadBefore = Number((current && current.unreadCount) || 0)
-        store.markConversationRead(conversationId, last.id)
+        store.markConversationRead(String(conversation.id || this.data.conversationId || ''), last.id)
         const app = getApp()
-        app.globalData.unreadCount = Math.max(0, Number(app.globalData.unreadCount || 0) - unreadBefore)
-        syncTabBar()
+        app.globalData.unreadCount = 0
+        const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+        if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
       }
 
       this.setData({
@@ -321,10 +312,6 @@ Page({
         scrollToId: `msg-${id}`,
         conversationId: data.conversationId || this.data.conversationId
       })
-      store.markConversationRead(String(data.conversationId || this.data.conversationId || ''), id)
-      const app = getApp()
-      app.globalData.unreadCount = 0
-      syncTabBar()
     }).finally(() => {
       this.setData({ sending: false })
     })

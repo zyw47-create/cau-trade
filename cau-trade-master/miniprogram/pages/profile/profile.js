@@ -74,9 +74,9 @@ Page({
       removed: '已注销'
     }
     const user = state.user ? Object.assign({}, state.user, {
-      verifyText: state.user.verified ? '已实名' : (state.user.verificationStatus === 'pending' ? '实名待审' : '未实名'),
+      verifyText: state.user.verified ? '已实名' : '未实名',
       verifyClass: state.user.verified ? 'ok' : 'warn',
-      verifyButtonText: state.user.verificationStatus === 'pending' ? '查看申请' : (state.user.verified ? '查看实名' : '去实名认证'),
+      verifyButtonText: state.user.verified ? '查看实名' : '去实名认证',
       isAdmin: state.user.role === 'admin',
       canWithdraw: state.user.role === 'rider' || state.user.role === 'provider',
       roleText: roleNames[state.user.role] || state.user.role,
@@ -109,9 +109,14 @@ Page({
         statusLabel: GOODS_STATUS_TEXT[item.status] || item.status
       }))
       const earningsData = earningsRes.data || {}
-      const withdraws = (earningsData.withdraws || []).map((item) => Object.assign({}, item, {
+      const withdraws = (earningsData.withdraws || earningsData.withdrawsList || earningsData.list || []).map((item) => Object.assign({}, item, {
         statusLabel: WITHDRAW_STATUS_TEXT[item.status] || item.status
       }))
+      const earnings = Object.assign({ amount: 0, total: 0, acceptedCount: 0, withdraws: [] }, earningsData, {
+        amount: earningsData.amount !== undefined ? earningsData.amount : (earningsData.total || 0),
+        acceptedCount: earningsData.acceptedCount !== undefined ? earningsData.acceptedCount : ((earningsData.list || []).length),
+        withdraws
+      })
       const myGoods = (mineRes.data.list || []).map((item) => Object.assign({}, item, {
         statusLabel: GOODS_STATUS_TEXT[item.status] || item.status,
         canRemove: item.status === 'on_sale' || item.status === 'pending' || item.status === 'reserved',
@@ -120,7 +125,7 @@ Page({
       this.setData({
         credit: creditRes.data,
         favorites,
-        earnings: Object.assign({}, earningsData, { withdraws }),
+        earnings,
         myGoods,
         noMyGoods: myGoods.length === 0
       })
@@ -158,7 +163,10 @@ Page({
         return
       }
       wx.showToast({ title: '登录成功' })
+      const returnUrl = wx.getStorageSync('loginReturnUrl')
+      wx.removeStorageSync('loginReturnUrl')
       this.refresh()
+      if (returnUrl) setTimeout(() => wx.navigateTo({ url: returnUrl, fail: () => {} }), 300)
     })
   },
 
@@ -216,53 +224,44 @@ Page({
       sizeType: ['compressed'],
       success: (res) => {
         const file = res.tempFiles && res.tempFiles[0]
-        if (!file || !file.tempFilePath) return
-        wx.showLoading({ title: '上传头像' })
-        api({ url: '/api/oss/sts', method: 'POST', data: { scene: 'avatar' } }).then((credentialRes) => {
-          const credential = credentialRes.data || {}
-          const app = getApp()
-          const uploadUrl = credential.uploadUrl || ''
-          const targetUrl = uploadUrl.indexOf('http') === 0 ? uploadUrl : `${app.globalData.baseUrl}${uploadUrl}`
-          return new Promise((resolve, reject) => {
-            wx.uploadFile({
-              url: targetUrl,
-              filePath: file.tempFilePath,
-              name: 'file',
-              formData: {
-                scene: 'avatar',
-                objectKey: `avatar-${Date.now()}.jpg`,
-                uploadToken: credential.uploadToken || ''
-              },
-              success: (uploadRes) => {
-                let body = {}
-                try {
-                  body = JSON.parse(uploadRes.data || '{}')
-                } catch (error) {
-                  body = {}
-                }
-                const url = body.data && body.data.url
-                url ? resolve(url) : reject(new Error('missing url'))
-              },
-              fail: reject
-            })
-          })
-        }).then((avatar) => api({ url: '/api/user/avatar', method: 'POST', data: { avatar } }))
-          .then((saveRes) => {
-            if (saveRes.code !== 200) {
-              wx.showToast({ title: saveRes.msg || '头像保存失败', icon: 'none' })
-              return
-            }
-            wx.showToast({ title: '头像已更新' })
-            this.refresh()
-          }).catch(() => {
-            wx.showToast({ title: '头像上传失败', icon: 'none' })
-          }).finally(() => {
-            wx.hideLoading()
-          })
-      }
+        this.uploadAvatarFile(file && file.tempFilePath)
+      },
+      fail: () => {}
     })
   },
 
+  uploadAvatarFile(filePath) {
+    if (!filePath || this.avatarUploading) return
+    this.avatarUploading = true
+    wx.showLoading({ title: '\u4e0a\u4f20\u4e2d', mask: true })
+    api({ url: '/api/files/upload-credential', method: 'POST', data: { scene: 'avatars' } }).then((res) => {
+      if (res.code !== 200) throw new Error(res.msg || '\u83b7\u53d6\u4e0a\u4f20\u51ed\u8bc1\u5931\u8d25')
+      const credential = res.data || {}
+      const baseUrl = (getApp().globalData && getApp().globalData.baseUrl) || ''
+      const relativeUploadUrl = credential.uploadUrl || '/api/files/upload'
+      return new Promise((resolve, reject) => wx.uploadFile({
+        url: /^https?:/i.test(relativeUploadUrl) ? relativeUploadUrl : baseUrl + relativeUploadUrl,
+        filePath,
+        name: 'file',
+        formData: { scene: credential.scene || 'avatars', uploadToken: credential.uploadToken || '', objectKey: 'avatar.jpg' },
+        success: (uploadRes) => {
+          let payload = {}
+          try { payload = JSON.parse(uploadRes.data || '{}') } catch (err) {}
+          if (payload.code !== 200 || !payload.data || !payload.data.url) return reject(new Error(payload.msg || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+          resolve({ avatar: payload.data.url, baseUrl })
+        },
+        fail: () => reject(new Error('\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+      }))
+    }).then(({ avatar, baseUrl }) => api({ url: '/api/user/profile', method: 'PUT', data: Object.assign({}, this.data.profileForm || {}, { avatar }) }).then((saved) => {
+      if (saved.code !== 200) throw new Error(saved.msg || '\u5934\u50cf\u4fdd\u5b58\u5931\u8d25')
+      store.updateUser({ avatar: /^https?:/i.test(avatar) ? avatar : baseUrl + avatar })
+      wx.showToast({ title: '\u5934\u50cf\u5df2\u66f4\u65b0' })
+      this.refresh()
+    })).catch((err) => wx.showToast({ title: err.message || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25', icon: 'none' })).finally(() => {
+      this.avatarUploading = false
+      wx.hideLoading()
+    })
+  },
   saveProfile() {
     const phone = String(this.data.profileForm.phone || '').trim()
     if (phone && !/^1\d{10}$/.test(phone)) {
@@ -320,7 +319,8 @@ Page({
         return
       }
       const amount = this.data.withdrawAmount
-      wx.showToast({ title: `提现¥${amount}待审核`, icon: 'none' })
+      wx.showToast({ title: '\u63d0\u73b0\u7533\u8bf7\u5df2\u63d0\u4ea4' })
+      wx.showModal({ title: '?????', content: '??? ?' + amount + ' ????????????????', showCancel: false })
       this.setData({ withdrawAmount: '' })
       this.refresh()
     })

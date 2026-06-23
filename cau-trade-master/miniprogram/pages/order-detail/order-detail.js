@@ -10,10 +10,9 @@ function buildOrderView(order) {
   const isSeller = order.role === 'seller'
   const isPublisher = order.role === 'publisher'
   const isRider = order.role === 'rider'
-  const canConfirm = isSeller && order.status === 'paid' && !waitingErrandPeer
   const canFulfill = order.itemType === 'errand'
     ? (isRider && order.status === 'confirmed' && !waitingErrandPeer)
-    : (isSeller && order.status === 'confirmed' && !waitingErrandPeer)
+    : (isSeller && order.status === 'paid' && !waitingErrandPeer)
   const canComplete = order.itemType === 'errand'
     ? (isPublisher && order.status === 'shipped')
     : ((isBuyer && order.status === 'shipped') || (isBuyer && order.status === 'paid' && !waitingErrandPeer))
@@ -38,15 +37,8 @@ function buildOrderView(order) {
               ? '订单已完成，现在可以补充评价。'
               : '可在此查看订单进度、售后状态和聊天证据。')
 
-  const summaryCards = order.summaryCards || [
-    { label: '订单类型', value: order.itemTypeText || '订单' },
-    { label: '资金状态', value: order.fundText || '待确认' },
-    { label: '最新进展', value: order.progressText || '已创建' }
-  ]
-
   return Object.assign({}, order, {
     canPay: (isBuyer || (isPublisher && order.itemType === 'errand')) && order.status === 'unpaid',
-    canConfirm,
     canShip: canFulfill,
     canReceive: canComplete,
     canCancel,
@@ -56,7 +48,12 @@ function buildOrderView(order) {
     canComment: order.canComment === true,
     autoConfirm,
     actionHint,
-    summaryCards
+    summaryCards: [
+      { label: '订单类型', value: order.itemTypeText || '订单' },
+      { label: '资金状态', value: order.fundText || '待确认' },
+      { label: '最新进展', value: order.progressText || '已创建' }
+    ,
+      { label: '\u5c65\u7ea6\u5730\u70b9', value: order.fulfillmentLocation || '\u4ee5\u8ba2\u5355\u5907\u6ce8\u4e3a\u51c6' }]
   })
 }
 
@@ -113,10 +110,14 @@ Page({
   },
 
   pay() {
+    if (this.actionSubmitting) return
+    this.actionSubmitting = true
     api({ url: `/api/orders/${this.orderSn}/pay`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '支付成功' })
       this.loadDetail()
+    }).finally(() => {
+      this.actionSubmitting = false
     })
   },
 
@@ -126,11 +127,14 @@ Page({
       content: '未支付订单会直接取消；已托管但未履约的服务或跑腿订单会退回余额。',
       confirmText: '确认取消',
       success: (modal) => {
-        if (!modal.confirm) return
+        if (!modal.confirm || this.actionSubmitting) return
+        this.actionSubmitting = true
         api({ url: `/api/orders/${this.orderSn}/cancel`, method: 'POST' }).then((res) => {
           if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
           wx.showToast({ title: '已取消' })
           this.loadDetail()
+        }).finally(() => {
+          this.actionSubmitting = false
         })
       }
     })
@@ -140,14 +144,6 @@ Page({
     api({ url: `/api/orders/${this.orderSn}/ship`, method: 'POST' }).then((res) => {
       if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
       wx.showToast({ title: '进度已更新' })
-      this.loadDetail()
-    })
-  },
-
-  confirmOrder() {
-    api({ url: `/api/orders/${this.orderSn}/confirm`, method: 'POST' }).then((res) => {
-      if (res.code !== 200) return wx.showToast({ title: res.msg, icon: 'none' })
-      wx.showToast({ title: '已确认订单' })
       this.loadDetail()
     })
   },

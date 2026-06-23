@@ -14,6 +14,7 @@ from .security import PrincipalError, bearer_payload, verify_live_token_principa
 
 
 IDEMPOTENT_PATHS = {
+    "/api/admin/verifications/<int:verification_id>/audit",
     "/api/account/recharge",
     "/api/rider/withdraw",
     "/api/withdraws",

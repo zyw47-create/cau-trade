@@ -7,8 +7,8 @@
 
   <view wx:if="{{state.isLogin}}">
     <view class="user-card section">
-      <image wx:if="{{user.avatar}}" class="avatar avatar-image" src="{{user.avatar}}" mode="aspectFill"></image>
-      <view wx:else class="avatar">{{user.initial}}</view>
+      <image wx:if="{{user.avatar}}" class="avatar avatar-image" src="{{user.avatar}}" mode="aspectFill" bindtap="chooseAvatar"></image>
+      <view wx:else class="avatar" bindtap="chooseAvatar">{{user.initial}}</view>
       <view class="user-main">
         <view class="user-name">{{user.nickname}}</view>
         <view class="muted">@{{user.username}} · 信用分 {{user.creditScore}}</view>

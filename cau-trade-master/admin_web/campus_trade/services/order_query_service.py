@@ -153,6 +153,8 @@ def workflow_steps(status: str, item_type: str | None = None) -> list[dict]:
             {
                 "id": step_status,
                 "title": title,
+        "remark": row.get("remark") or "",
+        "fulfillmentLocation": (row.get("item_snapshot") or {}).get("location") or "",
                 "desc": desc,
                 "time": "",
                 "done": done,
@@ -332,6 +334,8 @@ def decorate_order(row: dict, viewer_id: int | None = None) -> dict:
         "itemType": row.get("item_type"),
         "itemTypeText": item_type_text(row.get("item_type")),
         "title": title,
+        "remark": row.get("remark") or "",
+        "fulfillmentLocation": (row.get("item_snapshot") or {}).get("location") or "",
         "amount": f"{Decimal(row.get('amount') or 0):.2f}",
         "status": status,
         "statusLabel": order_progress_text(status, item_type),
@@ -356,16 +360,8 @@ def decorate_order(row: dict, viewer_id: int | None = None) -> dict:
         "actionHint": order_action_hint(status, item_type, role, can_chat),
         "hasComment": has_comment,
         "canComment": status == "completed" and not has_comment,
+        "errandDetail": {"description": row.get("item_desc") or row.get("remark") or "", "pickupLocation": row.get("pickup_location") or "", "deliveryLocation": row.get("delivery_location") or ""} if item_type == "errand" else None,
     }
-    if item_type == "errand":
-        order["errandDetail"] = {
-            "description": row.get("item_desc") or row.get("remark") or "",
-            "pickupLocation": row.get("pickup_location") or "",
-            "deliveryLocation": row.get("delivery_location") or "",
-            "routeText": " -> ".join(
-                [value for value in [row.get("pickup_location"), row.get("delivery_location")] if value]
-            ),
-        }
     return order
 
 
@@ -469,11 +465,7 @@ def get_order_detail_for_user(user_id: int, order_sn: str) -> dict | None:
         order["rawEvents"] = event_timeline
     order["timeline"] = timeline
     order["summaryEvents"] = [item["title"] for item in timeline if item.get("done")][-3:]
-    detail = order.get("errandDetail") or {}
-    if detail:
-        order["summaryCards"] = [
-            {"label": "任务说明", "value": detail.get("description") or "暂无补充说明"},
-            {"label": "取件地点", "value": detail.get("pickupLocation") or "待沟通"},
-            {"label": "送达地点", "value": detail.get("deliveryLocation") or "待沟通"},
-        ]
+    if order.get("errandDetail"):
+        detail = order["errandDetail"]
+        order["summaryCards"] = [{"label": "任务说明", "value": detail["description"] or "暂无补充说明"}, {"label": "取件地点", "value": detail["pickupLocation"] or "待沟通"}, {"label": "送达地点", "value": detail["deliveryLocation"] or "待沟通"}]
     return order
