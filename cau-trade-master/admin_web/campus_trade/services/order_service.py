@@ -145,10 +145,10 @@ def complaint_order(user_id: int, data: dict) -> dict:
 
 
 def take_errand(user_id: int, data: dict) -> dict:
-    if not user_service.is_trusted_for_business(user_id):
-        raise OrderError("credit score is below 60; taking errands is temporarily restricted")
     if user_repository.get_user_role(user_id) not in {"rider", "admin"}:
         raise OrderError("rider role is required before taking errands")
+    if not user_service.is_trusted_for_business(user_id):
+        raise OrderError("credit score is below 60; taking errands is temporarily restricted")
     errand_id = _to_int(data.get("id") or data.get("errandId"))
     if errand_id <= 0:
         raise OrderError("missing errandId")

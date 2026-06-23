@@ -137,3 +137,21 @@ The backend still registers these aliases so old clients fail gracefully during 
 
 - `/api/admin/verifications` (GET): list identity and role verification applications.
 - `/api/admin/verifications/<int:verification_id>/audit` (POST): approve or reject a pending application.
+- `/api/errands/<int:errand_id>`: specific errand resource.
+
+## Route Coverage
+- `/api/errands/detail`
+- `/api/errands/list`
+- `/api/order`
+- `/api/order/<path:order_sn>/confirm`
+- `/api/order/<path:order_sn>/dispute`
+- `/api/order/<path:order_sn>/receive`
+- `/api/order/<path:order_sn>/refund`
+- `/api/order/<path:order_sn>/ship`
+- `/api/order/seller/list`
+- `/api/orders/confirm`
+- `/api/rider/order/<int:errand_id>/accept`
+- `/api/rider/order/<int:errand_id>/status`
+- `/api/service`
+- `/api/service/<int:service_id>/order`
+- `/api/user/profile/update`
