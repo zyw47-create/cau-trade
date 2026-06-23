@@ -213,9 +213,10 @@ Page({
       this.clearCountdown()
       this.setData({ countdown: 0 })
       api({ url: '/api/user/profile' }).then(() => this.syncUserState())
+      const pendingReview = res.data && res.data.status === 'pending'
       wx.showModal({
-        title: '认证通过',
-        content: '学校邮箱已验证，可继续发布、下单和聊天。',
+        title: pendingReview ? '认证申请已提交' : '认证通过',
+        content: pendingReview ? '学校邮箱已验证，资料正在等待管理员审核。审核通过后才能发布和下单。' : '实名认证已通过，可继续发布、下单和聊天。',
         showCancel: false,
         success: () => wx.switchTab({ url: '/pages/profile/profile' })
       })

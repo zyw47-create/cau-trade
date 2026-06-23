@@ -782,7 +782,11 @@ def audit_verification(verification_id: int, result: str, note: str, admin_id: i
             verification.reviewed_at = now
             approved_count = session.scalar(
                 select(func.count()).select_from(UserVerification).where(
-                    and_(UserVerification.user_id == user.id, UserVerification.status == "approved")
+                    and_(
+                        UserVerification.user_id == user.id,
+                        UserVerification.status == "approved",
+                        ~UserVerification.student_id_enc.in_(["ROLE_PROVIDER", "ROLE_RIDER"]),
+                    )
                 )
             )
             if int(approved_count or 0) == 0:
