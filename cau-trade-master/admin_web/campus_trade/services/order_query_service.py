@@ -153,8 +153,6 @@ def workflow_steps(status: str, item_type: str | None = None) -> list[dict]:
             {
                 "id": step_status,
                 "title": title,
-        "remark": row.get("remark") or "",
-        "fulfillmentLocation": (row.get("item_snapshot") or {}).get("location") or "",
                 "desc": desc,
                 "time": "",
                 "done": done,
@@ -334,8 +332,6 @@ def decorate_order(row: dict, viewer_id: int | None = None) -> dict:
         "itemType": row.get("item_type"),
         "itemTypeText": item_type_text(row.get("item_type")),
         "title": title,
-        "remark": row.get("remark") or "",
-        "fulfillmentLocation": (row.get("item_snapshot") or {}).get("location") or "",
         "amount": f"{Decimal(row.get('amount') or 0):.2f}",
         "status": status,
         "statusLabel": order_progress_text(status, item_type),
