@@ -1,0 +1,84 @@
+<view class="page settings-page">
+  <view wx:if="{{!state.isLogin}}" class="panel section guest-card">
+    <view class="title">账号设置</view>
+    <view class="muted block">登录后可维护资料、实名认证、角色申请和本地缓存。</view>
+    <button class="btn" bindtap="login">微信授权登录</button>
+  </view>
+
+  <view wx:if="{{state.isLogin}}">
+    <view class="user-card section">
+      <image wx:if="{{user.avatar}}" class="avatar avatar-image" src="{{user.avatar}}" mode="aspectFill" bindtap="chooseAvatar"></image>
+      <view wx:else class="avatar" bindtap="chooseAvatar">{{user.initial}}</view>
+      <view class="user-main">
+        <view class="user-name">{{user.nickname}}</view>
+        <view class="muted">@{{user.username}} · 信用分 {{user.creditScore}}</view>
+      </view>
+      <status-tag text="{{user.verified ? '已实名' : '未实名'}}" type="{{user.verified ? 'ok' : 'warn'}}"></status-tag>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">账号资料</view>
+      <input class="input" placeholder="昵称" value="{{profileForm.nickname}}" data-key="nickname" bindinput="onProfileInput" />
+      <input class="input" placeholder="用户名，如 campus_user" value="{{profileForm.username}}" data-key="username" bindinput="onProfileInput" />
+      <input class="input" placeholder="手机号" value="{{profileForm.phone}}" data-key="phone" bindinput="onProfileInput" />
+      <input class="input" placeholder="常用交易地址" value="{{profileForm.address}}" data-key="address" bindinput="onProfileInput" />
+      <button class="btn save-btn" bindtap="saveProfile">保存资料</button>
+    </view>
+
+    <view class="panel section">
+      <view class="row between">
+        <view>
+          <view class="sub-title">实名认证</view>
+          <view class="muted">用于交易、发布、预约和资金托管流程</view>
+        </view>
+        <button class="small-btn" bindtap="goVerify">{{user.verified ? '查看' : '去认证'}}</button>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">角色与权限</view>
+      <view class="role-list">
+        <view wx:for="{{roles}}" wx:key="value" class="role-card">
+          <view class="role-main">
+            <view class="role-title">{{item.text}}</view>
+            <view class="muted">{{item.desc}}</view>
+          </view>
+          <view class="role-side">
+            <status-tag text="{{item.statusText}}" type="{{item.statusType}}"></status-tag>
+            <button class="small-btn role-action" data-role="{{item.value}}" bindtap="switchRole">{{item.buttonText}}</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="row between section-title-row">
+        <view>
+          <view class="sub-title">最近浏览</view>
+          <view class="muted">快速回到刚看过的商品</view>
+        </view>
+        <text class="tag">{{browseHistory.length}} 条</text>
+      </view>
+      <view wx:if="{{!hasBrowseHistory}}" class="empty-line">暂无浏览记录</view>
+      <view wx:for="{{browseHistory}}" wx:key="id" class="history-row" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openBrowseItem">
+        <view>
+          <view class="history-title">{{item.title}}</view>
+          <view class="muted">{{item.category}} · {{item.location}}</view>
+        </view>
+        <text class="price small-price">¥{{item.price}}</text>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="row between">
+        <view>
+          <view class="sub-title">本地缓存</view>
+          <view class="muted">{{cacheText}}</view>
+        </view>
+        <button class="small-btn" bindtap="clearLocalCache">清理</button>
+      </view>
+    </view>
+
+    <button class="btn danger logout-btn" bindtap="logout">退出登录</button>
+  </view>
+</view>

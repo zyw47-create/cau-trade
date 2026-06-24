@@ -1,0 +1,328 @@
+const { request: api } = require('../../utils/request')
+const store = require('../../utils/store')
+
+const GOODS_STATUS_TEXT = {
+  pending: '审核中',
+  on_sale: '在售',
+  rejected: '审核驳回',
+  reserved: '已预订',
+  sold: '已售出',
+  removed: '已下架'
+}
+
+const WITHDRAW_STATUS_TEXT = {
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已驳回',
+  cancelled: '已取消'
+}
+
+Page({
+  data: {
+    state: {},
+    user: null,
+    credit: null,
+    favorites: [],
+    myGoods: [],
+    noMyGoods: true,
+    profileForm: {
+      nickname: '',
+      username: '',
+      phone: '',
+      address: ''
+    },
+    sections: {
+      profile: false,
+      published: false,
+      earnings: false
+    },
+    earnings: { amount: 0, acceptedCount: 0, withdraws: [] },
+    withdrawAmount: '',
+    canShowWithdraw: false,
+    backendStatusText: '认证服务检查中...',
+    backendReady: false
+  },
+
+  onShow() {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar && tabBar.syncSelected) tabBar.syncSelected()
+    const now = Date.now()
+    if (this.lastRefreshAt && now - this.lastRefreshAt < 1200) return
+    this.lastRefreshAt = now
+    if (store.getState().isLogin) {
+      api({ url: '/api/user/profile' }).finally(() => this.refresh())
+      return
+    }
+    this.refresh()
+  },
+
+  refresh() {
+    if (this.refreshing) return
+    this.refreshing = true
+    this.lastRefreshAt = Date.now()
+    const state = store.getState()
+    const roleNames = {
+      user: '普通用户',
+      rider: '骑手',
+      provider: '服务者',
+      admin: '管理员'
+    }
+    const statusNames = {
+      active: '正常',
+      pending_verify: '待实名',
+      banned: '已限制',
+      removed: '已注销'
+    }
+    const user = state.user ? Object.assign({}, state.user, {
+      verifyText: state.user.verified ? '已实名' : '未实名',
+      verifyClass: state.user.verified ? 'ok' : 'warn',
+      verifyButtonText: state.user.verified ? '查看实名' : '去实名认证',
+      isAdmin: state.user.role === 'admin',
+      canWithdraw: state.user.role === 'rider' || state.user.role === 'provider',
+      roleText: roleNames[state.user.role] || state.user.role,
+      statusText: statusNames[state.user.status] || state.user.status,
+      initial: (state.user.nickname || '我').charAt(0)
+    }) : null
+    const nextData = { state, user, canShowWithdraw: Boolean(user && user.canWithdraw) }
+    if (user) {
+      nextData.profileForm = {
+        nickname: user.nickname || '',
+        username: user.username || '',
+        phone: user.phone || '',
+        address: user.address || ''
+      }
+    }
+    this.setData(nextData)
+    if (!state.isLogin) {
+      this.checkBackendStatus()
+      this.refreshing = false
+      return
+    }
+    const canRequestEarnings = user && user.canWithdraw
+    Promise.all([
+      api({ url: '/api/user/credit' }),
+      api({ url: '/api/goods/favorites' }),
+      canRequestEarnings ? api({ url: '/api/rider/earnings' }) : Promise.resolve({ data: { amount: 0, acceptedCount: 0, withdraws: [] } }),
+      api({ url: '/api/goods/mine' })
+    ]).then(([creditRes, favoritesRes, earningsRes, mineRes]) => {
+      const favorites = (favoritesRes.data.list || []).map((item) => Object.assign({}, item, {
+        statusLabel: GOODS_STATUS_TEXT[item.status] || item.status
+      }))
+      const earningsData = earningsRes.data || {}
+      const withdraws = (earningsData.withdraws || earningsData.withdrawsList || earningsData.list || []).map((item) => Object.assign({}, item, {
+        statusLabel: WITHDRAW_STATUS_TEXT[item.status] || item.status
+      }))
+      const earnings = Object.assign({ amount: 0, total: 0, acceptedCount: 0, withdraws: [] }, earningsData, {
+        amount: earningsData.amount !== undefined ? earningsData.amount : (earningsData.total || 0),
+        acceptedCount: earningsData.acceptedCount !== undefined ? earningsData.acceptedCount : ((earningsData.list || []).length),
+        withdraws
+      })
+      const myGoods = (mineRes.data.list || []).map((item) => Object.assign({}, item, {
+        statusLabel: GOODS_STATUS_TEXT[item.status] || item.status,
+        canRemove: item.status === 'on_sale' || item.status === 'pending' || item.status === 'reserved',
+        canRelist: item.status === 'removed' || item.status === 'rejected'
+      }))
+      this.setData({
+        credit: creditRes.data,
+        favorites,
+        earnings,
+        myGoods,
+        noMyGoods: myGoods.length === 0
+      })
+      this.checkBackendStatus()
+    }).finally(() => {
+      this.refreshing = false
+    })
+  },
+
+  checkBackendStatus() {
+    api({ url: '/api/status' }).then((res) => {
+      if (res.code !== 200) {
+        this.setData({
+          backendReady: false,
+          backendStatusText: '认证服务未连通'
+        })
+        return
+      }
+      this.setData({
+        backendReady: true,
+        backendStatusText: '认证服务正常'
+      })
+    }).catch(() => {
+      this.setData({
+        backendReady: false,
+        backendStatusText: '认证服务未连通'
+      })
+    })
+  },
+
+  login() {
+    api({ url: '/api/auth/login', method: 'POST' }).then((res) => {
+      if (res.code !== 200) {
+        wx.showToast({ title: res.msg || '登录失败', icon: 'none' })
+        return
+      }
+      wx.showToast({ title: '登录成功' })
+      const returnUrl = wx.getStorageSync('loginReturnUrl')
+      wx.removeStorageSync('loginReturnUrl')
+      this.refresh()
+      if (returnUrl) setTimeout(() => wx.navigateTo({ url: returnUrl, fail: () => {} }), 300)
+    })
+  },
+
+  logout() {
+    api({ url: '/api/auth/logout', method: 'POST' }).then(() => {
+      wx.showToast({ title: '已退出' })
+      this.refresh()
+    })
+  },
+
+  goVerify() {
+    wx.navigateTo({ url: '/pages/verify/verify' })
+  },
+
+  goPublish() {
+    wx.navigateTo({ url: '/pages/publish/publish' })
+  },
+
+  openServices() {
+    wx.navigateTo({ url: '/pages/services/services' })
+  },
+
+  openOrders() {
+    wx.navigateTo({ url: '/pages/orders/orders' })
+  },
+
+  openWallet() {
+    wx.navigateTo({ url: '/pages/wallet/wallet' })
+  },
+
+  openFavoritePage() {
+    wx.navigateTo({ url: '/pages/favorite/favorite' })
+  },
+
+  openSettingsPage() {
+    wx.navigateTo({ url: '/pages/settings/settings' })
+  },
+
+  toggleSection(e) {
+    const key = e.currentTarget.dataset.key
+    this.setData({ [`sections.${key}`]: !this.data.sections[key] })
+  },
+
+  onProfileInput(e) {
+    const key = e.currentTarget.dataset.key
+    this.setData({ [`profileForm.${key}`]: e.detail.value })
+  },
+
+  chooseAvatar() {
+    if (!store.requireLogin()) return
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const file = res.tempFiles && res.tempFiles[0]
+        this.uploadAvatarFile(file && file.tempFilePath)
+      },
+      fail: () => {}
+    })
+  },
+
+  uploadAvatarFile(filePath) {
+    if (!filePath || this.avatarUploading) return
+    this.avatarUploading = true
+    wx.showLoading({ title: '\u4e0a\u4f20\u4e2d', mask: true })
+    api({ url: '/api/files/upload-credential', method: 'POST', data: { scene: 'avatars' } }).then((res) => {
+      if (res.code !== 200) throw new Error(res.msg || '\u83b7\u53d6\u4e0a\u4f20\u51ed\u8bc1\u5931\u8d25')
+      const credential = res.data || {}
+      const baseUrl = (getApp().globalData && getApp().globalData.baseUrl) || ''
+      const relativeUploadUrl = credential.uploadUrl || '/api/files/upload'
+      return new Promise((resolve, reject) => wx.uploadFile({
+        url: /^https?:/i.test(relativeUploadUrl) ? relativeUploadUrl : baseUrl + relativeUploadUrl,
+        filePath,
+        name: 'file',
+        formData: { scene: credential.scene || 'avatars', uploadToken: credential.uploadToken || '', objectKey: 'avatar.jpg' },
+        success: (uploadRes) => {
+          let payload = {}
+          try { payload = JSON.parse(uploadRes.data || '{}') } catch (err) {}
+          if (payload.code !== 200 || !payload.data || !payload.data.url) return reject(new Error(payload.msg || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+          resolve({ avatar: payload.data.url, baseUrl })
+        },
+        fail: () => reject(new Error('\u5934\u50cf\u4e0a\u4f20\u5931\u8d25'))
+      }))
+    }).then(({ avatar, baseUrl }) => api({ url: '/api/user/profile', method: 'PUT', data: Object.assign({}, this.data.profileForm || {}, { avatar }) }).then((saved) => {
+      if (saved.code !== 200) throw new Error(saved.msg || '\u5934\u50cf\u4fdd\u5b58\u5931\u8d25')
+      store.updateUser({ avatar: /^https?:/i.test(avatar) ? avatar : baseUrl + avatar })
+      wx.showToast({ title: '\u5934\u50cf\u5df2\u66f4\u65b0' })
+      this.refresh()
+    })).catch((err) => wx.showToast({ title: err.message || '\u5934\u50cf\u4e0a\u4f20\u5931\u8d25', icon: 'none' })).finally(() => {
+      this.avatarUploading = false
+      wx.hideLoading()
+    })
+  },
+  saveProfile() {
+    const phone = String(this.data.profileForm.phone || '').trim()
+    if (phone && !/^1\d{10}$/.test(phone)) {
+      wx.showToast({ title: '手机号应为11位数字', icon: 'none' })
+      return
+    }
+    api({ url: '/api/user/profile', method: 'PUT', data: this.data.profileForm }).then(() => {
+      wx.showToast({ title: '资料已保存' })
+      this.refresh()
+    })
+  },
+
+  openFavorite(e) {
+    wx.navigateTo({ url: `/pages/detail/detail?id=${e.currentTarget.dataset.id}` })
+  },
+
+  openGoods(e) {
+    wx.navigateTo({ url: `/pages/detail/detail?id=${e.currentTarget.dataset.id}` })
+  },
+
+  removeGoods(e) {
+    api({ url: `/api/goods/${e.currentTarget.dataset.id}/status`, method: 'PUT', data: { status: 'removed' } }).then(() => {
+      wx.showToast({ title: '已下架' })
+      this.refresh()
+    })
+  },
+
+  relistGoods(e) {
+    api({ url: `/api/goods/${e.currentTarget.dataset.id}/status`, method: 'PUT', data: { status: 'on_sale' } }).then(() => {
+      wx.showToast({ title: '已提交复核' })
+      this.refresh()
+    })
+  },
+
+  openChatList() {
+    wx.switchTab({ url: '/pages/chat/chat' })
+  },
+
+  goAdmin() {
+    wx.navigateTo({ url: '/pages/admin/admin' })
+  },
+
+  onWithdrawInput(e) {
+    this.setData({ withdrawAmount: e.detail.value })
+  },
+
+  withdraw() {
+    api({
+      url: '/api/rider/withdraw',
+      method: 'POST',
+      data: { amount: this.data.withdrawAmount, reason: '收益提现' }
+    }).then((res) => {
+      if (res.code !== 200) {
+        wx.showToast({ title: res.msg, icon: 'none' })
+        return
+      }
+      const amount = this.data.withdrawAmount
+      wx.showToast({ title: '\u63d0\u73b0\u7533\u8bf7\u5df2\u63d0\u4ea4' })
+      wx.showModal({ title: '?????', content: '??? ?' + amount + ' ????????????????', showCancel: false })
+      this.setData({ withdrawAmount: '' })
+      this.refresh()
+    })
+  }
+})

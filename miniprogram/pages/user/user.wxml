@@ -1,0 +1,74 @@
+<view class="page user-page" wx:if="{{user}}">
+  <view class="user-card section">
+    <image wx:if="{{user.avatar}}" class="avatar avatar-image" src="{{user.avatar}}" mode="aspectFill"></image>
+    <view wx:else class="avatar">{{user.initial}}</view>
+    <view class="user-main">
+      <view class="row between">
+        <view>
+          <view class="title">{{user.nickname}}</view>
+          <view class="muted">{{user.usernameText}} · {{user.roleText}} · {{user.verifyText}}</view>
+        </view>
+        <text class="tag">信用{{user.creditScore}}</text>
+      </view>
+      <view class="profile-lines">
+        <view>{{user.campusLine}}</view>
+        <view>{{user.activityLine}}</view>
+      </view>
+      <view class="bio">{{user.bio}}</view>
+      <view class="tag-row">
+        <text wx:for="{{userTags}}" wx:key="*this" class="profile-tag">{{item}}</text>
+      </view>
+      <view class="metric-row">
+        <view class="metric"><view class="metric-value">{{user.reviewCount}}</view><view class="muted">收到评价</view></view>
+        <view class="metric"><view class="metric-value">{{user.completedCount}}</view><view class="muted">完成交易</view></view>
+        <view class="metric"><view class="metric-value">{{user.goodRate}}%</view><view class="muted">好评率</view></view>
+      </view>
+      <view class="metric-row compact">
+        <view class="metric"><view class="metric-value">{{user.activeGoodsCount}}</view><view class="muted">在售闲置</view></view>
+        <view class="metric"><view class="metric-value">{{user.activeServiceCount}}</view><view class="muted">可约服务</view></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section panel">
+    <view class="sub-title">他人评价</view>
+    <view wx:if="{{loadingPublic}}" class="muted empty">正在加载评价。</view>
+    <view wx:if="{{noReviews}}" class="muted empty">暂无评价。</view>
+    <view wx:for="{{reviews}}" wx:key="id" class="review-row">
+      <view class="row between">
+        <view class="review-user">{{item.fromName}} @{{item.fromUsername}}</view>
+        <text class="tag">{{item.score}}星</text>
+      </view>
+      <view class="review-text">{{item.content}}</view>
+      <view class="muted">{{item.time}}</view>
+    </view>
+  </view>
+
+  <view class="section panel">
+    <view class="sub-title">在售闲置</view>
+    <view wx:if="{{loadingPublic}}" class="muted empty">正在加载在售闲置。</view>
+    <view wx:if="{{noGoods}}" class="muted empty">暂无在售闲置。</view>
+    <view wx:for="{{goods}}" wx:key="id" class="item-row" data-id="{{item.id}}" bindtap="openGoods">
+      <view>
+        <view class="item-title">{{item.title}}</view>
+        <view class="muted">{{item.condition}} · {{item.location}}</view>
+        <view class="muted">{{item.auditNote}}</view>
+      </view>
+      <text class="price">￥{{item.price}}</text>
+    </view>
+  </view>
+
+  <view class="section panel">
+    <view class="sub-title">可预约服务</view>
+    <view wx:if="{{loadingPublic}}" class="muted empty">正在加载可预约服务。</view>
+    <view wx:if="{{noServices}}" class="muted empty">暂无可预约服务。</view>
+    <view wx:for="{{services}}" wx:key="id" class="item-row" data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openService">
+      <view>
+        <view class="item-title">{{item.title}}</view>
+        <view class="muted">{{item.desc}}</view>
+        <view class="muted">状态：{{item.status}}</view>
+      </view>
+      <text class="price">￥{{item.price}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,43 @@
+<view class="page service-page">
+  <view class="service-hero section">
+    <view>
+      <view class="title">校园服务</view>
+      <view class="muted">资料打印、课程答疑、设计排版等可预约服务</view>
+    </view>
+    <view class="service-badge">可预约</view>
+  </view>
+
+  <view class="panel section publish-guide">
+    <view>
+      <view class="sub-title">发布校园服务</view>
+      <view class="muted">服务者发布可预约服务；跑腿任务请进入跑腿大厅。</view>
+    </view>
+    <button class="small-publish-btn" bindtap="goPublish">去发布</button>
+  </view>
+
+  <view class="section list-head">
+    <view class="sub-title">服务大厅</view>
+    <view class="muted">浏览可预约校园服务</view>
+  </view>
+
+  <skeleton wx:if="{{loading}}" rows="{{4}}"></skeleton>
+  <view wx:elif="{{errorText}}" class="panel empty-line">{{errorText}}</view>
+  <view wx:elif="{{!services.length}}" class="panel empty-line">暂无可预约服务。</view>
+
+  <view wx:for="{{services}}" wx:key="id" wx:if="{{!loading && !errorText}}" class="service-card">
+    <view data-id="{{item.id}}" data-type="{{item.type}}" bindtap="openServiceDetail">
+      <view class="row between">
+        <view class="sub-title">{{item.title}}</view>
+        <text class="price">￥{{item.price}}</text>
+      </view>
+      <view class="meta-row">
+        <text class="tag">{{item.typeText}}</text>
+        <text class="tag">{{item.statusText}}</text>
+      </view>
+      <view class="muted">{{item.providerLine}}</view>
+      <view class="muted">{{item.serviceTime}} · {{item.locationText}}</view>
+      <view class="desc">{{item.desc}}</view>
+    </view>
+    <button class="btn service-action" loading="{{item.actionLoading}}" disabled="{{item.actionDisabled}}" data-id="{{item.id}}" bindtap="handleAction">{{item.actionText}}</button>
+  </view>
+</view>

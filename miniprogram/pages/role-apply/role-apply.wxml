@@ -1,0 +1,79 @@
+<view class="page role-apply-page">
+  <view class="section page-head">
+    <view class="title">{{config.title}}</view>
+    <view class="muted">{{config.subtitle}}</view>
+  </view>
+
+  <view wx:if="{{!isLogin}}" class="panel section">
+    <view class="sub-title">请先登录</view>
+    <view class="muted block">角色认证需要绑定到当前微信授权用户。</view>
+    <button class="btn" bindtap="login">微信授权登录</button>
+  </view>
+
+  <view wx:if="{{isLogin && !isVerified}}" class="panel section">
+    <view class="sub-title">先完成实名认证</view>
+    <view class="muted block">实名认证用于确认校园身份；{{config.title}}是在实名之后开通对应业务资格。</view>
+    <button class="btn" bindtap="goVerify">去实名认证</button>
+  </view>
+
+  <view wx:if="{{isLogin && isVerified}}">
+    <view class="panel section">
+      <view class="row between">
+        <view>
+          <view class="sub-title">{{user.nickname}}</view>
+          <view class="muted">已完成实名认证，可继续申请{{config.roleText}}权限。</view>
+        </view>
+        <status-tag text="已实名" type="ok"></status-tag>
+      </view>
+    </view>
+
+    <view wx:if="{{pendingCertified}}" class="panel section certified-card">
+      <view class="row between">
+        <view>
+          <view class="sub-title">?????</view>
+          <view class="muted">??????????????????????</view>
+        </view>
+        <status-tag text="???" type="pending"></status-tag>
+      </view>
+    </view>
+
+    <view wx:if="{{alreadyCertified}}" class="panel section certified-card">
+      <view class="row between">
+        <view>
+          <view class="sub-title">{{config.roleText}}权限已开通</view>
+          <view class="muted">当前账号已经可以使用对应业务能力。</view>
+        </view>
+        <status-tag text="已认证" type="ok"></status-tag>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">认证要求</view>
+      <view wx:for="{{config.checklist}}" wx:key="*this" class="check-line">
+        <text class="check-dot">✓</text>
+        <text>{{item}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{config.showRider}}" class="panel section">
+      <view class="sub-title">骑手接单资料</view>
+      <input class="input" placeholder="常跑区域，如 东区/北区/图书馆" value="{{form.campusArea}}" data-key="campusArea" bindinput="updateField" />
+      <input class="input" placeholder="可接单时间，如 工作日 18:00-22:00" value="{{form.availableTime}}" data-key="availableTime" bindinput="updateField" />
+      <input class="input" placeholder="紧急联系人或手机号" value="{{form.emergencyContact}}" data-key="emergencyContact" bindinput="updateField" />
+    </view>
+
+    <view wx:if="{{config.showProvider}}" class="panel section">
+      <view class="sub-title">服务者资料</view>
+      <input class="input" placeholder="服务类型，如 打印/资料整理/辅导" value="{{form.serviceCategory}}" data-key="serviceCategory" bindinput="updateField" />
+      <textarea class="textarea" placeholder="服务经验、交付方式和可服务时间" value="{{form.experience}}" data-key="experience" bindinput="updateField"></textarea>
+    </view>
+
+    <view class="panel section promise-row" bindtap="toggleAgreement">
+      <view class="checkbox {{form.agreement ? 'checked' : ''}}">{{form.agreement ? '✓' : ''}}</view>
+      <view class="promise-text">我承诺资料真实，接单/服务后按约定履约，并接受平台留痕、评价和异常处理。</view>
+    </view>
+
+    <button wx:if="{{!alreadyCertified}}" class="btn" bindtap="submit">{{config.submitText}}</button>
+    <button wx:if="{{canActivateRole}}" class="btn" bindtap="activateRole">切换为{{config.roleText}}</button>
+  </view>
+</view>

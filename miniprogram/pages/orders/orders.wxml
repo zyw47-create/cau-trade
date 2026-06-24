@@ -1,0 +1,90 @@
+<view class="page">
+  <view class="section">
+    <view class="title">我的订单</view>
+    <view class="muted">二手闲置、校园服务、跑腿任务统一查看进度、售后和评价</view>
+  </view>
+
+  <view class="section order-search-section">
+    <view class="order-search-bar">
+      <text class="order-search-icon">⌕</text>
+      <input
+        class="order-search-input"
+        value="{{searchKeyword}}"
+        placeholder="搜索订单号、标题、交易对象"
+        confirm-type="search"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+      />
+      <view wx:if="{{searchKeyword}}" class="order-search-clear" catchtap="clearSearch">×</view>
+    </view>
+    <view wx:if="{{searchResultText}}" class="muted search-result-line">{{searchResultText}}</view>
+  </view>
+
+  <scroll-view class="order-filters-scroll section" scroll-x enable-flex>
+    <view class="order-filters">
+      <view wx:for="{{filters}}" wx:key="key" class="{{item.className}}" data-key="{{item.key}}" bindtap="changeFilter">{{item.text}}</view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{loadingOrders}}" class="muted loading-line">订单加载中...</view>
+  <view wx:if="{{noOrders}}" class="panel empty-order">{{emptyText}}</view>
+
+  <view wx:for="{{visibleOrders}}" wx:key="orderSn" class="panel order-card">
+    <view class="row between">
+      <view class="order-title-area">
+        <view class="sub-title">{{item.title}}</view>
+        <view class="muted order-sn">{{item.snLabel}}：{{item.displaySn}}</view>
+      </view>
+      <text class="tag">{{item.statusLabel}}</text>
+    </view>
+
+    <view class="order-meta">
+      <text>{{item.itemTypeText}} · {{item.roleText}}</text>
+      <text
+        class="counterparty-link {{item.counterpartyId ? '' : 'disabled'}}"
+        data-user-id="{{item.counterpartyId}}"
+        data-sn="{{item.orderSn}}"
+        catchtap="openCounterparty"
+      >{{item.counterpartyLine}}</text>
+      <text>{{item.fundText}}</text>
+    </view>
+
+    <view class="progress-box">
+      <view class="row between">
+        <view class="progress-title">当前进度</view>
+        <text class="tag subtle-tag">{{item.actionHint}}</text>
+      </view>
+      <view class="progress-text">{{item.progressText}}</view>
+      <view wx:if="{{item.autoConfirm.enabled}}" class="muted latest-time">若买家未确认且未发起售后/投诉，{{item.autoConfirm.remainingText}}后将自动确认收货并结算。</view>
+      <view class="muted latest-time">{{item.latestTime}}</view>
+    </view>
+
+    <view wx:if="{{item.hasRefund}}" class="refund-box">
+      <view class="row between">
+        <view class="refund-title">{{item.refundTitle}}</view>
+        <text class="tag">{{item.refundStatusText}}</text>
+      </view>
+      <view class="refund-reason">{{item.refundReason}}</view>
+    </view>
+
+    <view class="event-list">
+      <text wx:for="{{item.summaryEvents}}" wx:for-item="event" wx:key="*this" class="event">{{event}}</text>
+    </view>
+
+    <view class="row between order-bottom">
+      <text class="price">￥{{item.amount}}</text>
+      <view class="order-actions">
+        <button class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openDetail">{{item.detailText}}</button>
+        <button wx:if="{{item.canPay}}" class="btn" data-sn="{{item.orderSn}}" catchtap="pay">支付</button>
+        <button wx:if="{{item.canCancel}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="cancelOrder">取消</button>
+        <button wx:if="{{item.canConfirm}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="confirmOrder">确认接单</button>
+        <button wx:if="{{item.canShip}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="ship">履约</button>
+        <button wx:if="{{item.canRefund}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="refund">售后</button>
+        <button wx:if="{{item.canComplain}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="complaint">投诉</button>
+        <button wx:if="{{item.canChat}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openChatEvidence">联系对方</button>
+        <button wx:if="{{item.canReceive}}" class="btn" data-sn="{{item.orderSn}}" catchtap="confirmReceive">确认完成</button>
+        <button wx:if="{{item.canComment}}" class="btn secondary" data-sn="{{item.orderSn}}" catchtap="openComment">评价</button>
+      </view>
+    </view>
+  </view>
+</view>

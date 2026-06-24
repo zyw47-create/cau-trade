@@ -1,0 +1,65 @@
+<view class="page service-detail-page" wx:if="{{item}}">
+  <view class="hero section">
+    <view>
+      <view class="title">{{item.title}}</view>
+      <view class="muted">{{item.typeText}} · {{item.statusText}}</view>
+    </view>
+    <view class="price big-price">￥{{item.price}}</view>
+  </view>
+
+  <view class="section panel">
+    <view class="sub-title">服务说明</view>
+    <view class="desc">{{item.desc}}</view>
+    <view wx:if="{{item.images.length}}" class="service-images">
+      <image wx:for="{{item.images}}" wx:key="*this" wx:for-item="imageUrl" class="service-image" src="{{imageUrl}}" mode="aspectFill"></image>
+    </view>
+    <view class="meta-grid">
+      <view class="meta-card">
+        <view class="meta-label">服务时段</view>
+        <view class="meta-value">{{item.serviceTime}}</view>
+      </view>
+      <view class="meta-card">
+        <view class="meta-label">服务地点</view>
+        <view class="meta-value">{{item.locationText}}</view>
+      </view>
+    </view>
+    <view class="tips-box">
+      <view class="tips-line">{{item.appointmentText}}</view>
+      <view class="tips-line">{{item.settlementText}}</view>
+    </view>
+    <view class="tag-row">
+      <text wx:for="{{trustTags}}" wx:key="*this" wx:for-item="tag" class="trust-tag">{{tag}}</text>
+    </view>
+    <view class="rule-list">
+      <view wx:for="{{item.detailItems}}" wx:for-item="rule" wx:key="*this" class="rule-row">{{rule}}</view>
+    </view>
+  </view>
+
+  <view class="owner-card section" bindtap="openOwner">
+    <image wx:if="{{item.ownerAvatar}}" class="avatar avatar-image" src="{{item.ownerAvatar}}" mode="aspectFill"></image>
+    <view wx:else class="avatar">{{item.ownerInitial}}</view>
+    <view class="owner-main">
+      <view class="owner-name">{{item.ownerLine}}</view>
+      <view class="muted">信用 {{item.owner.creditScore}} · {{item.owner.reviewCount}} 条评价 · 好评率 {{item.owner.goodRate}}%</view>
+    </view>
+    <view class="fold-arrow">主页</view>
+  </view>
+
+  <view class="section panel">
+    <view class="sub-title">服务者评价</view>
+    <view wx:if="{{noOwnerReviews}}" class="muted empty">暂时还没有评价</view>
+    <view wx:for="{{ownerReviews}}" wx:for-item="review" wx:key="id" class="review-row">
+      <view class="row between">
+        <view class="review-user">{{review.fromName}} @{{review.fromUsername}}</view>
+        <text class="tag">{{review.score}} 星</text>
+      </view>
+      <view class="review-text">{{review.content}}</view>
+    </view>
+  </view>
+
+  <view class="bottom-spacer"></view>
+  <view class="action-bar">
+    <button class="action-btn light" bindtap="openChat">先聊聊</button>
+    <button class="{{actionClass}}" loading="{{actionLoading}}" disabled="{{actionDisabled}}" bindtap="handlePrimaryAction">{{actionText}}</button>
+  </view>
+</view>

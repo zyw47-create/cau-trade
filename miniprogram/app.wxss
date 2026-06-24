@@ -1,0 +1,202 @@
+/* 全局统一为校园蓝与米白主题，保留原生小程序组件与业务结构。 */
+page {
+  background: #F6F1E7;
+  color: #2A2528;
+  font-family: SimSun, "宋体", serif;
+  font-size: 28rpx;
+}
+
+view,
+text,
+button,
+input,
+textarea,
+picker,
+scroll-view {
+  font-family: SimSun, "宋体", serif;
+}
+
+button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1.12;
+}
+
+button.btn,
+button.mini-btn,
+button.action-btn,
+button.head-btn,
+button.upload-btn,
+button.small-btn,
+button.code-btn,
+button.send-btn,
+button.back-btn,
+button.save-btn,
+button.recharge-btn,
+button.service-action,
+button.seller-chat,
+button.submit-comment,
+button.small-publish-btn {
+  line-height: 1.12;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+button.btn.btn,
+button.mini-btn.mini-btn,
+button.action-btn.action-btn,
+button.head-btn.head-btn,
+button.upload-btn.upload-btn,
+button.small-btn.small-btn,
+button.code-btn.code-btn,
+button.send-btn.send-btn,
+button.back-btn.back-btn,
+button.save-btn.save-btn,
+button.recharge-btn.recharge-btn,
+button.service-action.service-action,
+button.seller-chat.seller-chat,
+button.submit-comment.submit-comment,
+button.small-publish-btn.small-publish-btn {
+  line-height: 1.12;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 28rpx 28rpx 44rpx;
+  box-sizing: border-box;
+  background: #F6F1E7;
+}
+
+.section {
+  margin-bottom: 28rpx;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1rpx solid rgba(31, 78, 121, 0.10);
+  border-radius: 30rpx;
+  padding: 28rpx;
+  box-shadow: 0 18rpx 44rpx rgba(31, 78, 121, 0.08);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.muted {
+  color: #8A7D85;
+}
+
+.title {
+  color: #262126;
+  font-size: 40rpx;
+  font-weight: 800;
+  line-height: 1.22;
+}
+
+.sub-title {
+  color: #2B252B;
+  font-size: 32rpx;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.price {
+  color: #1F4E79;
+  font-size: 36rpx;
+  font-weight: 800;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 18rpx;
+  background: #EEF3F7;
+  color: #1F4E79;
+  border: 1rpx solid rgba(31, 78, 121, 0.12);
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.btn {
+  height: 76rpx;
+  line-height: 1.12;
+  border-radius: 999rpx;
+  background: #1F4E79;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 14rpx 30rpx rgba(31, 78, 121, 0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.96);
+  color: #1F4E79;
+  border: 1rpx solid rgba(31, 78, 121, 0.22);
+  box-shadow: 0 10rpx 24rpx rgba(31, 78, 121, 0.06);
+}
+
+.btn.danger {
+  background: #B42318;
+  color: #ffffff;
+}
+
+.input,
+.textarea,
+.picker {
+  width: 100%;
+  min-height: 84rpx;
+  box-sizing: border-box;
+  border: 1rpx solid rgba(31, 78, 121, 0.14);
+  border-radius: 26rpx;
+  background: #FBF7EF;
+  padding: 20rpx 24rpx;
+  margin-top: 16rpx;
+  color: #2A2528;
+}
+
+.textarea {
+  min-height: 190rpx;
+  line-height: 1.6;
+}
+
+@media screen and (min-width: 768px) {
+  page {
+    background: #F1E9D8;
+  }
+
+  .page,
+  .home-page,
+  .profile-page,
+  .chat-page {
+    width: 750rpx;
+    max-width: 430px;
+    min-height: 100vh;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1rpx rgba(31, 78, 121, 0.06);
+  }
+
+  .page {
+    padding-left: 32rpx;
+    padding-right: 32rpx;
+  }
+}

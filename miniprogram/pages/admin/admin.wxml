@@ -1,0 +1,196 @@
+<view class="page">
+  <view class="section">
+    <view class="title">管理后台</view>
+    <view class="muted">商品审核、订单仲裁、提现审核和统计审计。</view>
+  </view>
+
+  <view wx:if="{{!isAdmin}}" class="panel section">
+    <view class="sub-title">权限受限</view>
+    <view class="muted hint">当前账号暂无管理权限，请联系平台管理员开通后台权限。</view>
+  </view>
+
+  <view wx:if="{{isAdmin}}">
+    <view class="stats-grid section">
+      <view class="panel metric"><view class="metric-value">{{stats.goodsOnSale}}</view><view class="muted">在售商品</view></view>
+      <view class="panel metric"><view class="metric-value">{{stats.pendingGoods}}</view><view class="muted">待审商品</view></view>
+      <view class="panel metric"><view class="metric-value">{{stats.refundingOrders}}</view><view class="muted">售后订单</view></view>
+      <view class="panel metric"><view class="metric-value">¥{{stats.todayAmount}}</view><view class="muted">交易金额</view></view>
+    </view>
+
+    <view class="panel section">
+      <view class="row between">
+        <view class="sub-title">统计导出</view>
+        <button class="btn mini" bindtap="exportStats">导出CSV</button>
+      </view>
+      <view wx:if="{{exportInfo}}" class="export-box">
+        <view>{{exportInfo.fileName}}</view>
+        <view class="muted">已生成 {{exportInfo.rows.length}} 行统计数据，可供报表下载接口对接。</view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="row between">
+        <view class="sub-title">运维安全</view>
+        <button class="btn mini" loading="{{backupRunning}}" bindtap="runBackup">生成备份</button>
+      </view>
+      <view class="ops-grid">
+        <view class="ops-card">
+          <view class="ops-value {{opsHealth.status === 'healthy' ? 'ok' : 'warn'}}">{{opsHealth.statusText}}</view>
+          <view class="muted">数据库状态</view>
+        </view>
+        <view class="ops-card">
+          <view class="ops-value">{{opsHealth.mysqlVersion}}</view>
+          <view class="muted">MySQL版本</view>
+        </view>
+        <view class="ops-card">
+          <view class="ops-value">{{opsHealth.baseTableCount}}/{{opsHealth.viewCount}}</view>
+          <view class="muted">表/视图</view>
+        </view>
+        <view class="ops-card">
+          <view class="ops-value">{{opsHealth.abnormalWalletOrders}}</view>
+          <view class="muted">资金异常</view>
+        </view>
+      </view>
+      <view wx:if="{{latestBackup}}" class="backup-box">
+        <view class="row between">
+          <view class="backup-name">{{latestBackup.fileName}}</view>
+          <view class="badge ok">SHA</view>
+        </view>
+        <view class="muted">大小 {{latestBackup.sizeBytes}} B · {{latestBackup.time}}</view>
+        <view class="hash muted">{{latestBackup.sha256}}</view>
+      </view>
+      <view class="check-list">
+        <view wx:for="{{securityChecks}}" wx:key="id" class="check-row">
+          <view>{{item.name}}</view>
+          <view class="badge {{item.status === 'pass' ? 'ok' : 'warn'}}">{{item.value}}</view>
+        </view>
+      </view>
+      <view class="event-list">
+        <view wx:for="{{opsEvents}}" wx:key="name" class="event-row">
+          <view>
+            <view>{{item.name}}</view>
+            <view class="muted">{{item.schedule}} · 上次 {{item.lastExecuted}}</view>
+          </view>
+          <view class="badge warn">{{item.statusText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">用户治理</view>
+      <view wx:for="{{users}}" wx:key="id" class="admin-row">
+        <view>
+          <view>{{item.nickname}}</view>
+          <view class="muted">{{item.roleText}} · {{item.statusText}} · 信用{{item.creditScore}}</view>
+        </view>
+        <button class="btn secondary mini" data-id="{{item.id}}" data-status="{{item.nextStatus}}" bindtap="changeUserStatus">{{item.statusAction}}</button>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">AI审核规则</view>
+      <view class="rule-row">
+        <text>文本审核</text>
+        <switch checked="{{aiRules.textAudit}}" data-key="textAudit" bindchange="toggleRule" />
+      </view>
+      <view class="rule-row">
+        <text>图片审核</text>
+        <switch checked="{{aiRules.imageAudit}}" data-key="imageAudit" bindchange="toggleRule" />
+      </view>
+      <input class="input" placeholder="人工复核风险级别" value="{{aiRules.manualRiskLevel}}" data-key="manualRiskLevel" bindinput="onRuleInput" />
+      <textarea class="textarea" placeholder="敏感词，逗号分隔" value="{{aiRules.keywords}}" data-key="keywords" bindinput="onRuleInput" />
+      <view class="muted rule-time">更新时间：{{aiRules.updatedAt}}</view>
+      <button class="btn" bindtap="saveRules">保存AI规则</button>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">商品审核</view>
+      <view wx:if="{{noPendingGoods}}" class="muted empty">暂无待审商品。</view>
+      <view wx:for="{{pendingGoods}}" wx:key="id" class="admin-row">
+        <view>
+          <view>{{item.title}}</view>
+          <view class="muted">{{item.auditNote}} · ¥{{item.price}}</view>
+        </view>
+        <view class="actions">
+          <button class="btn secondary mini" data-id="{{item.id}}" data-result="reject" bindtap="auditGoods">驳回</button>
+          <button class="btn mini" data-id="{{item.id}}" data-result="pass" bindtap="auditGoods">通过</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">订单仲裁</view>
+      <view wx:if="{{noRefundingOrders}}" class="muted empty">暂无售后仲裁。</view>
+      <view wx:for="{{refundingOrders}}" wx:key="orderSn" class="admin-row">
+        <view>
+          <view>{{item.title}}</view>
+          <view class="muted">{{item.orderSn}} · ¥{{item.amount}}</view>
+        </view>
+        <view class="actions">
+          <button class="btn secondary mini" loading="{{evidenceLoading}}" data-id="{{item.id}}" bindtap="loadEvidence">证据链</button>
+          <button class="btn secondary mini" data-id="{{item.id}}" data-sn="{{item.orderSn}}" data-result="seller" bindtap="arbitrate">卖家胜诉</button>
+          <button class="btn mini" data-id="{{item.id}}" data-sn="{{item.orderSn}}" data-result="buyer" bindtap="arbitrate">买家胜诉</button>
+        </view>
+      </view>
+      <view wx:if="{{evidenceDetail}}" class="evidence-box">
+        <view class="row between">
+          <view>
+            <view class="evidence-title">{{evidenceDetail.title}}</view>
+            <view class="muted">{{evidenceDetail.orderSn}} · {{evidenceDetail.refundStatus}} · {{evidenceDetail.fundStatus}}</view>
+          </view>
+          <button class="btn secondary mini" bindtap="closeEvidence">收起</button>
+        </view>
+        <view class="evidence-grid">
+          <view class="evidence-cell">
+            <view class="evidence-value">{{evidenceDetail.buyerName}}</view>
+            <view class="muted">买家 · 信用{{evidenceDetail.buyerCreditScore}}</view>
+          </view>
+          <view class="evidence-cell">
+            <view class="evidence-value">{{evidenceDetail.sellerName}}</view>
+            <view class="muted">卖家 · 信用{{evidenceDetail.sellerCreditScore}}</view>
+          </view>
+          <view class="evidence-cell">
+            <view class="evidence-value">{{evidenceDetail.messageCount}}</view>
+            <view class="muted">聊天证据</view>
+          </view>
+          <view class="evidence-cell">
+            <view class="evidence-value {{evidenceDetail.hashChainStatus === 'ok' ? 'ok-text' : 'warn-text'}}">{{evidenceDetail.hashChainStatus}}</view>
+            <view class="muted">哈希校验</view>
+          </view>
+        </view>
+        <view class="evidence-reason">{{evidenceDetail.reason}}</view>
+        <view wx:for="{{evidenceDetail.messages}}" wx:key="messageId" class="evidence-message">
+          <view class="row between">
+            <view>{{item.senderName}} → {{item.receiverName}}</view>
+            <view class="badge {{item.hashText === '校验通过' ? 'ok' : 'warn'}}">{{item.hashText}}</view>
+          </view>
+          <view class="muted">{{item.createdAt}} · {{item.statusText}} · {{item.shortHash}}</view>
+          <view class="evidence-content">{{item.content}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">提现审核</view>
+      <view wx:if="{{noWithdraws}}" class="muted empty">暂无提现申请。</view>
+      <view wx:for="{{withdraws}}" wx:key="id" class="admin-row">
+        <view>
+          <view>{{item.applicant}} · ¥{{item.amount}}</view>
+          <view class="muted">{{item.roleText}} · {{item.statusText}} · {{item.reason}}</view>
+        </view>
+        <view class="actions" wx:if="{{item.canAudit}}">
+          <button class="btn secondary mini" data-id="{{item.id}}" data-result="reject" bindtap="auditWithdraw">驳回</button>
+          <button class="btn mini" data-id="{{item.id}}" data-result="pass" bindtap="auditWithdraw">通过</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="panel section">
+      <view class="sub-title">审计日志</view>
+      <view wx:for="{{auditLogs}}" wx:key="id" class="log-row">
+        <view>{{item.action}}</view>
+        <view class="muted">{{item.target}} · {{item.operator}} · {{item.time}}</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,110 @@
+.user-card {
+  background: #ffffff;
+  border: 1rpx solid #ececec;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  display: flex;
+  gap: 20rpx;
+}
+
+.avatar {
+  width: 92rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  border-radius: 50%;
+  background: #222222;
+  color: #ffffff;
+  text-align: center;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.avatar-image {
+  display: block;
+  line-height: 1;
+  background: #f6f6f6;
+}
+
+.user-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.metric-row.compact {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 12rpx;
+}
+
+.metric {
+  background: #f6f6f6;
+  border-radius: 8rpx;
+  padding: 14rpx;
+}
+
+.metric-value {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.profile-lines {
+  margin-top: 14rpx;
+  color: #555555;
+  font-size: 24rpx;
+  line-height: 38rpx;
+}
+
+.bio {
+  margin-top: 12rpx;
+  color: #333333;
+  line-height: 42rpx;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 14rpx;
+}
+
+.profile-tag {
+  padding: 6rpx 10rpx;
+  border-radius: 6rpx;
+  background: #f2f4f7;
+  color: #555555;
+  font-size: 22rpx;
+}
+
+.review-row,
+.item-row {
+  border-top: 1rpx solid #eef2f6;
+  padding: 18rpx 0;
+}
+
+.review-user,
+.item-title {
+  font-weight: 700;
+}
+
+.review-text {
+  margin: 10rpx 0;
+  line-height: 42rpx;
+  color: #333333;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.empty {
+  display: block;
+  padding-top: 16rpx;
+}

@@ -1,0 +1,167 @@
+.order-detail-page {
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.order-head {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16rpx;
+}
+
+.amount-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+}
+
+.action-hint {
+  margin-top: 18rpx;
+  padding: 18rpx;
+  background: #fff8ef;
+  border: 1rpx solid #ffe1b8;
+  border-radius: 12rpx;
+  color: #8a5a13;
+  line-height: 40rpx;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.summary-card {
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #f7f8fa;
+}
+
+.summary-label {
+  color: #7c8698;
+  font-size: 24rpx;
+}
+
+.summary-value {
+  margin-top: 8rpx;
+  color: #1f2329;
+  line-height: 42rpx;
+  font-weight: 600;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 150rpx 1fr;
+  gap: 18rpx;
+  padding: 18rpx 0;
+  border-top: 1rpx solid #eef2f6;
+  color: #333333;
+  line-height: 40rpx;
+}
+
+.info-row text:first-child {
+  color: #6b7280;
+}
+
+.timeline-row {
+  display: flex;
+  gap: 16rpx;
+  padding-top: 22rpx;
+}
+
+.timeline-dot {
+  width: 18rpx;
+  height: 18rpx;
+  margin-top: 8rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-dot.done {
+  background: #ff7a00;
+}
+
+.timeline-dot.pending {
+  background: #d1d5db;
+}
+
+.timeline-main {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 22rpx;
+  border-bottom: 1rpx solid #eef2f6;
+}
+
+.timeline-title {
+  font-weight: 700;
+}
+
+.timeline-time {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  font-size: 22rpx;
+}
+
+.timeline-desc,
+.refund-text {
+  margin-top: 8rpx;
+  color: #333333;
+  line-height: 42rpx;
+}
+
+.refund-panel {
+  border-color: #ffd6a6;
+}
+
+.refund-result {
+  margin-top: 10rpx;
+  color: #1f4e79;
+  font-weight: 700;
+  line-height: 42rpx;
+}
+
+.seller-reply {
+  margin-top: 10rpx;
+  line-height: 40rpx;
+}
+
+.evidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  margin-top: 18rpx;
+}
+
+.evidence {
+  padding: 12rpx 14rpx;
+  border-radius: 8rpx;
+  background: #f6f6f6;
+  color: #555555;
+  font-size: 24rpx;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14rpx;
+  margin-top: 18rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.action-grid .btn {
+  width: 100%;
+  min-width: 0;
+  height: 68rpx;
+  line-height: 1.12;
+  font-size: 24rpx;
+  padding: 0 14rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.submit-comment {
+  margin-top: 18rpx;
+}

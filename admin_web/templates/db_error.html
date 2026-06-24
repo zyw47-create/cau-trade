@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}数据库连接异常 - 校园交易管理后台{% endblock %}
+
+{% block content %}
+<section class="empty-state">
+  <h1>数据库连接异常</h1>
+  <p>当前后台无法连接到 MySQL，请确认数据库已启动，且库名、账号、密码正确。</p>
+  <dl class="detail-list">
+    <div><dt>Host</dt><dd>{{ db.host }}:{{ db.port }}</dd></div>
+    <div><dt>Database</dt><dd>{{ db.database }}</dd></div>
+    <div><dt>User</dt><dd>{{ db.user }}</dd></div>
+    <div><dt>Error</dt><dd>{{ error }}</dd></div>
+  </dl>
+</section>
+{% endblock %}

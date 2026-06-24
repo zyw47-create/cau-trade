@@ -1,0 +1,89 @@
+.modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.modal-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(36, 25, 31, 0.42);
+}
+
+.modal-panel {
+  position: absolute;
+  left: 46rpx;
+  right: 46rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 34rpx;
+  border-radius: 34rpx;
+  background: #ffffff;
+  box-shadow: 0 28rpx 80rpx rgba(36, 25, 31, 0.22);
+}
+
+.modal-title {
+  color: #262126;
+  font-size: 34rpx;
+  font-weight: 900;
+}
+
+.modal-content {
+  margin-top: 16rpx;
+  color: #6f6068;
+  line-height: 42rpx;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 28rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-actions.single-action {
+  justify-content: flex-end;
+}
+
+.modal-actions.two-actions .modal-btn {
+  flex: 1;
+  width: 0;
+}
+
+.modal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-width: 0;
+  height: 72rpx;
+  margin: 0;
+  padding: 0 16rpx;
+  line-height: 1.12;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 800;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-btn::after {
+  border: none;
+}
+
+.modal-btn.cancel {
+  color: #1F4E79;
+  background: #EEF3F7;
+}
+
+.modal-btn.confirm {
+  color: #ffffff;
+  background: #1F4E79;
+}
+
+.modal-actions.single-action .modal-btn.confirm {
+  width: 240rpx;
+}

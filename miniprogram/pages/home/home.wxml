@@ -1,0 +1,110 @@
+<view class="home-page">
+  <!-- 动态背景层：用小程序原生 WXSS 动画模拟参考网页的彩色开屏动效 -->
+  <view class="motion-bg">
+    <view class="glow glow-blue"></view>
+    <view class="glow glow-cyan"></view>
+    <view class="glow glow-yellow"></view>
+    <view class="wave wave-a"></view>
+    <view class="wave wave-b"></view>
+    <view class="wave wave-c"></view>
+    <view class="particle particle-1"></view>
+    <view class="particle particle-2"></view>
+    <view class="particle particle-3"></view>
+    <view class="particle particle-4"></view>
+    <view class="scan-light"></view>
+  </view>
+
+  <view class="hero-stage">
+    <view class="hero-copy fade-up">
+      <view class="hero-kicker">A POWERED CAMPUS MARKETPLACE</view>
+      <view class="hero-title">
+        <text class="title-line title-campus">CAMPUS</text>
+        <text class="title-line title-market">MARKET</text>
+      </view>
+      <view class="hero-cn">校园二手交易微信小程序平台</view>
+      <view class="hero-desc">二手商品、校园服务与跑腿任务，一站式连接校内需求。</view>
+    </view>
+
+    <view class="hero-actions fade-up stagger-1">
+      <view class="hero-button primary" hover-class="button-active" bindtap="publish">发布需求</view>
+      <view class="hero-button secondary" hover-class="button-active" bindtap="browseGoods">开始逛逛</view>
+    </view>
+
+    <view class="hero-metrics fade-up stagger-2">
+      <view wx:for="{{metrics}}" wx:key="label" class="metric-card">
+        <view class="metric-value">{{item.value}}</view>
+        <view class="metric-label">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="quick-section fade-up stagger-3">
+    <view class="section-head">
+      <view>
+        <view class="section-title">快捷入口</view>
+        <view class="section-desc">按校园交易、服务和跑腿场景快速进入。</view>
+      </view>
+      <view class="section-badge">LIVE</view>
+    </view>
+
+    <view class="action-grid">
+      <view
+        wx:for="{{actions}}"
+        wx:key="label"
+        class="action-card {{item.theme}}"
+        data-index="{{index}}"
+        bindtap="openPage"
+        hover-class="action-card-active"
+      >
+        <view class="action-tint {{item.tint}}"></view>
+        <view class="action-icon">{{item.icon}}</view>
+        <view class="action-copy">
+          <view class="action-label">{{item.label}}</view>
+          <view class="action-desc">{{item.desc}}</view>
+        </view>
+        <view class="action-arrow">→</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{hasHotGoods}}" class="hot-section fade-up stagger-3">
+    <view class="section-head">
+      <view>
+        <view class="section-title">热门商品</view>
+        <view class="section-desc">按收藏量和近期浏览热度推荐。</view>
+      </view>
+      <view class="section-badge">HOT</view>
+    </view>
+
+    <view class="hot-grid">
+      <view
+        wx:for="{{hotGoods}}"
+        wx:key="id"
+        class="hot-card"
+        data-id="{{item.id}}"
+        bindtap="openHotGoods"
+        hover-class="action-card-active"
+      >
+        <view class="hot-cover">
+          <image wx:if="{{item.image}}" class="hot-image" src="{{item.image}}" mode="aspectFill"></image>
+          <view wx:else class="hot-placeholder">{{item.category || '闲置'}}</view>
+          <view class="hot-rank">TOP {{index + 1}}</view>
+        </view>
+        <view class="hot-main">
+          <view class="hot-title">{{item.title}}</view>
+          <view class="hot-meta">{{item.condition}} · {{item.location}}</view>
+          <view class="hot-bottom">
+            <text class="hot-price">¥{{item.price}}</text>
+            <text class="hot-count">{{item.hotText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="notice fade-up stagger-3">
+    <view class="notice-orbit"></view>
+    <view class="notice-title">校园认证保障</view>
+    <view class="notice-desc">交易、服务和跑腿功能均支持实名身份、信用信息与内容审核，降低校内交易沟通成本。</view>
+  </view>
+</view>

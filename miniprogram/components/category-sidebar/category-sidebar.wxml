@@ -1,0 +1,12 @@
+<scroll-view scroll-y class="category-sidebar">
+  <view
+    wx:for="{{categories}}"
+    wx:key="name"
+    class="side-item {{item.name === active ? 'active' : ''}}"
+    data-item="{{item}}"
+    bindtap="select"
+  >
+    <view class="side-name">{{item.name}}</view>
+    <view wx:if="{{item.count !== undefined}}" class="side-count">{{item.count}}</view>
+  </view>
+</scroll-view>
