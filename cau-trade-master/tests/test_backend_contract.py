@@ -426,7 +426,11 @@ def test_wechat_transport_errors_are_auth_errors(monkeypatch):
         max_upload_bytes=5 * 1024 * 1024,
     )
     auth_service.configure_auth_service(cfg)
-    monkeypatch.setattr(auth_service.urllib.request, "urlopen", lambda request, timeout=8: (_ for _ in ()).throw(urllib.error.URLError("timeout")))
+    class FailingOpener:
+        def open(self, request, timeout=8):
+            raise urllib.error.URLError("timeout")
+
+    monkeypatch.setattr(auth_service.urllib.request, "build_opener", lambda *_args: FailingOpener())
 
     with pytest.raises(auth_service.AuthError, match="wechat login request failed"):
         auth_service.login({"code": "wx-code"})

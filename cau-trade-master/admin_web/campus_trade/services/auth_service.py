@@ -46,7 +46,9 @@ def _wechat_jscode2session(code: str) -> dict:
     )
     url = "https://api.weixin.qq.com/sns/jscode2session?" + query
     try:
-        with urllib.request.urlopen(url, timeout=8) as response:
+        # WeChat authentication must bypass any stale local proxy settings.
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(url, timeout=8) as response:
             return json.loads(response.read().decode("utf-8"))
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
         raise AuthError(f"wechat login request failed: {exc}") from exc
